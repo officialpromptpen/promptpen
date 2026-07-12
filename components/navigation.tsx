@@ -1,8 +1,9 @@
+import { browser } from "wxt/browser"
 import { LayoutDashboard, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 function openOptions() {
-  chrome.runtime.openOptionsPage()
+  browser.runtime.openOptionsPage()
 }
 
 const links = [

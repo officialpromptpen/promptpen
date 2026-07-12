@@ -1,3 +1,5 @@
+import { storage } from "@wxt-dev/storage"
+import { browser } from "wxt/browser"
 import {
   DEFAULT_PROVIDER,
   getProviderDefinition,
@@ -60,7 +62,7 @@ function fromBase64(base64: string): ArrayBuffer {
 }
 
 async function getEncryptionKey(): Promise<CryptoKey> {
-  const seed = `${chrome.runtime.id}:${ENCRYPTION_SALT}`
+  const seed = `${browser.runtime.id}:${ENCRYPTION_SALT}`
   const seedDigest = await crypto.subtle.digest("SHA-256", encoder.encode(seed))
 
   return crypto.subtle.importKey("raw", seedDigest, { name: "AES-GCM" }, false, [
@@ -98,8 +100,7 @@ async function decryptString(payload: EncryptedPayload): Promise<string | null> 
 }
 
 async function readState(): Promise<StoredProviderState> {
-  const result = await chrome.storage.local.get(STORAGE_KEY)
-  const state = result[STORAGE_KEY] as StoredProviderState | undefined
+  const state = await storage.getItem<StoredProviderState>(`local:${STORAGE_KEY}`)
   if (state) {
     return state
   }
@@ -111,7 +112,7 @@ async function readState(): Promise<StoredProviderState> {
 }
 
 async function writeState(state: StoredProviderState): Promise<void> {
-  await chrome.storage.local.set({ [STORAGE_KEY]: state })
+  await storage.setItem(`local:${STORAGE_KEY}`, state)
 }
 
 function getProviderModel(provider: AIProvider): string {

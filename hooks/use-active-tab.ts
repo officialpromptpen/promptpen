@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser"
 import { useEffect, useState } from "react"
 
 interface ActiveTabState {
@@ -20,7 +21,7 @@ export function useActiveTab(): ActiveTabState {
 
     async function readActiveTab() {
       try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+        const tabs = await browser.tabs.query({ active: true, currentWindow: true })
         const tab = tabs[0]
         if (!mounted) {
           return

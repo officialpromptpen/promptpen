@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronRight, Loader2, Pen } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
@@ -84,7 +85,7 @@ function IndexOptions() {
 
           <div className="px-4 py-3">
             <p className="text-xs text-muted-foreground">
-              PromptPen v{chrome.runtime.getManifest().version}
+              PromptPen v{browser.runtime.getManifest().version}
             </p>
           </div>
         </aside>

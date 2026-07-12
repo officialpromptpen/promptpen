@@ -1,3 +1,4 @@
+import { browser } from "wxt/browser"
 import { motion } from "framer-motion"
 import { Globe, Pen } from "lucide-react"
 import { Layout } from "@/components/layout"
@@ -39,7 +40,7 @@ function IndexPopup() {
             <span className="text-sm font-semibold">PromptPen</span>
           </div>
           <div className="flex flex-row items-center gap-1">
-            <p className="text-xs text-muted-foreground">v{chrome.runtime.getManifest().version}</p>
+            <p className="text-xs text-muted-foreground">v{browser.runtime.getManifest().version}</p>
             <ThemeToggle />
           </div>
         </header>
