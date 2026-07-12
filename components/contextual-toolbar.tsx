@@ -7,6 +7,7 @@ import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
 import { useTheme } from "next-themes"
 import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
+import { ThemeProvider } from '@/features/theme/theme-provider'
 
 interface ToolbarPosition {
   top: number
@@ -32,7 +33,7 @@ function createActionPrompt(actionId: string, text: string): string {
   return `${instruction}\n\nText:\n"""\n${text}\n"""`
 }
 
-export function ContextualToolbar() {
+function ContextualToolbarContent() {
   const [selectedText, setSelectedText] = useState('')
   const [toolbarPos, setToolbarPos] = useState<ToolbarPosition>({
     top: 0,
@@ -47,7 +48,7 @@ export function ContextualToolbar() {
   const [errorText, setErrorText] = useState('')
   const [copied, setCopied] = useState(false)
   const selectionRangeRef = useRef<Range | null>(null)
-  const { resolvedTheme = "light" } = useTheme()
+  const { resolvedTheme } = useTheme()
 
 
   const calculateToolbarPosition = useCallback((range: Range): ToolbarPosition => {
@@ -235,11 +236,10 @@ export function ContextualToolbar() {
   }, [handleSelection])
 
   return (
-    <Layout variant="inline">
+    <>
       <AnimatePresence>
         {toolbarPos.visible && !showResult && (
           <motion.div
-            data-theme={resolvedTheme}
             className="fixed z-2147483647 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-2xl backdrop-blur-md"
             style={{
               top: `${toolbarPos.top}px`,
@@ -265,7 +265,6 @@ export function ContextualToolbar() {
       <AnimatePresence>
         {showResult && (
           <motion.div
-            data-theme={resolvedTheme}
             className="fixed inset-0 z-2147483647 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -372,6 +371,14 @@ export function ContextualToolbar() {
           </motion.div>
         )}
       </AnimatePresence>
+    </>
+  )
+}
+
+export function ContextualToolbar() {
+  return (
+    <Layout variant="inline">
+      <ContextualToolbarContent />
     </Layout>
   )
 }

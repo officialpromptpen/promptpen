@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client"
+import { storage } from "@wxt-dev/storage"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { createProviderAdapter } from "@/features/providers/sdk"
 import { useToolbarStore } from "@/stores/toolbar"
@@ -28,6 +29,16 @@ const DEFAULT_SUGGESTION_SETTINGS: SuggestionSettings = {
   autoSuggest: true,
   excludedSites: [],
   privacyMode: false,
+}
+
+function applyThemeToPage(theme: string) {
+  const root = document.documentElement
+  root.classList.remove("light", "dark")
+  const resolved = theme === "system"
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : theme
+  root.classList.add(resolved)
+  root.style.colorScheme = resolved
 }
 
 function isTextInputElement(element: Element | null): element is HTMLInputElement {
@@ -92,13 +103,8 @@ function trimSuggestion(input: string): string {
 }
 
 async function readSuggestionSettings(): Promise<SuggestionSettings> {
-  if (!chrome?.storage?.local) {
-    return DEFAULT_SUGGESTION_SETTINGS
-  }
-
   try {
-    const result = await chrome.storage.local.get(OPTIONS_SETTINGS_KEY)
-    const raw = result[OPTIONS_SETTINGS_KEY] as Partial<SuggestionSettings> | undefined
+    const raw = await storage.getItem<Partial<SuggestionSettings>>(`local:${OPTIONS_SETTINGS_KEY}`)
 
     return {
       autoSuggest: raw?.autoSuggest ?? DEFAULT_SUGGESTION_SETTINGS.autoSuggest,
@@ -192,6 +198,7 @@ function getTextControlSelection(): { text: string; rect: DOMRect } | null {
 
 function ContentScript() {
   const { show, hide, isPinned } = useToolbarStore()
+  const [themeVersion, setThemeVersion] = useState(0)
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const settingsRef = useRef<SuggestionSettings>(DEFAULT_SUGGESTION_SETTINGS)
@@ -341,6 +348,16 @@ function ContentScript() {
   }
 
   useEffect(() => {
+    const unwatch = storage.watch<string>("local:theme", (newTheme) => {
+      if (!newTheme) return
+      localStorage.setItem("promptpen-theme", newTheme)
+      applyThemeToPage(newTheme)
+      setThemeVersion((v) => v + 1)
+    })
+    return unwatch
+  }, [])
+
+  useEffect(() => {
     function handleSelection() {
       if (isPinned) {
         return
@@ -392,10 +409,6 @@ function ContentScript() {
   }, [isPinned, show, hide])
 
   useEffect(() => {
-    if (!chrome?.storage?.local) {
-      return
-    }
-
     let mounted = true
 
     async function hydrateSuggestionSettings() {
@@ -411,27 +424,20 @@ function ContentScript() {
 
     void hydrateSuggestionSettings()
 
-    function handleStorageChange(changes: { [key: string]: chrome.storage.StorageChange }) {
-      const settingsChange = changes[OPTIONS_SETTINGS_KEY]
-      if (!settingsChange) {
-        return
-      }
-
-      const nextValue = settingsChange.newValue as Partial<SuggestionSettings> | undefined
+    const unwatch = storage.watch<Partial<SuggestionSettings>>(`local:${OPTIONS_SETTINGS_KEY}`, (newValue) => {
+      const next = newValue ?? DEFAULT_SUGGESTION_SETTINGS
       settingsRef.current = {
-        autoSuggest: nextValue?.autoSuggest ?? DEFAULT_SUGGESTION_SETTINGS.autoSuggest,
-        excludedSites: Array.isArray(nextValue?.excludedSites)
-          ? nextValue.excludedSites.filter((value) => typeof value === "string")
+        autoSuggest: next.autoSuggest ?? DEFAULT_SUGGESTION_SETTINGS.autoSuggest,
+        excludedSites: Array.isArray(next.excludedSites)
+          ? next.excludedSites.filter((value) => typeof value === "string")
           : DEFAULT_SUGGESTION_SETTINGS.excludedSites,
-        privacyMode: nextValue?.privacyMode ?? DEFAULT_SUGGESTION_SETTINGS.privacyMode,
+        privacyMode: next.privacyMode ?? DEFAULT_SUGGESTION_SETTINGS.privacyMode,
       }
 
       if (shouldSkipSuggestions(settingsRef.current)) {
         clearSuggestion()
       }
-    }
-
-    chrome.storage.local.onChanged.addListener(handleStorageChange)
+    })
 
     function onInput(event: Event) {
       const target = event.target
@@ -471,7 +477,7 @@ function ContentScript() {
 
     return () => {
       mounted = false
-      chrome.storage.local.onChanged.removeListener(handleStorageChange)
+      unwatch()
       document.removeEventListener("input", onInput, true)
       document.removeEventListener("keydown", onKeyDown, true)
       window.removeEventListener("scroll", onScrollOrResize, true)
@@ -484,7 +490,7 @@ function ContentScript() {
 
   return (
     <>
-      <ContextualToolbar />
+      <ContextualToolbar key={themeVersion} />
       {suggestion && suggestionRect ? (
         <div
           className="fixed z-2147483647 max-w-md rounded-md border bg-card px-3 py-2 text-xs text-card-foreground shadow-xl"
@@ -504,10 +510,10 @@ function ContentScript() {
 
 async function preloadTheme() {
   try {
-    const result = await chrome.storage.local.get("theme")
-    const theme = result.theme as string | undefined
-    if (theme && !localStorage.getItem("promptpen-theme")) {
+    const theme = await storage.getItem<string>("local:theme")
+    if (theme) {
       localStorage.setItem("promptpen-theme", theme)
+      applyThemeToPage(theme)
     }
   } catch {}
 }

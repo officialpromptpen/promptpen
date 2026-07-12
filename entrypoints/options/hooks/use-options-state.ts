@@ -1,3 +1,4 @@
+import { storage } from "@wxt-dev/storage"
 import { useEffect, useMemo, useState } from "react"
 import { getProviderDefinition } from "@/features/providers/catalog"
 import { testProviderConnectionWithValues } from "@/features/providers/sdk"
@@ -131,10 +132,11 @@ export function useOptionsState(): OptionsState {
 
     async function hydrate() {
       try {
-        const result = await chrome.storage.local.get([SETTINGS_KEY, SHORTCUTS_KEY, PROMPTS_KEY])
-        const storedSettings = result[SETTINGS_KEY] as Partial<OptionsSettings> | undefined
-        const storedShortcuts = result[SHORTCUTS_KEY] as Record<string, string> | undefined
-        const storedPrompts = result[PROMPTS_KEY] as CustomPrompt[] | undefined
+        const [storedSettings, storedShortcuts, storedPrompts] = await Promise.all([
+          storage.getItem<Partial<OptionsSettings>>(`local:${SETTINGS_KEY}`),
+          storage.getItem<Record<string, string>>(`local:${SHORTCUTS_KEY}`),
+          storage.getItem<CustomPrompt[]>(`local:${PROMPTS_KEY}`),
+        ])
 
         if (!mounted) return
 
@@ -163,17 +165,17 @@ export function useOptionsState(): OptionsState {
 
   useEffect(() => {
     if (!loaded) return
-    void chrome.storage.local.set({ [SETTINGS_KEY]: settings })
+    void storage.setItem(`local:${SETTINGS_KEY}`, settings)
   }, [loaded, settings])
 
   useEffect(() => {
     if (!loaded) return
-    void chrome.storage.local.set({ [SHORTCUTS_KEY]: shortcuts })
+    void storage.setItem(`local:${SHORTCUTS_KEY}`, shortcuts)
   }, [loaded, shortcuts])
 
   useEffect(() => {
     if (!loaded) return
-    void chrome.storage.local.set({ [PROMPTS_KEY]: customPrompts })
+    void storage.setItem(`local:${PROMPTS_KEY}`, customPrompts)
   }, [customPrompts, loaded])
 
   useEffect(() => {

@@ -1,12 +1,12 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
+import { storage } from "@wxt-dev/storage"
 import App from "./App.tsx"
 import "@/assets/tailwind.css"
 
 async function init() {
   try {
-    const result = await chrome.storage.local.get("theme")
-    const theme = result.theme as string | undefined
+    const theme = await storage.getItem<string>("local:theme")
     if (theme && !localStorage.getItem("promptpen-theme")) {
       localStorage.setItem("promptpen-theme", theme)
     }

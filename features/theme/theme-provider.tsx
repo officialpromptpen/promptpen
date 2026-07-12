@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { useEffect } from "react"
+import { storage } from "@wxt-dev/storage"
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
 interface ThemeProviderProps {
@@ -12,7 +13,7 @@ function ThemeSync() {
 
   useEffect(() => {
     try {
-      chrome.storage.local.set({ theme })
+      storage.setItem("local:theme", theme)
     } catch {}
   }, [theme])
 

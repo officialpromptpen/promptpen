@@ -1,3 +1,4 @@
+import { storage } from "@wxt-dev/storage"
 import type { WebsiteRule } from "@/types"
 
 export const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
@@ -42,8 +43,7 @@ export function getHostnameFromInput(value: string): string {
 }
 
 export async function getWebsiteAccessState(): Promise<WebsiteAccessState> {
-  const result = await chrome.storage.local.get(WEBSITE_ACCESS_STORAGE_KEY)
-  const state = result[WEBSITE_ACCESS_STORAGE_KEY] as WebsiteAccessState | undefined
+  const state = await storage.getItem<WebsiteAccessState>(`local:${WEBSITE_ACCESS_STORAGE_KEY}`)
   if (!state) {
     return DEFAULT_STATE
   }
@@ -58,7 +58,7 @@ export async function getWebsiteAccessState(): Promise<WebsiteAccessState> {
 }
 
 async function writeWebsiteAccessState(state: WebsiteAccessState): Promise<void> {
-  await chrome.storage.local.set({ [WEBSITE_ACCESS_STORAGE_KEY]: state })
+  await storage.setItem(`local:${WEBSITE_ACCESS_STORAGE_KEY}`, state)
 }
 
 export async function isWebsiteEnabled(hostname: string): Promise<boolean> {
