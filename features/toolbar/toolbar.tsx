@@ -35,7 +35,7 @@ function createActionPrompt(actionId: string, text: string): string {
   return `${instruction}\n\nText:\n"""\n${text}\n"""`
 }
 
-export function Toolbar() {
+function ToolbarContent() {
   const {
     isVisible,
     isEditableSelection,
@@ -240,7 +240,7 @@ export function Toolbar() {
   if (!isVisible || !selectionRect) return null
 
   return (
-    <Layout variant="inline">
+    <>
       <AnimatePresence>
         {isVisible && (
           <FloatingPortal>
@@ -329,6 +329,14 @@ export function Toolbar() {
           </FloatingPortal>
         )}
       </AnimatePresence>
+    </>
+  )
+}
+
+export function Toolbar() {
+  return (
+    <Layout variant="inline">
+      <ToolbarContent />
     </Layout>
   )
 }
