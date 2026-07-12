@@ -1,6 +1,6 @@
 import { Monitor, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
-export { useTheme } from "next-themes"
+import { useTheme } from "next-themes"
 
 const icons = {
   light: Sun,
@@ -14,11 +14,7 @@ const labels = {
   system: "System theme",
 }
 
-const next = {
-  light: "dark" as const,
-  dark: "system" as const,
-  system: "light" as const,
-}
+
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -26,12 +22,8 @@ export function ThemeToggle() {
   const Icon = icons[resolved as keyof typeof icons]
   const label = labels[resolved as keyof typeof labels]
 
-  function changeTheme() {
-    setTheme(next[resolved as keyof typeof next])
-  }
-
   return (
-    <Button variant="ghost" size="icon" onClick={changeTheme} aria-label={label} title={label}>
+    <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={label} title={label}>
       <Icon className="size-4" />
     </Button>
   )

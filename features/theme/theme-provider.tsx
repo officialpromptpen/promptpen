@@ -22,7 +22,7 @@ function ThemeSync() {
 export function ThemeProvider({ children, defaultTheme = "system" }: ThemeProviderProps) {
   return (
     <NextThemesProvider
-      attribute="data-theme"
+      attribute="class"
       defaultTheme={defaultTheme}
       storageKey="promptpen-theme"
       enableSystem

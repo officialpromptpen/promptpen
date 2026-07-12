@@ -2,8 +2,7 @@ import { Check, Monitor, Moon, Sun } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import type { OptionsState } from "../hooks/use-options-state"
-export { useTheme } from "next-themes"
-
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 
 const themeButtons = [

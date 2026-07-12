@@ -4,7 +4,7 @@ import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck
 import { Layout } from '@/components/layout'
 import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
-export { useTheme } from "next-themes"
+import { useTheme } from "next-themes"
 import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 

@@ -13,7 +13,7 @@ import { Check, Copy, Replace, TriangleAlert, X } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Layout } from "@/components/layout"
 import { createProviderAdapter } from "@/features/providers/sdk"
-export { useTheme } from "next-themes"
+import { useTheme } from "next-themes"
 import { useToolbarStore } from "@/stores/toolbar"
 import { ToolbarActions } from "./toolbar-actions"
 
@@ -264,7 +264,7 @@ export function Toolbar() {
               />
 
               {hasResultPanel && (
-                <div className="mt-1 rounded-lg border bg-background p-2.5">
+                <div className="mt-1 rounded-lg bg-amber-900 border p-2.5">
                   <div className="mb-1.5 flex items-center justify-between gap-2">
                     <p className="text-[11px] font-medium text-muted-foreground">
                       {isRunning ? "Generating..." : errorText ? "Error" : "Result"}

@@ -141,7 +141,7 @@ export function StatusCard({ url }: StatusCardProps) {
                 className={`
                   pointer-events-none inline-block size-5 rounded-full bg-background shadow-sm ring-0
                   transition-transform duration-200 ease-in-out
-                  ${isEnabledForCurrentSite ? "translate-x-[18px]" : "translate-x-[2px]"}
+                  ${isEnabledForCurrentSite ? "translate-x-4.5" : "translate-x-0.5"}
                 `}
               />
             </button>
