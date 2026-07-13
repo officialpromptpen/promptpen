@@ -8,6 +8,21 @@ import {
 } from "@/features/storage/website-access"
 import type { OptionsState } from "../hooks/use-options-state"
 
+function parseHostnames(input: string): string[] {
+  return input
+    .split(/[,;]/)
+    .map((part) => getHostnameFromInput(part.trim()))
+    .filter(Boolean) as string[]
+}
+
+function getEnabledHostnames(accessState: { websiteRules: { enabled: boolean; hostname: string }[] }) {
+  const result: string[] = []
+  for (const rule of accessState.websiteRules) {
+    if (rule.enabled) result.push(rule.hostname)
+  }
+  return result
+}
+
 export function WebsiteAccessSection(_state: OptionsState) {
   const [websiteInput, setWebsiteInput] = useState("")
   const [enabledWebsites, setEnabledWebsites] = useState<string[]>([])
@@ -19,9 +34,7 @@ export function WebsiteAccessSection(_state: OptionsState) {
     async function load() {
       const accessState = await getWebsiteAccessState()
       if (!mounted) return
-      setEnabledWebsites(
-        accessState.websiteRules.filter((rule) => rule.enabled).map((rule) => rule.hostname),
-      )
+      setEnabledWebsites(getEnabledHostnames(accessState))
     }
 
     void load()
@@ -32,25 +45,14 @@ export function WebsiteAccessSection(_state: OptionsState) {
 
   async function refresh() {
     const accessState = await getWebsiteAccessState()
-    setEnabledWebsites(
-      accessState.websiteRules.filter((rule) => rule.enabled).map((rule) => rule.hostname),
-    )
-  }
-
-  function parseHostnames(input: string): string[] {
-    return input
-      .split(/[,;]/)
-      .map((part) => getHostnameFromInput(part.trim()))
-      .filter(Boolean) as string[]
+    setEnabledWebsites(getEnabledHostnames(accessState))
   }
 
   async function addWebsites() {
     const hostnames = parseHostnames(websiteInput)
     if (hostnames.length === 0) return
 
-    for (const hostname of hostnames) {
-      await setWebsiteEnabled(hostname, true)
-    }
+    await Promise.all(hostnames.map((hostname) => setWebsiteEnabled(hostname, true)))
 
     setWebsiteInput("")
     setDeleteConfirmWebsite(null)

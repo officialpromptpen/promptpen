@@ -17,7 +17,7 @@ import {
   SpellCheck,
   TrendingUp,
 } from "lucide-react"
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 
 interface Action {
   id: string
@@ -62,8 +62,9 @@ export function ToolbarActions({
     [onAction],
   )
 
-  const visibleActions = enabledActionIds
-    ? actions.filter((a) => enabledActionIds.includes(a.id))
+  const enabledSet = useMemo(() => enabledActionIds ? new Set(enabledActionIds) : null, [enabledActionIds])
+  const visibleActions = enabledSet
+    ? actions.filter((a) => enabledSet.has(a.id))
     : actions
 
   if (visibleActions.length === 0) return null

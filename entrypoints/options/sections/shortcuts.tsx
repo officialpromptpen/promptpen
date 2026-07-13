@@ -38,6 +38,7 @@ export function ShortcutsSection(state: OptionsState) {
               <p className="text-xs text-muted-foreground">{row.category}</p>
             </div>
             <input
+              aria-label={`Shortcut for ${row.label}`}
               value={state.shortcuts[row.id] ?? ""}
               onChange={(event) => state.updateShortcut(row.id, event.target.value)}
               className="h-8 w-28 rounded-md border bg-background px-2 text-xs"

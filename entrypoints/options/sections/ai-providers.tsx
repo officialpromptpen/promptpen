@@ -12,13 +12,15 @@ import { PROVIDER_DEFINITIONS } from "@/features/providers/catalog"
 import { cn } from "@/lib/utils"
 import type { OptionsState } from "../hooks/use-options-state"
 
+const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+})
+
 function formatDate(timestamp: number): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(timestamp))
+  return DATE_FORMATTER.format(new Date(timestamp))
 }
 
 export function AIProvidersSection(state: OptionsState) {

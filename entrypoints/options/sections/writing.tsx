@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react"
+import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -6,6 +7,7 @@ import type { OptionsState } from "../hooks/use-options-state"
 import { quickActions, writingStyles } from "@/constants/options"
 
 export function WritingSection(state: OptionsState) {
+  const quickActionsSet = useMemo(() => new Set(state.settings.quickActions), [state.settings.quickActions])
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-8 py-8">
       <div>
@@ -49,7 +51,7 @@ export function WritingSection(state: OptionsState) {
         </p>
         <div className="grid grid-cols-3 gap-2">
           {quickActions.map((action) => {
-            const checked = state.settings.quickActions.includes(action.id)
+            const checked = quickActionsSet.has(action.id)
             return (
               <label
                 key={action.id}
@@ -110,6 +112,7 @@ export function WritingSection(state: OptionsState) {
             placeholder="Write your prompt here. Use {{text}} for selected text."
           />
           <select
+            aria-label="Prompt category"
             value={state.promptCategory}
             onChange={(event) => state.setPromptCategory(event.target.value)}
             className="h-9 w-44 rounded-md border bg-background px-3 text-sm"
