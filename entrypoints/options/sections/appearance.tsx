@@ -11,7 +11,7 @@ const themeButtons = [
   { id: "dark", label: "Dark", icon: Moon },
 ]
 
-export function AppearanceSection(state: OptionsState) {
+export function AppearanceSection(_state: OptionsState) {
   const { setTheme, theme } = useTheme()
   const current = theme ?? "system"
 
@@ -57,51 +57,6 @@ export function AppearanceSection(state: OptionsState) {
               </Button>
             )
           })}
-        </div>
-      </section>
-
-      <Separator />
-
-      <section className="space-y-4">
-        <label className="space-x-1.5 block">
-          <span className="text-sm font-medium">Font Size</span>
-          <select
-            value={state.settings.fontSize}
-            onChange={(event) =>
-              state.setSettings((previous) => ({
-                ...previous,
-                fontSize: event.target.value as "small" | "medium" | "large",
-              }))
-            }
-            className="h-9 w-40 rounded-md border bg-background px-3 text-sm"
-          >
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
-          </select>
-        </label>
-      </section>
-
-      <Separator />
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium">Accessibility</h2>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">Reduced Motion</p>
-            <p className="text-xs text-muted-foreground">Minimize animations and transitions.</p>
-          </div>
-          <input
-            type="checkbox"
-            className="h-5 w-5"
-            checked={state.settings.reducedMotion}
-            onChange={(event) =>
-              state.setSettings((previous) => ({
-                ...previous,
-                reducedMotion: event.target.checked,
-              }))
-            }
-          />
         </div>
       </section>
     </div>

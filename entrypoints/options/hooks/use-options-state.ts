@@ -16,13 +16,11 @@ import type { AIProvider } from "@/types"
 import {
   type SectionId,
   type CustomPrompt,
-  type ModelInfo,
   type OptionsSettings,
 } from "../types"
 import {
   defaultSettings,
   defaultShortcuts,
-  generateModelList,
   OPTIONS_PAGE_DESCRIPTION,
   OPTIONS_PAGE_TITLE,
   PROMPTS_KEY,
@@ -45,14 +43,6 @@ export interface OptionsState {
   setPromptContent: React.Dispatch<React.SetStateAction<string>>
   promptCategory: string
   setPromptCategory: React.Dispatch<React.SetStateAction<string>>
-  models: ModelInfo[]
-  favoriteModelIds: string[]
-  modelSearch: string
-  setModelSearch: React.Dispatch<React.SetStateAction<string>>
-  defaultModelId: string | null
-  setDefaultModelId: React.Dispatch<React.SetStateAction<string | null>>
-  selectedProviderForModels: AIProvider | null
-  setSelectedProviderForModels: React.Dispatch<React.SetStateAction<AIProvider | null>>
   providerSummary: Awaited<ReturnType<typeof getProviderSummary>> | null
   configuredProviderDetails: ConfiguredProviderDetail[]
   selectedProvider: AIProvider
@@ -67,8 +57,6 @@ export interface OptionsState {
   connectionVerified: boolean
   providerStatusMessage: string
   providerStatusType: "idle" | "success" | "error"
-  filteredModels: ModelInfo[]
-  displayModels: ModelInfo[]
   selectedProviderDefinition: ReturnType<typeof getProviderDefinition>
   unconfiguredProviders: number
   handleSaveProvider: () => Promise<void>
@@ -78,7 +66,6 @@ export interface OptionsState {
   addCustomPrompt: () => void
   removeCustomPrompt: (promptId: string) => void
   toggleQuickAction: (actionId: string) => void
-  toggleFavoriteModel: (modelId: string) => void
   updateShortcut: (shortcutId: string, nextValue: string) => void
   resetAllData: () => void
   exportSettings: () => void
@@ -93,13 +80,6 @@ export function useOptionsState(): OptionsState {
   const [promptTitle, setPromptTitle] = useState("")
   const [promptContent, setPromptContent] = useState("")
   const [promptCategory, setPromptCategory] = useState("custom")
-  const [models] = useState<ModelInfo[]>(() => generateModelList())
-  const [favoriteModelIds, setFavoriteModelIds] = useState<string[]>([])
-  const [modelSearch, setModelSearch] = useState("")
-  const [defaultModelId, setDefaultModelId] = useState<string | null>(null)
-  const [selectedProviderForModels, setSelectedProviderForModels] = useState<AIProvider | null>(
-    null,
-  )
 
   const [providerSummary, setProviderSummary] = useState<Awaited<
     ReturnType<typeof getProviderSummary>
@@ -144,7 +124,6 @@ export function useOptionsState(): OptionsState {
 
         if (storedSettings) {
           setSettings({ ...defaultSettings, ...storedSettings })
-          setDefaultModelId(storedSettings.defaultModel ?? null)
         }
         if (storedShortcuts) {
           setShortcuts({ ...defaultShortcuts, ...storedShortcuts })
@@ -220,18 +199,6 @@ export function useOptionsState(): OptionsState {
   useEffect(() => {
     setConnectionVerified(false)
   }, [selectedProvider, providerModel, apiKey])
-
-  const filteredModels = useMemo(() => {
-    if (!modelSearch.trim()) return models
-    const query = modelSearch.toLowerCase()
-    return models.filter(
-      (model) => model.name.toLowerCase().includes(query) || model.id.toLowerCase().includes(query),
-    )
-  }, [modelSearch, models])
-
-  const displayModels = selectedProviderForModels
-    ? filteredModels.filter((model) => model.provider === selectedProviderForModels)
-    : filteredModels
 
   const selectedProviderDefinition = getProviderDefinition(selectedProvider)
   const unconfiguredProviders = providerSummary?.unconfiguredProviders.length ?? 11
@@ -392,14 +359,6 @@ export function useOptionsState(): OptionsState {
     })
   }
 
-  function toggleFavoriteModel(modelId: string) {
-    setFavoriteModelIds((previous) =>
-      previous.includes(modelId)
-        ? previous.filter((favoriteId) => favoriteId !== modelId)
-        : [...previous, modelId],
-    )
-  }
-
   function updateShortcut(shortcutId: string, nextValue: string) {
     setShortcuts((previous) => ({ ...previous, [shortcutId]: nextValue }))
   }
@@ -408,8 +367,6 @@ export function useOptionsState(): OptionsState {
     setSettings(defaultSettings)
     setShortcuts(defaultShortcuts)
     setCustomPrompts([])
-    setFavoriteModelIds([])
-    setDefaultModelId(null)
   }
 
   function exportSettings() {
@@ -445,14 +402,6 @@ export function useOptionsState(): OptionsState {
     setPromptContent,
     promptCategory,
     setPromptCategory,
-    models,
-    favoriteModelIds,
-    modelSearch,
-    setModelSearch,
-    defaultModelId,
-    setDefaultModelId,
-    selectedProviderForModels,
-    setSelectedProviderForModels,
     providerSummary,
     configuredProviderDetails,
     selectedProvider,
@@ -467,8 +416,6 @@ export function useOptionsState(): OptionsState {
     connectionVerified,
     providerStatusMessage,
     providerStatusType,
-    filteredModels,
-    displayModels,
     selectedProviderDefinition,
     unconfiguredProviders,
     handleSaveProvider,
@@ -478,7 +425,6 @@ export function useOptionsState(): OptionsState {
     addCustomPrompt,
     removeCustomPrompt,
     toggleQuickAction,
-    toggleFavoriteModel,
     updateShortcut,
     resetAllData,
     exportSettings,

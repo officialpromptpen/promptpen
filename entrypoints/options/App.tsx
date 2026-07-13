@@ -9,7 +9,6 @@ import { AdvancedSection } from "./sections/advanced"
 import { AIProvidersSection } from "./sections/ai-providers"
 import { AppearanceSection } from "./sections/appearance"
 import { GeneralSection } from "./sections/general"
-import { ModelsSection } from "./sections/models"
 import { PrivacySection } from "./sections/privacy"
 import { ShortcutsSection } from "./sections/shortcuts"
 import { WebsiteAccessSection } from "./sections/website-access"
@@ -25,8 +24,6 @@ function IndexOptions() {
         return <GeneralSection {...state} />
       case "ai-providers":
         return <AIProvidersSection {...state} />
-      case "models":
-        return <ModelsSection {...state} />
       case "writing":
         return <WritingSection {...state} />
       case "privacy":

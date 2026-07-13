@@ -1,6 +1,5 @@
 import {
   CheckCircle2,
-  ChevronRight,
   Edit3,
   Loader2,
   Sparkles,
@@ -152,17 +151,6 @@ export function AIProvidersSection(state: OptionsState) {
               / {PROVIDER_DEFINITIONS.length} providers
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              state.setSelectedProviderForModels(state.selectedProvider)
-              state.setActiveSection("models")
-            }}
-            className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-          >
-            View all {state.selectedProviderDefinition.label} models
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
 

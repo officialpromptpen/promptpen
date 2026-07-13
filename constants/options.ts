@@ -1,6 +1,5 @@
-import { Cpu, Globe, Keyboard, Palette, Pen, Puzzle, Settings, Shield, Sparkles } from "lucide-react"
-import { PROVIDER_DEFINITIONS } from "@/features/providers/catalog"
-import type { Section, ModelInfo, OptionsSettings } from "@/entrypoints/options/types"
+import { Globe, Keyboard, Palette, Pen, Puzzle, Settings, Shield, Sparkles } from "lucide-react"
+import type { Section, OptionsSettings } from "@/entrypoints/options/types"
 
 export const SETTINGS_KEY = "promptpen.options.settings.v1"
 export const SHORTCUTS_KEY = "promptpen.options.shortcuts.v1"
@@ -12,7 +11,6 @@ export const OPTIONS_PAGE_DESCRIPTION =
 export const sections: Section[] = [
   { id: "general", label: "General", icon: Settings },
   { id: "ai-providers", label: "AI Providers", icon: Sparkles },
-  { id: "models", label: "Models", icon: Cpu },
   { id: "writing", label: "Writing", icon: Pen },
   { id: "privacy", label: "Privacy", icon: Shield },
   { id: "website-access", label: "Website Access", icon: Globe },
@@ -22,16 +20,9 @@ export const sections: Section[] = [
 ]
 
 export const defaultSettings: OptionsSettings = {
-  language: "en",
   defaultProvider: null,
   defaultModel: null,
-  streamingEnabled: true,
-  defaultTemperature: 0.7,
-  defaultMaxTokens: 4096,
-  defaultTimeout: 30000,
   theme: "system",
-  fontSize: "medium",
-  reducedMotion: false,
   defaultWritingStyle: "improve",
   quickActions: [
     "grammar",
@@ -50,7 +41,6 @@ export const defaultSettings: OptionsSettings = {
 }
 
 export const defaultShortcuts: Record<string, string> = {
-  "toggle-sidebar": "Alt+P",
   "toggle-toolbar": "Alt+T",
   "open-settings": "Alt+,",
   "process-grammar": "Alt+G",
@@ -59,18 +49,7 @@ export const defaultShortcuts: Record<string, string> = {
   "process-summarize": "Alt+S",
   "process-professional": "Alt+Shift+P",
   "process-humanize": "Alt+H",
-  "focus-input": "Alt+L",
-  "send-message": "Enter",
 }
-
-export const languages = [
-  { value: "en", label: "English" },
-  { value: "es", label: "Spanish" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-  { value: "pt", label: "Portuguese" },
-  { value: "ja", label: "Japanese" },
-]
 
 export const writingStyles = [
   { value: "grammar", label: "Grammar" },
@@ -103,7 +82,6 @@ export const quickActions = [
 ]
 
 export const shortcutRows = [
-  { id: "toggle-sidebar", label: "Toggle Sidebar", category: "General" },
   { id: "toggle-toolbar", label: "Toggle Toolbar", category: "General" },
   { id: "open-settings", label: "Open Settings", category: "General" },
   { id: "process-grammar", label: "Fix Grammar", category: "Writing" },
@@ -112,51 +90,4 @@ export const shortcutRows = [
   { id: "process-summarize", label: "Summarize", category: "Writing" },
   { id: "process-professional", label: "Professional", category: "Writing" },
   { id: "process-humanize", label: "Humanize", category: "Writing" },
-  { id: "focus-input", label: "Focus Input", category: "Sidebar" },
-  { id: "send-message", label: "Send Message", category: "Sidebar" },
 ]
-
-export function formatContext(value: number): string {
-  if (value >= 1_000_000) {
-    return `${Math.round(value / 1_000_000)}M`
-  }
-  if (value >= 1_000) {
-    return `${Math.round(value / 1_000)}K`
-  }
-  return `${value}`
-}
-
-export function formatPrice(value: number): string {
-  if (value === 0) {
-    return "Free"
-  }
-  return `$${value.toFixed(2)}/M`
-}
-
-export function generateModelList(): ModelInfo[] {
-  return PROVIDER_DEFINITIONS.flatMap((provider) => {
-    const primary: ModelInfo = {
-      id: provider.defaultModel,
-      name: provider.defaultModel,
-      provider: provider.id,
-      contextWindow: provider.id === "ollama" ? 8192 : 128000,
-      inputPrice: provider.id === "ollama" ? 0 : 0.5,
-      outputPrice: provider.id === "ollama" ? 0 : 1,
-      supportsImages: provider.id !== "ollama",
-      supportsReasoning: provider.id === "openai" || provider.id === "anthropic",
-    }
-
-    const fastVariant: ModelInfo = {
-      id: `${provider.defaultModel}-fast`,
-      name: `${provider.label} Fast`,
-      provider: provider.id,
-      contextWindow: 32000,
-      inputPrice: provider.id === "ollama" ? 0 : 0.2,
-      outputPrice: provider.id === "ollama" ? 0 : 0.4,
-      supportsImages: false,
-      supportsReasoning: false,
-    }
-
-    return [primary, fastVariant]
-  })
-}
