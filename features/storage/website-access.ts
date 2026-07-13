@@ -1,7 +1,7 @@
 import { storage } from "@wxt-dev/storage"
 import type { WebsiteRule } from "@/types"
 
-export const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
+const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
 
 interface WebsiteAccessState {
   enableEverywhere: boolean

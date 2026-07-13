@@ -2,7 +2,7 @@ import { Brain, Check, Eye, Search, Star, StarOff, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getProviderDefinition } from "@/features/providers/catalog"
 import type { OptionsState } from "../hooks/use-options-state"
-import { formatContext, formatPrice } from "../types"
+import { formatContext, formatPrice } from "@/constants/options"
 
 export function ModelsSection(state: OptionsState) {
   return (

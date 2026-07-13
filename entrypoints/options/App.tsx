@@ -14,7 +14,7 @@ import { PrivacySection } from "./sections/privacy"
 import { ShortcutsSection } from "./sections/shortcuts"
 import { WebsiteAccessSection } from "./sections/website-access"
 import { WritingSection } from "./sections/writing"
-import { sections } from "./types"
+import { sections } from "@/constants/options"
 
 function IndexOptions() {
   const state = useOptionsState()

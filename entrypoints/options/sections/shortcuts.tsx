@@ -2,7 +2,7 @@ import { RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import type { OptionsState } from "../hooks/use-options-state"
-import { defaultShortcuts, shortcutRows } from "../types"
+import { defaultShortcuts, shortcutRows } from "@/constants/options"
 
 export function ShortcutsSection(state: OptionsState) {
   return (

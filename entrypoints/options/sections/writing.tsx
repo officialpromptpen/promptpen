@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import type { OptionsState } from "../hooks/use-options-state"
-import { quickActions, writingStyles } from "../types"
+import { quickActions, writingStyles } from "@/constants/options"
 
 export function WritingSection(state: OptionsState) {
   return (

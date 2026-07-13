@@ -41,12 +41,16 @@ interface ToolbarActionsProps {
   onAction: (actionId: string) => void
   isLoading?: boolean
   activeActionId?: string | null
+  enabledActionIds?: string[]
+  defaultActionId?: string | null
 }
 
 export function ToolbarActions({
   onAction,
   isLoading = false,
   activeActionId = null,
+  enabledActionIds,
+  defaultActionId = null,
 }: ToolbarActionsProps) {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent, actionId: string) => {
@@ -58,11 +62,18 @@ export function ToolbarActions({
     [onAction],
   )
 
+  const visibleActions = enabledActionIds
+    ? actions.filter((a) => enabledActionIds.includes(a.id))
+    : actions
+
+  if (visibleActions.length === 0) return null
+
   return (
     <TooltipProvider delayDuration={120}>
       <fieldset className="m-0 flex items-center gap-0.5 border-0 p-0" aria-label="Writing actions">
-        {actions.map((action) => {
+        {visibleActions.map((action) => {
           const Icon = action.icon
+          const isDefault = action.id === defaultActionId
           return (
             <Tooltip key={action.id}>
               <TooltipTrigger asChild>
@@ -73,7 +84,7 @@ export function ToolbarActions({
                   onClick={() => onAction(action.id)}
                   onKeyDown={(e) => handleKeyDown(e, action.id)}
                   disabled={isLoading}
-                  variant="ghost"
+                  variant={isDefault ? "secondary" : "ghost"}
                   size="icon"
                 >
                   {isLoading && activeActionId === action.id ? (
@@ -84,7 +95,10 @@ export function ToolbarActions({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
-                <span>{action.label}</span>
+                <span>
+                  {action.label}
+                  {isDefault ? " (Default)" : ""}
+                </span>
               </TooltipContent>
             </Tooltip>
           )

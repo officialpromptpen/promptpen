@@ -14,19 +14,21 @@ import {
 } from "@/features/providers/storage"
 import type { AIProvider } from "@/types"
 import {
+  type SectionId,
   type CustomPrompt,
+  type ModelInfo,
+  type OptionsSettings,
+} from "../types"
+import {
   defaultSettings,
   defaultShortcuts,
   generateModelList,
-  type ModelInfo,
   OPTIONS_PAGE_DESCRIPTION,
   OPTIONS_PAGE_TITLE,
-  type OptionsSettings,
   PROMPTS_KEY,
   SETTINGS_KEY,
-  type SectionId,
   SHORTCUTS_KEY,
-} from "../types"
+} from "@/constants/options"
 
 export interface OptionsState {
   activeSection: SectionId
