@@ -85,26 +85,3 @@ export async function testProviderConnectionWithValues(
     return { ok: false, message }
   }
 }
-
-export async function testProviderConnection(
-  provider?: AIProvider,
-): Promise<{ ok: boolean; message?: string }> {
-  const adapter = await createProviderAdapter(provider)
-  if (!adapter) {
-    return {
-      ok: false,
-      message: "Save a valid API key and model first.",
-    }
-  }
-
-  try {
-    await adapter.runPrompt(
-      "Reply with exactly one word: ready",
-      "You are a connection test assistant.",
-    )
-    return { ok: true }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown provider error."
-    return { ok: false, message }
-  }
-}
