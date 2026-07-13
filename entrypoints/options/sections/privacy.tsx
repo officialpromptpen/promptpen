@@ -1,8 +1,7 @@
-import { Shield } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import type { OptionsState } from "../hooks/use-options-state"
 
-export function PrivacySection(state: OptionsState) {
+export function PrivacySection(_state: OptionsState) {
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-8 py-8">
       <div>
@@ -10,28 +9,6 @@ export function PrivacySection(state: OptionsState) {
         <p className="mt-1 text-sm text-muted-foreground">
           Understand how PromptPen handles your data.
         </p>
-      </div>
-
-      <Separator />
-
-      <div className="flex items-center justify-between rounded-lg border bg-card p-4">
-        <div className="flex items-start gap-3">
-          <Shield className="mt-0.5 h-5 w-5 text-muted-foreground" />
-          <div>
-            <p className="text-base font-medium">Privacy Mode</p>
-            <p className="text-sm text-muted-foreground">
-              When enabled, PromptPen will not send page context or metadata to providers.
-            </p>
-          </div>
-        </div>
-        <input
-          type="checkbox"
-          checked={state.settings.privacyMode}
-          onChange={(event) =>
-            state.setSettings((previous) => ({ ...previous, privacyMode: event.target.checked }))
-          }
-          className="h-5 w-5"
-        />
       </div>
 
       <Separator />

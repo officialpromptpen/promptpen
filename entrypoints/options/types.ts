@@ -49,9 +49,6 @@ export interface OptionsSettings {
   defaultTemperature: number
   defaultMaxTokens: number
   defaultTimeout: number
-  autoSuggest: boolean
-  excludedSites: string[]
-  privacyMode: boolean
   theme: Theme
   fontSize: "small" | "medium" | "large"
   reducedMotion: boolean
@@ -93,9 +90,6 @@ export const defaultSettings: OptionsSettings = {
   defaultTemperature: 0.7,
   defaultMaxTokens: 4096,
   defaultTimeout: 30000,
-  autoSuggest: true,
-  excludedSites: [],
-  privacyMode: false,
   theme: "system",
   fontSize: "medium",
   reducedMotion: false,

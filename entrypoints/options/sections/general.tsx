@@ -168,43 +168,7 @@ export function GeneralSection(state: OptionsState) {
         </div>
       </section>
 
-      <Separator />
 
-      <section className="space-y-5">
-        <h2 className="text-lg font-medium">Suggestions & Exclusions</h2>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">Auto Suggest</p>
-            <p className="text-xs text-muted-foreground">Show helpful suggestions as you type.</p>
-          </div>
-          <input
-            type="checkbox"
-            className="h-5 w-5"
-            checked={state.settings.autoSuggest}
-            onChange={(event) =>
-              state.setSettings((previous) => ({ ...previous, autoSuggest: event.target.checked }))
-            }
-          />
-        </div>
-
-        <label className="space-y-1.5 block">
-          <span className="text-sm font-medium">Excluded Sites</span>
-          <textarea
-            className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm"
-            placeholder="*.example.com, mail.google.com"
-            value={state.settings.excludedSites.join(", ")}
-            onChange={(event) =>
-              state.setSettings((previous) => ({
-                ...previous,
-                excludedSites: event.target.value
-                  .split(",")
-                  .map((site) => site.trim())
-                  .filter(Boolean),
-              }))
-            }
-          />
-        </label>
-      </section>
     </div>
   )
 }
