@@ -4,10 +4,8 @@ import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck
 import { Layout } from '@/components/layout'
 import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
-import { useTheme } from "next-themes"
 import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
-import { ThemeProvider } from '@/features/theme/theme-provider'
 
 interface ToolbarPosition {
   top: number
@@ -48,8 +46,6 @@ function ContextualToolbarContent() {
   const [errorText, setErrorText] = useState('')
   const [copied, setCopied] = useState(false)
   const selectionRangeRef = useRef<Range | null>(null)
-  const { resolvedTheme } = useTheme()
-
 
   const calculateToolbarPosition = useCallback((range: Range): ToolbarPosition => {
     const rect = range.getBoundingClientRect()
