@@ -61,7 +61,7 @@ export function AIProvidersSection(state: OptionsState) {
             <span className="text-sm font-medium">Provider</span>
             <select
               value={state.selectedProvider}
-              onChange={(event) => state.setSelectedProvider(event.target.value as never)}
+              onChange={(event) => state.selectProvider(event.target.value as never)}
               className="h-9 w-full rounded-md border bg-background px-3 text-sm"
             >
               {PROVIDER_DEFINITIONS.map((provider) => (

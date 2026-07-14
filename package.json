@@ -42,5 +42,14 @@
     "@wxt-dev/module-react": "^1.2.2",
     "typescript": "^7.0.2",
     "wxt": "^0.20.27"
+  },
+  "knip": {
+    "entry": [
+      "wxt.config.ts",
+      "entrypoints/background.ts",
+      "entrypoints/content.tsx",
+      "entrypoints/options/main.tsx",
+      "entrypoints/popup/main.tsx"
+    ]
   }
 }

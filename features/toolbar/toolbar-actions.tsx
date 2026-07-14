@@ -71,7 +71,7 @@ export function ToolbarActions({
 
   return (
     <TooltipProvider delayDuration={120}>
-      <fieldset className="m-0 flex items-center gap-0.5 border-0 p-0" aria-label="Writing actions">
+      <div className="m-0 flex items-center gap-0.5 border-0 p-0" aria-label="Writing actions">
         {visibleActions.map((action) => {
           const Icon = action.icon
           const isDefault = action.id === defaultActionId
@@ -104,7 +104,7 @@ export function ToolbarActions({
             </Tooltip>
           )
         })}
-      </fieldset>
+      </div>
     </TooltipProvider>
   )
 }

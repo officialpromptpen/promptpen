@@ -108,14 +108,14 @@ function ContentScript() {
   const [themeVersion, setThemeVersion] = useState(0)
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
   useEffect(() => {
-    const unwatch = storage.watch<string>("local:theme", (newTheme) => {
+    return storage.watch<string>("local:theme", function handleThemeChange(newTheme) {
       if (!newTheme) return
       localStorage.setItem("promptpen-theme", newTheme)
       applyThemeToPage(newTheme)
       setThemeVersion((v) => v + 1)
     })
-    return unwatch
   }, [])
 
   useEffect(() => {

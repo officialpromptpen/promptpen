@@ -1,5 +1,5 @@
 import { browser } from "wxt/browser"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion"
 import { ChevronRight, Loader2, Pen } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { ThemeProvider } from "@/features/theme/theme-provider"
@@ -87,26 +87,28 @@ function IndexOptions() {
           </div>
         </aside>
 
-        <main className="flex flex-1 flex-col overflow-hidden">
-          {state.loaded ? (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={state.activeSection}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="flex-1 overflow-auto"
-              >
-                {renderSection()}
-              </motion.div>
-            </AnimatePresence>
-          ) : (
-            <div className="flex flex-1 items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          )}
-        </main>
+        <LazyMotion features={domAnimation}>
+          <main className="flex flex-1 flex-col overflow-hidden">
+            {state.loaded ? (
+              <AnimatePresence mode="wait">
+                <m.div
+                  key={state.activeSection}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex-1 overflow-auto"
+                >
+                  {renderSection()}
+                </m.div>
+              </AnimatePresence>
+            ) : (
+              <div className="flex flex-1 items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            )}
+          </main>
+        </LazyMotion>
       </div>
     </ThemeProvider>
   )

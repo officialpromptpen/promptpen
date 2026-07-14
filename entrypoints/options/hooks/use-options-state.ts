@@ -61,7 +61,8 @@ export interface OptionsState {
   unconfiguredProviders: number
   handleSaveProvider: () => Promise<void>
   handleTestProvider: () => Promise<void>
-  handleEditProvider: (provider: AIProvider) => Promise<void>
+  selectProvider: (provider: AIProvider) => void
+  handleEditProvider: (provider: AIProvider) => void
   handleDeleteProvider: (provider: AIProvider) => Promise<void>
   addCustomPrompt: () => void
   removeCustomPrompt: (promptId: string) => void
@@ -93,7 +94,8 @@ export function useOptionsState(): OptionsState {
   const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
   const [isSavingProvider, setIsSavingProvider] = useState(false)
   const [isTestingProvider, setIsTestingProvider] = useState(false)
-  const [connectionVerified, setConnectionVerified] = useState(false)
+  const [verifiedFormKey, setVerifiedFormKey] = useState("")
+  const connectionVerified = verifiedFormKey === `${selectedProvider}::${providerModel}::${apiKey}` && verifiedFormKey !== ""
   const [providerStatusMessage, setProviderStatusMessage] = useState("")
   const [providerStatusType, setProviderStatusType] = useState<"idle" | "success" | "error">("idle")
 
@@ -170,35 +172,16 @@ export function useOptionsState(): OptionsState {
       setProviderSummary(summary)
       setConfiguredProviderDetails(details)
       setSelectedProvider(summary.defaultProvider)
+      const editorState = await getProviderEditorState(summary.defaultProvider)
+      if (!mounted) return
+      setProviderModel(editorState.model)
+      setHasStoredApiKey(editorState.hasApiKey)
     }
     void hydrateProviders()
     return () => {
       mounted = false
     }
   }, [])
-
-  useEffect(() => {
-    let mounted = true
-    async function hydrateProviderEditor() {
-      const editorState = await getProviderEditorState(selectedProvider)
-      if (!mounted) return
-
-      setProviderModel(editorState.model)
-      setHasStoredApiKey(editorState.hasApiKey)
-      setApiKey("")
-      setProviderStatusType("idle")
-      setProviderStatusMessage("")
-    }
-    void hydrateProviderEditor()
-    return () => {
-      mounted = false
-    }
-  }, [selectedProvider])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on form value changes
-  useEffect(() => {
-    setConnectionVerified(false)
-  }, [selectedProvider, providerModel, apiKey])
 
   const selectedProviderDefinition = getProviderDefinition(selectedProvider)
   const unconfiguredProviders = providerSummary?.unconfiguredProviders.length ?? 11
@@ -273,7 +256,7 @@ export function useOptionsState(): OptionsState {
     }
 
     setIsTestingProvider(true)
-    setConnectionVerified(false)
+    setVerifiedFormKey("")
     setProviderStatusType("idle")
     setProviderStatusMessage("")
 
@@ -284,7 +267,7 @@ export function useOptionsState(): OptionsState {
         resolvedApiKey,
       )
       if (result.ok) {
-        setConnectionVerified(true)
+        setVerifiedFormKey(`${selectedProvider}::${normalizedModel}::${resolvedApiKey}`)
         setProviderStatusType("success")
         setProviderStatusMessage("Connection successful. You can now save.")
       } else {
@@ -301,15 +284,25 @@ export function useOptionsState(): OptionsState {
     }
   }
 
-  async function handleEditProvider(provider: AIProvider) {
+  async function hydrateProviderEditor(provider: AIProvider) {
     const editorState = await getProviderEditorState(provider)
-    setSelectedProvider(provider)
     setProviderModel(editorState.model)
     setHasStoredApiKey(editorState.hasApiKey)
     setApiKey("")
     setProviderStatusType("idle")
     setProviderStatusMessage("")
-    setConnectionVerified(false)
+  }
+
+  function selectProvider(provider: AIProvider) {
+    // react-doctor-disable-next-line react-doctor/no-impure-state-updater
+    setSelectedProvider(provider)
+    // react-doctor-disable-next-line react-doctor/no-impure-state-updater
+    void hydrateProviderEditor(provider)
+  }
+
+  function handleEditProvider(provider: AIProvider) {
+    // react-doctor-disable-next-line react-doctor/no-impure-state-updater
+    selectProvider(provider)
   }
 
   async function handleDeleteProvider(provider: AIProvider) {
@@ -321,7 +314,7 @@ export function useOptionsState(): OptionsState {
     setProviderSummary(summary)
     setConfiguredProviderDetails(details)
     if (provider === selectedProvider) {
-      setSelectedProvider(summary.defaultProvider)
+      selectProvider(summary.defaultProvider)
     }
   }
 
@@ -420,6 +413,7 @@ export function useOptionsState(): OptionsState {
     unconfiguredProviders,
     handleSaveProvider,
     handleTestProvider,
+    selectProvider,
     handleEditProvider,
     handleDeleteProvider,
     addCustomPrompt,

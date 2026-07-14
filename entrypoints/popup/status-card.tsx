@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Globe, Sparkles, TriangleAlert } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -77,7 +77,7 @@ export function StatusCard({ url }: StatusCardProps) {
   }
 
   return (
-    <motion.div variants={item} className="space-y-3">
+    <m.div variants={item} className="space-y-3">
       <Card className="border-dashed">
         <CardContent className="p-3">
           <div className="flex items-center gap-3">
@@ -148,6 +148,6 @@ export function StatusCard({ url }: StatusCardProps) {
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   )
 }
