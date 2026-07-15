@@ -1,15 +1,25 @@
-import { forwardRef, type HTMLAttributes } from "react"
+"use client"
+
+import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
+
 import { cn } from "@/lib/utils"
 
-const Separator = forwardRef<HTMLHRElement, HTMLAttributes<HTMLHRElement>>(
-  ({ className, ...props }, ref) => (
-    <hr
-      ref={ref}
-      className={cn("pp:h-px pp:w-full pp:shrink-0 pp:border-none pp:bg-border", className)}
+function Separator({
+  className,
+  orientation = "horizontal",
+  ...props
+}: SeparatorPrimitive.Props) {
+  return (
+    <SeparatorPrimitive
+      data-slot="separator"
+      orientation={orientation}
+      className={cn(
+        "pp:shrink-0 pp:bg-border pp:data-horizontal:h-px pp:data-horizontal:w-full pp:data-vertical:w-px pp:data-vertical:self-stretch",
+        className
+      )}
       {...props}
     />
-  ),
-)
-Separator.displayName = "Separator"
+  )
+}
 
 export { Separator }

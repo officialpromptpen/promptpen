@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { useFloating, flip, shift, offset, autoUpdate } from "@floating-ui/react"
+import { useFloatingPortalNode } from '@floating-ui/react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck } from 'lucide-react'
 import { Layout } from '@/components/layout'
@@ -7,6 +8,7 @@ import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
 import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
+import "../assets/tailwind.css"
 
 interface ToolbarState {
   selectedText: string
@@ -100,22 +102,49 @@ function createActionPrompt(actionId: string, text: string): string {
   return `${instruction}\n\nText:\n"""\n${text}\n"""`
 }
 
+function getFriendlyActionError(error: unknown): string {
+  const message = error instanceof Error ? error.message : 'Unknown AI error'
+
+  if (/extension context invalidated/i.test(message)) {
+    return 'Extension was reloaded or updated. Refresh this page, select text again, and retry.'
+  }
+
+  // Some provider setup failures can bubble up with unrelated text; normalize to a clear next step.
+  if (
+    /not configured|no provider|no api key|missing api key|provider.*(required|missing)|usefloating hook|contextual-toolbar\.tsx/i.test(
+      message,
+    )
+  ) {
+    return 'No provider configured. Save provider and API key in Dashboard first.'
+  }
+
+  return `Request failed: ${message}`
+}
+
 interface ToolbarPopoverProps {
   visible: boolean
-  floatingRef: (node: HTMLElement | null) => void
-  floatingStyles: React.CSSProperties
+  portalNode: HTMLElement | null
+  toolbarPos: ToolbarPosition
   isRunning: boolean
   activeActionId: string | null
   onAction: (actionId: string) => void
 }
 
-function ToolbarPopover({ visible, floatingRef, floatingStyles, isRunning, activeActionId, onAction }: ToolbarPopoverProps) {
-  return (
+function ToolbarPopover({ visible, portalNode, toolbarPos, isRunning, activeActionId, onAction }: ToolbarPopoverProps) {
+  if (!portalNode) {
+    return null
+  }
+
+  return createPortal(
     <AnimatePresence>
       {visible && (
         <m.div
-          ref={floatingRef}
-          style={floatingStyles}
+          style={{
+            position: 'fixed',
+            left: toolbarPos.x,
+            top: toolbarPos.y,
+            transform: 'translate(-50%, 0)',
+          }}
           className="pp:fixed pp:z-2147483647 pp:rounded-xl pp:border pp:border-border pp:bg-popover pp:p-1 pp:text-popover-foreground pp:shadow-2xl pp:backdrop-blur-md"
           initial={{ opacity: 0, scale: 0.9, y: 4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -130,6 +159,8 @@ function ToolbarPopover({ visible, floatingRef, floatingStyles, isRunning, activ
         </m.div>
       )}
     </AnimatePresence>
+    ,
+    portalNode,
   )
 }
 
@@ -214,7 +245,7 @@ interface ResultBodyProps {
 
 function ResultBody({ isRunning, activeActionId, errorText, processedText }: ResultBodyProps) {
   return (
-    <div className="pp:p-1 pp:bg-amber-700">
+    <div className="pp:p-1">
       <h2 className="pp:text-sm pp:font-semibold pp:text-muted-foreground pp:mb-1">Processed Text</h2>
       {isRunning && (
         <div className="pp:flex pp:items-center pp:gap-2 pp:text-sm pp:text-muted-foreground pp:bg-muted pp:p-3 pp:rounded-md">
@@ -267,10 +298,10 @@ function ResultActions({
   const canRerun = Boolean(lastActionId) && !isRunning && Boolean(selectedText)
 
   return (
-    <TooltipProvider delayDuration={120}>
+    <TooltipProvider delay={120}>
       <div className="pp:flex pp:gap-3 pp:pt-4 pp:border-t pp:border-border">
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button onClick={onCopy} disabled={!hasCopyableText || isRunning}>
               {copied ? (
                 <CopyCheck className="pp:w-4 pp:h-4" color="green" />
@@ -285,7 +316,7 @@ function ResultActions({
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button onClick={onReplace} disabled={!canReplace}>
               <Replace className="pp:w-4 pp:h-4 pp:inline-block pp:mr-2" />
             </Button>
@@ -296,7 +327,7 @@ function ResultActions({
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button onClick={onRerun} disabled={!canRerun}>
               {isRunning ? (
                 <Loader2 className="pp:w-4 pp:h-4 pp:animate-spin" />
@@ -311,7 +342,7 @@ function ResultActions({
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button onClick={onClose}>
               <X className="pp:w-4 pp:h-4" />
             </Button>
@@ -329,10 +360,8 @@ function ContextualToolbarContent() {
   const [state, dispatch] = useReducer(toolbarReducer, INITIAL_TOOLBAR_STATE)
   const stateRef = useRef(state)
   const selectionRangeRef = useRef<Range | null>(null)
-  const { refs, floatingStyles } = useFloating({
-    placement: "top",
-    middleware: [offset(12), flip(), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
+  const portalNode = useFloatingPortalNode({
+    id: 'promptpen-contextual-toolbar-portal',
   })
 
   useEffect(() => {
@@ -356,13 +385,15 @@ function ContextualToolbarContent() {
     selectionRangeRef.current = range
 
     const rect = range.getBoundingClientRect()
-    refs.setReference({
-      getBoundingClientRect: () => rect,
-      contextElement: range.startContainer instanceof HTMLElement ? range.startContainer : undefined,
-    })
+    const anchorX = rect.left + rect.width / 2
+    const anchorY = rect.bottom + 12
 
-    dispatch({ type: 'SELECTION_CHANGED', text, position: { x: 0, y: 0, visible: true } })
-  }, [refs])
+    dispatch({
+      type: 'SELECTION_CHANGED',
+      text,
+      position: { x: anchorX, y: anchorY, visible: true },
+    })
+  }, [])
 
   const handleAction = useCallback(
     async (actionId: string) => {
@@ -394,13 +425,7 @@ function ContextualToolbarContent() {
 
         dispatch({ type: 'ACTION_SUCCESS', text: normalized })
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown AI error'
-        if (/extension context invalidated/i.test(message)) {
-          dispatch({ type: 'ACTION_ERROR', error: 'Extension was reloaded or updated. Refresh this page, select text again, and retry.' })
-          return
-        }
-
-        dispatch({ type: 'ACTION_ERROR', error: `Request failed: ${message}` })
+        dispatch({ type: 'ACTION_ERROR', error: getFriendlyActionError(error) })
       }
     },
     [],
@@ -500,8 +525,8 @@ function ContextualToolbarContent() {
       {!showResult && (
         <ToolbarPopover
           visible={toolbarPos.visible}
-          floatingRef={refs.setFloating}
-          floatingStyles={floatingStyles}
+          portalNode={portalNode}
+          toolbarPos={toolbarPos}
           isRunning={isRunning}
           activeActionId={activeActionId}
           onAction={(actionId) => {

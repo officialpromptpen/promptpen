@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
+  "style": "base-nova",
   "rsc": false,
   "tsx": true,
   "tailwind": {
@@ -8,7 +8,7 @@
     "css": "assets/tailwind.css",
     "baseColor": "neutral",
     "cssVariables": true,
-    "prefix": ""
+    "prefix": "pp"
   },
   "aliases": {
     "components": "@/components",
