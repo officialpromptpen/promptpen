@@ -5,27 +5,27 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "pp:inline-flex pp:items-center pp:justify-center pp:gap-2 pp:whitespace-nowrap pp:rounded-md pp:text-sm pp:font-medium pp:transition-all disabled:pp:pointer-events-none disabled:pp:opacity-50 [&_svg]:pp:pointer-events-none [&_svg:not([class*='size-'])]:pp:size-4 pp:shrink-0 [&_svg]:pp:shrink-0 pp:outline-none focus-visible:pp:border-ring focus-visible:pp:ring-ring/50 focus-visible:pp:ring-[3px] aria-invalid:pp:ring-destructive/20 dark:aria-invalid:pp:ring-destructive/40 aria-invalid:pp:border-destructive",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+          "pp:bg-primary pp:text-primary-foreground pp:shadow-xs hover:pp:bg-primary/90",
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "pp:bg-destructive pp:text-white pp:shadow-xs hover:pp:bg-destructive/90 focus-visible:pp:ring-destructive/20 dark:focus-visible:pp:ring-destructive/40 dark:pp:bg-destructive/60",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "pp:border pp:bg-background pp:shadow-xs hover:pp:bg-accent hover:pp:text-accent-foreground dark:pp:bg-input/30 dark:pp:border-input dark:hover:pp:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+          "pp:bg-secondary pp:text-secondary-foreground pp:shadow-xs hover:pp:bg-secondary/80",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+          "hover:pp:bg-accent hover:pp:text-accent-foreground dark:hover:pp:bg-accent/50",
+        link: "pp:text-primary pp:underline-offset-4 hover:pp:underline",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
+        default: "pp:h-9 pp:px-4 pp:py-2 has-[>svg]:pp:px-3",
+        sm: "pp:h-8 pp:rounded-md pp:gap-1.5 pp:px-3 has-[>svg]:pp:px-2.5",
+        lg: "pp:h-10 pp:rounded-md pp:px-6 has-[>svg]:pp:px-4",
+        icon: "pp:size-9",
       },
     },
     defaultVariants: {

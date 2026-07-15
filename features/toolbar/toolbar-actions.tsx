@@ -71,7 +71,7 @@ export function ToolbarActions({
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="m-0 flex items-center gap-0.5 border-0 p-0" aria-label="Writing actions">
+      <div className="pp:m-0 pp:flex pp:items-center pp:gap-0.5 pp:border-0 pp:p-0" aria-label="Writing actions">
         {visibleActions.map((action) => {
           const Icon = action.icon
           const isDefault = action.id === defaultActionId
@@ -89,9 +89,9 @@ export function ToolbarActions({
                   size="icon"
                 >
                   {isLoading && activeActionId === action.id ? (
-                    <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                    <Loader2 className="pp:size-3.5 pp:shrink-0 pp:animate-spin" />
                   ) : (
-                    <Icon className="size-3.5 shrink-0" />
+                    <Icon className="pp:size-3.5 pp:shrink-0" />
                   )}
                 </Button>
               </TooltipTrigger>

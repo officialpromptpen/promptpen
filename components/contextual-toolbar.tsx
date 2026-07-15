@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
+import { useFloating, flip, shift, offset, autoUpdate } from "@floating-ui/react"
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck } from 'lucide-react'
 import { Layout } from '@/components/layout'
@@ -31,7 +32,7 @@ type ToolbarAction =
 
 const INITIAL_TOOLBAR_STATE: ToolbarState = {
   selectedText: '',
-  toolbarPos: { top: 0, left: 0, visible: false },
+  toolbarPos: { x: 0, y: 0, visible: false },
   showResult: false,
   processedText: '',
   isRunning: false,
@@ -76,8 +77,8 @@ function toolbarReducer(state: ToolbarState, action: ToolbarAction): ToolbarStat
 }
 
 interface ToolbarPosition {
-  top: number
-  left: number
+  x: number
+  y: number
   visible: boolean
 }
 
@@ -100,22 +101,22 @@ function createActionPrompt(actionId: string, text: string): string {
 }
 
 interface ToolbarPopoverProps {
-  position: ToolbarPosition
+  visible: boolean
+  floatingRef: (node: HTMLElement | null) => void
+  floatingStyles: React.CSSProperties
   isRunning: boolean
   activeActionId: string | null
   onAction: (actionId: string) => void
 }
 
-function ToolbarPopover({ position, isRunning, activeActionId, onAction }: ToolbarPopoverProps) {
+function ToolbarPopover({ visible, floatingRef, floatingStyles, isRunning, activeActionId, onAction }: ToolbarPopoverProps) {
   return (
     <AnimatePresence>
-      {position.visible && (
+      {visible && (
         <m.div
-          className="fixed z-2147483647 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-2xl backdrop-blur-md"
-          style={{
-            top: `${position.top}px`,
-            left: `${position.left}px`,
-          }}
+          ref={floatingRef}
+          style={floatingStyles}
+          className="pp:fixed pp:z-2147483647 pp:rounded-xl pp:border pp:border-border pp:bg-popover pp:p-1 pp:text-popover-foreground pp:shadow-2xl pp:backdrop-blur-md"
           initial={{ opacity: 0, scale: 0.9, y: 4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 4 }}
@@ -165,14 +166,14 @@ function ResultDialog({
     <AnimatePresence>
       {show && (
         <m.div
-          className="fixed inset-0 z-2147483647 flex items-center justify-center"
+          className="pp:fixed pp:inset-0 pp:z-2147483647 pp:flex pp:items-center pp:justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
         >
           <m.div
-            className="mx-4 w-full max-w-md space-y-4 rounded-lg border bg-card p-6 text-card-foreground shadow-2xl"
+            className="pp:mx-4 pp:w-full pp:max-w-md pp:space-y-4 pp:rounded-lg pp:border pp:bg-card pp:p-6 pp:text-card-foreground pp:shadow-2xl"
             initial={{ opacity: 0, scale: 0.95, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
@@ -213,24 +214,24 @@ interface ResultBodyProps {
 
 function ResultBody({ isRunning, activeActionId, errorText, processedText }: ResultBodyProps) {
   return (
-    <div className="p-1 bg-amber-700">
-      <h2 className="text-sm font-semibold text-muted-foreground mb-1">Processed Text</h2>
+    <div className="pp:p-1 pp:bg-amber-700">
+      <h2 className="pp:text-sm pp:font-semibold pp:text-muted-foreground pp:mb-1">Processed Text</h2>
       {isRunning && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-3 rounded-md">
-          <Loader2 className="w-4 h-4 animate-spin" />
+        <div className="pp:flex pp:items-center pp:gap-2 pp:text-sm pp:text-muted-foreground pp:bg-muted pp:p-3 pp:rounded-md">
+          <Loader2 className="pp:w-4 pp:h-4 pp:animate-spin" />
           <span>{activeActionId ? `Processing ${activeActionId}...` : 'Processing...'}</span>
         </div>
       )}
 
       {!isRunning && errorText && (
-        <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-          <span className="whitespace-pre-wrap wrap-break-word">{errorText}</span>
+        <div className="pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-destructive/40 pp:bg-destructive/10 pp:p-3 pp:text-sm pp:text-destructive">
+          <TriangleAlert className="pp:mt-0.5 pp:h-4 pp:w-4 pp:shrink-0" />
+          <span className="pp:whitespace-pre-wrap pp:wrap-break-word">{errorText}</span>
         </div>
       )}
 
       {!isRunning && !errorText && processedText && (
-        <p className="text-base p-3 rounded-md font-medium text-balance">{processedText}</p>
+        <p className="pp:text-base pp:p-3 pp:rounded-md pp:font-medium pp:text-balance">{processedText}</p>
       )}
     </div>
   )
@@ -267,14 +268,14 @@ function ResultActions({
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="flex gap-3 pt-4 border-t border-border">
+      <div className="pp:flex pp:gap-3 pp:pt-4 pp:border-t pp:border-border">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button onClick={onCopy} disabled={!hasCopyableText || isRunning}>
               {copied ? (
-                <CopyCheck className="w-4 h-4" color="green" />
+                <CopyCheck className="pp:w-4 pp:h-4" color="green" />
               ) : (
-                <ClipboardCopy className="w-4 h-4" />
+                <ClipboardCopy className="pp:w-4 pp:h-4" />
               )}
             </Button>
           </TooltipTrigger>
@@ -286,7 +287,7 @@ function ResultActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button onClick={onReplace} disabled={!canReplace}>
-              <Replace className="w-4 h-4 inline-block mr-2" />
+              <Replace className="pp:w-4 pp:h-4 pp:inline-block pp:mr-2" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">
@@ -298,9 +299,9 @@ function ResultActions({
           <TooltipTrigger asChild>
             <Button onClick={onRerun} disabled={!canRerun}>
               {isRunning ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="pp:w-4 pp:h-4 pp:animate-spin" />
               ) : (
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="pp:w-4 pp:h-4" />
               )}
             </Button>
           </TooltipTrigger>
@@ -312,7 +313,7 @@ function ResultActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button onClick={onClose}>
-              <X className="w-4 h-4" />
+              <X className="pp:w-4 pp:h-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">
@@ -328,28 +329,15 @@ function ContextualToolbarContent() {
   const [state, dispatch] = useReducer(toolbarReducer, INITIAL_TOOLBAR_STATE)
   const stateRef = useRef(state)
   const selectionRangeRef = useRef<Range | null>(null)
+  const { refs, floatingStyles } = useFloating({
+    placement: "top",
+    middleware: [offset(12), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  })
 
   useEffect(() => {
     stateRef.current = state
   })
-
-  const calculateToolbarPosition = useCallback((range: Range): ToolbarPosition => {
-    const rect = range.getBoundingClientRect()
-    const toolbarSize = 100
-    const offset = 12
-    const minPadding = 8
-    const clampedLeft = Math.min(
-      window.innerWidth - toolbarSize - minPadding,
-      Math.max(minPadding, rect.left + rect.width / 2 - toolbarSize / 2),
-    )
-    const clampedTop = Math.max(minPadding, rect.top - toolbarSize - offset)
-
-    return {
-      top: clampedTop,
-      left: clampedLeft,
-      visible: true,
-    }
-  }, [])
 
   const handleSelection = useCallback(() => {
     const selection = window.getSelection()
@@ -366,8 +354,15 @@ function ContextualToolbarContent() {
 
     const range = selection.getRangeAt(0).cloneRange()
     selectionRangeRef.current = range
-    dispatch({ type: 'SELECTION_CHANGED', text, position: calculateToolbarPosition(range) })
-  }, [calculateToolbarPosition])
+
+    const rect = range.getBoundingClientRect()
+    refs.setReference({
+      getBoundingClientRect: () => rect,
+      contextElement: range.startContainer instanceof HTMLElement ? range.startContainer : undefined,
+    })
+
+    dispatch({ type: 'SELECTION_CHANGED', text, position: { x: 0, y: 0, visible: true } })
+  }, [refs])
 
   const handleAction = useCallback(
     async (actionId: string) => {
@@ -504,7 +499,9 @@ function ContextualToolbarContent() {
     <>
       {!showResult && (
         <ToolbarPopover
-          position={toolbarPos}
+          visible={toolbarPos.visible}
+          floatingRef={refs.setFloating}
+          floatingStyles={floatingStyles}
           isRunning={isRunning}
           activeActionId={activeActionId}
           onAction={(actionId) => {

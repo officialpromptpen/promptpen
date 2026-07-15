@@ -24,7 +24,7 @@ export function ThemeToggle() {
 
   return (
     <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={label} title={label}>
-      <Icon className="size-4" />
+      <Icon className="pp:size-4" />
     </Button>
   )
 }

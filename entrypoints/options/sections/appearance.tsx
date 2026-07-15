@@ -16,19 +16,19 @@ export function AppearanceSection(_state: OptionsState) {
   const current = theme ?? "system"
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-8 py-8">
+    <div className="pp:mx-auto pp:max-w-2xl pp:space-y-8 pp:px-8 pp:py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Appearance</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">Appearance</h1>
+        <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
           Customize the look and feel of PromptPen.
         </p>
       </div>
 
       <Separator />
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium">Theme</h2>
-        <div className="grid grid-cols-3 h-20 gap-3">
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium">Theme</h2>
+        <div className="pp:grid pp:grid-cols-3 pp:h-20 pp:gap-3">
           {themeButtons.map((themeOption) => {
             const Icon = themeOption.icon
             const selected = current === themeOption.id
@@ -37,22 +37,22 @@ export function AppearanceSection(_state: OptionsState) {
               <Button
                 key={themeOption.id}
                 className={cn(
-                  "h-12 w-full justify-start gap-3 px-4 transition-all duration-200",
+                  "pp:h-12 pp:w-full pp:justify-start pp:gap-3 pp:px-4 pp:transition-all pp:duration-200",
                   selected
-                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                    : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    ? "pp:bg-primary pp:text-primary-foreground pp:shadow-sm hover:pp:bg-primary/90"
+                    : "pp:bg-background pp:text-muted-foreground hover:pp:bg-accent hover:pp:text-accent-foreground",
                 )}
                 variant={selected ? "default" : "outline"}
                 onClick={() => {
                   setTheme(themeOption.id)
                 }}
               >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="font-medium text-sm flex-1 text-left">
+                <Icon className="pp:h-5 pp:w-5 pp:shrink-0" />
+                <span className="pp:font-medium pp:text-sm pp:flex-1 pp:text-left">
                   {themeOption.label}
                 </span>
                 {selected && (
-                  <Check className="h-4 w-4 animate-in fade-in zoom-in-95 duration-100" />
+                  <Check className="pp:h-4 pp:w-4 pp:animate-in pp:fade-in pp:zoom-in-95 pp:duration-100" />
                 )}
               </Button>
             )

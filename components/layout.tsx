@@ -13,7 +13,7 @@ export function Layout({ children, variant = "panel" }: LayoutProps) {
 
   return (
     <ThemeProvider>
-      <div className="flex min-h-screen w-90 flex-col bg-background text-foreground">
+      <div className="pp:flex pp:min-h-screen pp:w-90 pp:flex-col pp:bg-background pp:text-foreground">
         {children}
       </div>
     </ThemeProvider>

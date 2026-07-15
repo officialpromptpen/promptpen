@@ -41,19 +41,19 @@ function IndexOptions() {
 
   return (
     <ThemeProvider defaultTheme={state.settings.theme}>
-      <div className="flex h-dvh w-dvw bg-background text-foreground">
-        <aside className="flex w-60 flex-col border-r bg-card">
-          <div className="flex h-14 items-center gap-2 px-5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Pen className="h-4 w-4 text-primary-foreground" />
+      <div className="pp:flex pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
+        <aside className="pp:flex pp:w-60 pp:flex-col pp:border-r pp:bg-card">
+          <div className="pp:flex pp:h-14 pp:items-center pp:gap-2 pp:px-5">
+            <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg pp:bg-primary">
+              <Pen className="pp:h-4 pp:w-4 pp:text-primary-foreground" />
             </div>
-            <span className="text-sm font-semibold">PromptPen</span>
+            <span className="pp:text-sm pp:font-semibold">PromptPen</span>
           </div>
 
           <Separator />
 
-          <div className="flex-1 overflow-y-auto px-2 py-3">
-            <nav className="flex flex-col gap-1">
+          <div className="pp:flex-1 pp:overflow-y-auto pp:px-2 pp:py-3">
+            <nav className="pp:flex pp:flex-col pp:gap-1">
               {sections.map((section) => {
                 const Icon = section.icon
                 const selected = state.activeSection === section.id
@@ -63,15 +63,15 @@ function IndexOptions() {
                     key={section.id}
                     onClick={() => state.setActiveSection(section.id)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      "pp:flex pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:text-sm pp:font-medium pp:transition-colors",
                       selected
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+                        ? "pp:bg-accent pp:text-accent-foreground"
+                        : "pp:text-muted-foreground hover:pp:bg-accent/50 hover:pp:text-accent-foreground",
                     )}
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="flex-1 text-left">{section.label}</span>
-                    {selected && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />}
+                    <Icon className="pp:h-4 pp:w-4 pp:shrink-0" />
+                    <span className="pp:flex-1 pp:text-left">{section.label}</span>
+                    {selected && <ChevronRight className="pp:h-3.5 pp:w-3.5 pp:text-muted-foreground/60" />}
                   </button>
                 )
               })}
@@ -80,15 +80,15 @@ function IndexOptions() {
 
           <Separator />
 
-          <div className="px-4 py-3">
-            <p className="text-xs text-muted-foreground">
+          <div className="pp:px-4 pp:py-3">
+            <p className="pp:text-xs pp:text-muted-foreground">
               PromptPen v{browser.runtime.getManifest().version}
             </p>
           </div>
         </aside>
 
         <LazyMotion features={domAnimation}>
-          <main className="flex flex-1 flex-col overflow-hidden">
+          <main className="pp:flex pp:flex-1 pp:flex-col pp:overflow-hidden">
             {state.loaded ? (
               <AnimatePresence mode="wait">
                 <m.div
@@ -97,14 +97,14 @@ function IndexOptions() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.15 }}
-                  className="flex-1 overflow-auto"
+                  className="pp:flex-1 pp:overflow-auto"
                 >
                   {renderSection()}
                 </m.div>
               </AnimatePresence>
             ) : (
-              <div className="flex flex-1 items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="pp:flex pp:flex-1 pp:items-center pp:justify-center">
+                <Loader2 className="pp:h-6 pp:w-6 pp:animate-spin" />
               </div>
             )}
           </main>

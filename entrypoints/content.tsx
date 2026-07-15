@@ -3,7 +3,7 @@ import { storage } from "@wxt-dev/storage"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
 import { useEffect, useRef, useState } from "react"
-import "@/assets/tailwind.css"
+import tailwindStyles from "@/assets/tailwind.css?inline"
 
 function applyThemeToPage(theme: string) {
   const root = document.documentElement
@@ -196,7 +196,21 @@ export default defineContentScript({
     container.id = "promptpen-root"
     document.body.append(container)
 
-    const root = createRoot(container)
+    const shadowRoot = container.attachShadow({ mode: "closed" })
+    const styleEl = document.createElement("style")
+    styleEl.textContent = tailwindStyles
+    shadowRoot.append(styleEl)
+
+    const rootEl = document.createElement("div")
+    rootEl.id = "pp:root"
+    shadowRoot.append(rootEl)
+
+    const theme = localStorage.getItem("promptpen-theme")
+    if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      container.classList.add("pp-dark")
+    }
+
+    const root = createRoot(rootEl)
     root.render(<ContentScript />)
 
     ctx.onInvalidated(() => {

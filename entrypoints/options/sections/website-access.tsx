@@ -68,10 +68,10 @@ export function WebsiteAccessSection(_state: OptionsState) {
   const parsedPreview = websiteInput.trim() ? parseHostnames(websiteInput) : []
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-8 py-8">
+    <div className="pp:mx-auto pp:max-w-2xl pp:space-y-8 pp:px-8 pp:py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Website Access</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">Website Access</h1>
+        <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
           Manage which websites PromptPen can access. Use the toggle in the popup to quickly enable
           or disable the current page.
         </p>
@@ -79,15 +79,15 @@ export function WebsiteAccessSection(_state: OptionsState) {
 
       <Separator />
 
-      <section className="space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor="add-websites">
+      <section className="pp:space-y-4">
+        <div className="pp:space-y-1.5">
+          <label className="pp:text-sm pp:font-medium" htmlFor="add-websites">
             Add websites
           </label>
-          <p className="text-xs text-muted-foreground">
+          <p className="pp:text-xs pp:text-muted-foreground">
             Enter one or more domains. Separate multiple entries with a comma or semicolon.
           </p>
-          <div className="flex items-center gap-2">
+          <div className="pp:flex pp:items-center pp:gap-2">
             <input
               id="add-websites"
               value={websiteInput}
@@ -97,21 +97,21 @@ export function WebsiteAccessSection(_state: OptionsState) {
                   void addWebsites()
                 }
               }}
-              className="h-9 w-full max-w-md rounded-md border bg-background px-3 text-sm placeholder:text-muted-foreground/60"
+              className="pp:h-9 pp:w-full pp:max-w-md pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm placeholder:pp:text-muted-foreground/60"
               placeholder="e.g. medium.com, github.com, docs.google.com"
             />
             <button
               type="button"
               onClick={() => void addWebsites()}
               disabled={!websiteInput.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-40"
+              className="pp:flex pp:h-9 pp:w-9 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-md pp:border pp:bg-background pp:text-muted-foreground hover:pp:bg-accent hover:pp:text-accent-foreground disabled:pp:opacity-40"
             >
-              <Plus className="size-4" aria-hidden="true" />
+              <Plus className="pp:size-4" aria-hidden="true" />
               <span className="sr-only">Add websites</span>
             </button>
           </div>
           {parsedPreview.length > 1 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="pp:text-xs pp:text-muted-foreground">
               {parsedPreview.length} websites will be added: {parsedPreview.join(", ")}
             </p>
           )}
@@ -120,47 +120,47 @@ export function WebsiteAccessSection(_state: OptionsState) {
 
       <Separator />
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium">
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium">
           Enabled websites
           {enabledWebsites.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-muted-foreground">
+            <span className="pp:ml-2 pp:text-sm pp:font-normal pp:text-muted-foreground">
               ({enabledWebsites.length})
             </span>
           )}
         </h2>
 
         {enabledWebsites.length > 0 ? (
-          <div className="space-y-1.5">
+          <div className="pp:space-y-1.5">
             {enabledWebsites.map((hostname) => {
               const isPendingDelete = deleteConfirmWebsite === hostname
               return (
                 <div
                   key={hostname}
-                  className="flex items-center justify-between rounded-lg border bg-card px-4 py-2.5"
+                  className="pp:flex pp:items-center pp:justify-between pp:rounded-lg pp:border pp:bg-card pp:px-4 pp:py-2.5"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="pp:flex pp:items-center pp:gap-2.5 pp:min-w-0">
                     <GlobeLock
-                      className="size-4 shrink-0 text-muted-foreground"
+                      className="pp:size-4 pp:shrink-0 pp:text-muted-foreground"
                       aria-hidden="true"
                     />
-                    <span className="text-sm text-foreground">{hostname}</span>
+                    <span className="pp:text-sm pp:text-foreground">{hostname}</span>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <div className="pp:flex pp:items-center pp:gap-2 pp:shrink-0 pp:ml-2">
                     {isPendingDelete ? (
                       <>
                         <button
                           type="button"
                           onClick={() => void handleRemoveWebsite(hostname)}
-                          className="rounded-md px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/10"
+                          className="pp:rounded-md pp:px-2 pp:py-1 pp:text-xs pp:font-medium pp:text-destructive hover:pp:bg-destructive/10"
                         >
                           Remove
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleteConfirmWebsite(null)}
-                          className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
+                          className="pp:rounded-md pp:px-2 pp:py-1 pp:text-xs pp:text-muted-foreground hover:pp:bg-accent"
                         >
                           Cancel
                         </button>
@@ -169,9 +169,9 @@ export function WebsiteAccessSection(_state: OptionsState) {
                       <button
                         type="button"
                         onClick={() => setDeleteConfirmWebsite(hostname)}
-                        className="flex size-6 items-center justify-center rounded-md text-muted-foreground/60 hover:bg-accent hover:text-destructive"
+                        className="pp:flex pp:size-6 pp:items-center pp:justify-center pp:rounded-md pp:text-muted-foreground/60 hover:pp:bg-accent hover:pp:text-destructive"
                       >
-                        <X className="size-4" aria-hidden="true" />
+                        <X className="pp:size-4" aria-hidden="true" />
                         <span className="sr-only">Remove {hostname}</span>
                       </button>
                     )}
@@ -181,10 +181,10 @@ export function WebsiteAccessSection(_state: OptionsState) {
             })}
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed bg-card/50 px-4 py-8 text-center">
-            <Globe className="mx-auto size-8 text-muted-foreground/40" aria-hidden="true" />
-            <p className="mt-2 text-sm text-muted-foreground">No websites added yet.</p>
-            <p className="text-xs text-muted-foreground/60">
+          <div className="pp:rounded-lg pp:border pp:border-dashed pp:bg-card/50 pp:px-4 pp:py-8 pp:text-center">
+            <Globe className="pp:mx-auto pp:size-8 pp:text-muted-foreground/40" aria-hidden="true" />
+            <p className="pp:mt-2 pp:text-sm pp:text-muted-foreground">No websites added yet.</p>
+            <p className="pp:text-xs pp:text-muted-foreground/60">
               Add domains above to control where PromptPen can assist you.
             </p>
           </div>

@@ -77,46 +77,46 @@ export function StatusCard({ url }: StatusCardProps) {
   }
 
   return (
-    <m.div variants={item} className="space-y-3">
-      <Card className="border-dashed">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
-              <Sparkles className="size-4 text-primary" aria-hidden="true" />
+    <m.div variants={item} className="pp:space-y-3">
+      <Card className="pp:border-dashed">
+        <CardContent className="pp:p-3">
+          <div className="pp:flex pp:items-center pp:gap-3">
+            <div className="pp:flex pp:size-8 pp:items-center pp:justify-center pp:rounded-full pp:bg-primary/10 pp:shrink-0">
+              <Sparkles className="pp:size-4 pp:text-primary" aria-hidden="true" />
             </div>
 
-            <div className="flex flex-1 flex-col gap-0.5">
-              <p className="text-xs text-muted-foreground">AI Provider</p>
-              <p className="text-sm font-medium">
+            <div className="pp:flex pp:flex-1 pp:flex-col pp:gap-0.5">
+              <p className="pp:text-xs pp:text-muted-foreground">AI Provider</p>
+              <p className="pp:text-sm pp:font-medium">
                 {hasConfiguredProvider && defaultProvider
                   ? defaultProvider.label
                   : "Not configured"}
               </p>
             </div>
 
-            <Badge variant="secondary" className="text-[10px]">
+            <Badge variant="secondary" className="pp:text-[10px]">
               {summary ? summary.defaultModel : "Loading..."}
             </Badge>
           </div>
 
           {!hasConfiguredProvider && (
-            <div className="mt-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1.5 text-xs text-destructive flex items-center gap-1.5">
-              <TriangleAlert className="size-3.5 shrink-0" aria-hidden="true" />
+            <div className="pp:mt-2 pp:rounded-md pp:border pp:border-destructive/40 pp:bg-destructive/10 pp:px-2 pp:py-1.5 pp:text-xs pp:text-destructive pp:flex pp:items-center pp:gap-1.5">
+              <TriangleAlert className="pp:size-3.5 pp:shrink-0" aria-hidden="true" />
               <span>AI provider is not configured.</span>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card className="border-dashed">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 pb-2">
-            <Globe className="size-4 text-muted-foreground" aria-hidden="true" />
-            <span className="text-xs font-semibold text-foreground">Website Access</span>
+      <Card className="pp:border-dashed">
+        <CardContent className="pp:p-3">
+          <div className="pp:flex pp:items-center pp:gap-2 pp:pb-2">
+            <Globe className="pp:size-4 pp:text-muted-foreground" aria-hidden="true" />
+            <span className="pp:text-xs pp:font-semibold pp:text-foreground">Website Access</span>
           </div>
 
-          <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
-            <span className="truncate text-xs font-medium text-foreground">
+          <div className="pp:flex pp:items-center pp:justify-between pp:rounded-md pp:border pp:bg-background pp:px-3 pp:py-2">
+            <span className="pp:truncate pp:text-xs pp:font-medium pp:text-foreground">
               {currentHostname || "No active page"}
             </span>
 
@@ -125,11 +125,11 @@ export function StatusCard({ url }: StatusCardProps) {
               onClick={() => void toggleCurrentWebsite()}
               disabled={!currentHostname}
               className={`
-                relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full
-                transition-colors duration-200 ease-in-out
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-                disabled:cursor-not-allowed disabled:opacity-50
-                ${isEnabledForCurrentSite ? "bg-primary" : "bg-muted-foreground/30"}
+                pp:relative pp:inline-flex pp:h-6 pp:w-10 pp:shrink-0 pp:cursor-pointer pp:items-center pp:rounded-full
+                pp:transition-colors pp:duration-200 pp:ease-in-out
+                focus-visible:pp:outline-none focus-visible:pp:ring-2 focus-visible:pp:ring-ring focus-visible:pp:ring-offset-2
+                disabled:pp:cursor-not-allowed disabled:pp:opacity-50
+                ${isEnabledForCurrentSite ? "pp:bg-primary" : "pp:bg-muted-foreground/30"}
               `}
               role="switch"
               aria-checked={isEnabledForCurrentSite}
@@ -139,9 +139,9 @@ export function StatusCard({ url }: StatusCardProps) {
             >
               <span
                 className={`
-                  pointer-events-none inline-block size-5 rounded-full bg-background shadow-sm ring-0
-                  transition-transform duration-200 ease-in-out
-                  ${isEnabledForCurrentSite ? "translate-x-4.5" : "translate-x-0.5"}
+                  pp:pointer-events-none pp:inline-block pp:size-5 pp:rounded-full pp:bg-background pp:shadow-sm pp:ring-0
+                  pp:transition-transform pp:duration-200 pp:ease-in-out
+                  ${isEnabledForCurrentSite ? "pp:translate-x-4.5" : "pp:translate-x-0.5"}
                 `}
               />
             </button>

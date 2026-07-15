@@ -5,7 +5,7 @@ const Separator = forwardRef<HTMLHRElement, HTMLAttributes<HTMLHRElement>>(
   ({ className, ...props }, ref) => (
     <hr
       ref={ref}
-      className={cn("h-px w-full shrink-0 border-none bg-border", className)}
+      className={cn("pp:h-px pp:w-full pp:shrink-0 pp:border-none pp:bg-border", className)}
       {...props}
     />
   ),

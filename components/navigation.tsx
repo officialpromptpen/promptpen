@@ -14,7 +14,7 @@ const links = [
 export function Navigation() {
   return (
     <nav
-      className="flex items-center justify-around border-t bg-background p-2"
+      className="pp:flex pp:items-center pp:justify-around pp:border-t pp:bg-background pp:p-2"
       aria-label="Main navigation"
     >
       {links.map((link) => {
@@ -24,11 +24,11 @@ export function Navigation() {
             key={link.label}
             variant="ghost"
             size="sm"
-            className="flex flex-col gap-0.5 h-auto py-2 px-4 text-xs text-muted-foreground hover:text-foreground"
+            className="pp:flex pp:flex-col pp:gap-0.5 pp:h-auto pp:py-2 pp:px-4 pp:text-xs pp:text-muted-foreground hover:pp:text-foreground"
             aria-label={link.label}
             onClick={link.action}
           >
-            <Icon className="size-4" />
+            <Icon className="pp:size-4" />
             <span>{link.label}</span>
           </Button>
         )

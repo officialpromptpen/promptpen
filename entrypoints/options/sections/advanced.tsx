@@ -5,25 +5,25 @@ import type { OptionsState } from "../hooks/use-options-state"
 
 export function AdvancedSection(state: OptionsState) {
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-8 py-8">
+    <div className="pp:mx-auto pp:max-w-2xl pp:space-y-8 pp:px-8 pp:py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Advanced</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">Advanced</h1>
+        <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
           Advanced settings and utilities for PromptPen.
         </p>
       </div>
 
       <Separator />
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium">Data Management</h2>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={state.exportSettings} className="gap-2">
-            <Download className="h-4 w-4" />
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium">Data Management</h2>
+        <div className="pp:flex pp:gap-3">
+          <Button variant="outline" onClick={state.exportSettings} className="pp:gap-2">
+            <Download className="pp:h-4 pp:w-4" />
             Export Settings
           </Button>
-          <Button variant="outline" disabled className="gap-2">
-            <Upload className="h-4 w-4" />
+          <Button variant="outline" disabled className="pp:gap-2">
+            <Upload className="pp:h-4 pp:w-4" />
             Import Settings
           </Button>
         </div>
@@ -31,18 +31,18 @@ export function AdvancedSection(state: OptionsState) {
 
       <Separator />
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium text-destructive">Danger Zone</h2>
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium pp:text-destructive">Danger Zone</h2>
         <Button
           variant="destructive"
-          className="gap-2"
+          className="pp:gap-2"
           onClick={() => {
             if (confirm("Reset all settings and local options data?")) {
               state.resetAllData()
             }
           }}
         >
-          <RotateCcw className="h-4 w-4" />
+          <RotateCcw className="pp:h-4 pp:w-4" />
           Reset All Settings
         </Button>
       </section>

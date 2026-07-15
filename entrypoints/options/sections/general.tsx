@@ -4,22 +4,22 @@ import type { OptionsState } from "../hooks/use-options-state"
 
 export function GeneralSection(state: OptionsState) {
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-8 py-8">
+    <div className="pp:mx-auto pp:max-w-2xl pp:space-y-8 pp:px-8 pp:py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">General</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">General</h1>
+        <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
           Configure your default preferences for PromptPen.
         </p>
       </div>
 
       <Separator />
 
-      <section className="space-y-5">
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor="default-provider">
+      <section className="pp:space-y-5">
+        <div className="pp:space-y-1.5">
+          <label className="pp:text-sm pp:font-medium" htmlFor="default-provider">
             Default AI Provider
           </label>
-          <p className="text-xs text-muted-foreground">
+          <p className="pp:text-xs pp:text-muted-foreground">
             Provider used when no specific provider is selected.
           </p>
           <select
@@ -31,7 +31,7 @@ export function GeneralSection(state: OptionsState) {
                 defaultProvider: (event.target.value || null) as never,
               }))
             }
-            className="h-9 w-56 rounded-md border bg-background px-3 text-sm"
+            className="pp:h-9 pp:w-56 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
           >
             <option value="">None (auto-select)</option>
             {PROVIDER_DEFINITIONS.map((provider) => (

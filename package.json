@@ -13,10 +13,12 @@
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare",
-    "doctor": "npx react-doctor@latest"
+    "doctor": "npx react-doctor@latest",
+    "clean": "rm -rf .output .wxt"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.11",
+    "@floating-ui/react": "^0.27.20",
     "@radix-ui/react-slot": "^1.3.0",
     "@radix-ui/react-tooltip": "^1.2.12",
     "@tailwindcss/vite": "^4.3.2",

@@ -9,20 +9,20 @@ import { quickActions, writingStyles } from "@/constants/options"
 export function WritingSection(state: OptionsState) {
   const quickActionsSet = useMemo(() => new Set(state.settings.quickActions), [state.settings.quickActions])
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-8 py-8">
+    <div className="pp:mx-auto pp:max-w-2xl pp:space-y-8 pp:px-8 pp:py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Writing</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">Writing</h1>
+        <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
           Configure writing defaults, quick actions, and custom prompts.
         </p>
       </div>
 
       <Separator />
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium">Default Writing Style</h2>
-        <label className="space-y-1.5 block">
-          <span className="text-sm font-medium">Style</span>
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium">Default Writing Style</h2>
+        <label className="pp:space-y-1.5 pp:block">
+          <span className="pp:text-sm pp:font-medium">Style</span>
           <select
             value={state.settings.defaultWritingStyle}
             onChange={(event) =>
@@ -31,7 +31,7 @@ export function WritingSection(state: OptionsState) {
                 defaultWritingStyle: event.target.value,
               }))
             }
-            className="h-9 w-56 rounded-md border bg-background px-3 text-sm"
+            className="pp:h-9 pp:w-56 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
           >
             {writingStyles.map((style) => (
               <option key={style.value} value={style.value}>
@@ -44,20 +44,20 @@ export function WritingSection(state: OptionsState) {
 
       <Separator />
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium">Quick Actions</h2>
-        <p className="text-sm text-muted-foreground">
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium">Quick Actions</h2>
+        <p className="pp:text-sm pp:text-muted-foreground">
           Toggle which actions appear in the toolbar and popup quick action bar.
         </p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="pp:grid pp:grid-cols-3 pp:gap-2">
           {quickActions.map((action) => {
             const checked = quickActionsSet.has(action.id)
             return (
               <label
                 key={action.id}
                 className={cn(
-                  "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm",
-                  checked ? "border-primary bg-primary/5" : "hover:bg-accent/30",
+                  "pp:flex pp:cursor-pointer pp:items-center pp:gap-2 pp:rounded-lg pp:border pp:px-3 pp:py-2 pp:text-sm",
+                  checked ? "pp:border-primary pp:bg-primary/5" : "hover:pp:bg-accent/30",
                 )}
               >
                 <input
@@ -74,48 +74,48 @@ export function WritingSection(state: OptionsState) {
 
       <Separator />
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium">Custom Prompts</h2>
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium">Custom Prompts</h2>
 
         {state.customPrompts.length > 0 && (
-          <div className="space-y-2">
+          <div className="pp:space-y-2">
             {state.customPrompts.map((prompt) => (
-              <div key={prompt.id} className="rounded-lg border bg-card p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium">{prompt.title}</p>
+              <div key={prompt.id} className="pp:rounded-lg pp:border pp:bg-card pp:p-3">
+                <div className="pp:flex pp:items-center pp:justify-between pp:gap-2">
+                  <p className="pp:text-sm pp:font-medium">{prompt.title}</p>
                   <button
                     type="button"
                     onClick={() => state.removeCustomPrompt(prompt.id)}
-                    className="text-sm text-destructive"
+                    className="pp:text-sm pp:text-destructive"
                   >
                     Remove
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">{prompt.content}</p>
+                <p className="pp:mt-1 pp:text-xs pp:text-muted-foreground">{prompt.content}</p>
               </div>
             ))}
           </div>
         )}
 
-        <div className="space-y-3 rounded-lg border bg-card p-4">
-          <p className="text-sm font-medium">Add New Prompt</p>
+        <div className="pp:space-y-3 pp:rounded-lg pp:border pp:bg-card pp:p-4">
+          <p className="pp:text-sm pp:font-medium">Add New Prompt</p>
           <input
             value={state.promptTitle}
             onChange={(event) => state.setPromptTitle(event.target.value)}
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
             placeholder="My Custom Prompt"
           />
           <textarea
             value={state.promptContent}
             onChange={(event) => state.setPromptContent(event.target.value)}
-            className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+            className="pp:min-h-24 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:py-2 pp:text-sm"
             placeholder="Write your prompt here. Use {{text}} for selected text."
           />
           <select
             aria-label="Prompt category"
             value={state.promptCategory}
             onChange={(event) => state.setPromptCategory(event.target.value)}
-            className="h-9 w-44 rounded-md border bg-background px-3 text-sm"
+            className="pp:h-9 pp:w-44 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
           >
             <option value="custom">Custom</option>
             <option value="grammar">Grammar</option>
@@ -126,7 +126,7 @@ export function WritingSection(state: OptionsState) {
             onClick={state.addCustomPrompt}
             disabled={!state.promptTitle.trim() || !state.promptContent.trim()}
           >
-            <Plus className="mr-1.5 h-4 w-4" />
+            <Plus className="pp:mr-1.5 pp:h-4 pp:w-4" />
             Add Prompt
           </Button>
         </div>

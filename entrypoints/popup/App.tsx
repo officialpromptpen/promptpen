@@ -28,20 +28,20 @@ function IndexPopup() {
     <Layout>
       <LazyMotion features={domAnimation}>
         <m.div
-          className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 mask-[linear-gradient(to_bottom,black_90%,transparent_100%)]"
+          className="pp:flex pp:flex-1 pp:flex-col pp:gap-4 pp:overflow-y-auto pp:p-4 pp:mask-[linear-gradient(to_bottom,black_90%,transparent_100%)]"
           variants={container}
           initial="hidden"
           animate="show"
         >
-          <header className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary">
-                <Pen className="size-4 text-primary-foreground" />
+          <header className="pp:flex pp:items-center pp:justify-between">
+            <div className="pp:flex pp:items-center pp:gap-2">
+              <div className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-lg pp:bg-primary">
+                <Pen className="pp:size-4 pp:text-primary-foreground" />
               </div>
-              <span className="text-sm font-semibold">PromptPen</span>
+              <span className="pp:text-sm pp:font-semibold">PromptPen</span>
             </div>
-            <div className="flex flex-row items-center gap-1">
-              <p className="text-xs text-muted-foreground">v{browser.runtime.getManifest().version}</p>
+            <div className="pp:flex pp:flex-row pp:items-center pp:gap-1">
+              <p className="pp:text-xs pp:text-muted-foreground">v{browser.runtime.getManifest().version}</p>
               <ThemeToggle />
             </div>
           </header>
@@ -50,14 +50,14 @@ function IndexPopup() {
 
           <m.div
             variants={item}
-            className="flex items-center gap-3 rounded-md border bg-background/50 px-3 py-2"
+            className="pp:flex pp:items-center pp:gap-3 pp:rounded-md pp:border pp:bg-background/50 pp:px-3 pp:py-2"
           >
-            <Globe className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <div className="flex flex-col gap-2 min-w-0">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
+            <Globe className="pp:size-5 pp:shrink-0 pp:text-muted-foreground" aria-hidden="true" />
+            <div className="pp:flex pp:flex-col pp:gap-2 pp:min-w-0">
+              <span className="pp:text-[10px] pp:font-medium pp:text-muted-foreground pp:uppercase pp:tracking-tight">
                 Current page
               </span>
-              <span className="truncate text-xs text-foreground">
+              <span className="pp:truncate pp:text-xs pp:text-foreground">
                 {loading ? "Reading active page..." : title}
               </span>
             </div>
