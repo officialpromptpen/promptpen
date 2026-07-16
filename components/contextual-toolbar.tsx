@@ -8,29 +8,9 @@ import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
 import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
+import { ToolbarAction, ToolbarState, ToolbarPosition, ToolbarPopoverProps, ResultBodyProps, ResultActionsProps, ResultDialogProps } from '@/types'
 import "../assets/tailwind.css"
 
-interface ToolbarState {
-  selectedText: string
-  toolbarPos: ToolbarPosition
-  showResult: boolean
-  processedText: string
-  isRunning: boolean
-  activeActionId: string | null
-  lastActionId: string | null
-  errorText: string
-  copied: boolean
-}
-
-type ToolbarAction =
-  | { type: 'SELECTION_CHANGED'; text: string; position: ToolbarPosition }
-  | { type: 'HIDE_TOOLBAR_IF_VISIBLE' }
-  | { type: 'RUN_ACTION'; actionId: string }
-  | { type: 'ACTION_SUCCESS'; text: string }
-  | { type: 'ACTION_ERROR'; error: string }
-  | { type: 'COPIED' }
-  | { type: 'COPY_RESET' }
-  | { type: 'RESET' }
 
 const INITIAL_TOOLBAR_STATE: ToolbarState = {
   selectedText: '',
@@ -78,11 +58,7 @@ function toolbarReducer(state: ToolbarState, action: ToolbarAction): ToolbarStat
   }
 }
 
-interface ToolbarPosition {
-  x: number
-  y: number
-  visible: boolean
-}
+
 
 const ACTION_PROMPTS: Record<string, string> = {
   grammar:
@@ -121,14 +97,7 @@ function getFriendlyActionError(error: unknown): string {
   return `Request failed: ${message}`
 }
 
-interface ToolbarPopoverProps {
-  visible: boolean
-  portalNode: HTMLElement | null
-  toolbarPos: ToolbarPosition
-  isRunning: boolean
-  activeActionId: string | null
-  onAction: (actionId: string) => void
-}
+
 
 function ToolbarPopover({ visible, portalNode, toolbarPos, isRunning, activeActionId, onAction }: ToolbarPopoverProps) {
   if (!portalNode) {
@@ -145,7 +114,7 @@ function ToolbarPopover({ visible, portalNode, toolbarPos, isRunning, activeActi
             top: toolbarPos.y,
             transform: 'translate(-50%, 0)',
           }}
-          className="pp:fixed pp:z-2147483647 pp:rounded-xl pp:border pp:border-border pp:bg-popover pp:p-1 pp:text-popover-foreground pp:shadow-2xl pp:backdrop-blur-md"
+          className="pp:fixed pp:z-2147483647 pp:rounded-sm  pp:border pp:border-border pp:bg-popover pp:p-1.5 pp:text-popover-foreground pp:shadow-2xl pp:backdrop-blur-md"
           initial={{ opacity: 0, scale: 0.9, y: 4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 4 }}
@@ -164,20 +133,7 @@ function ToolbarPopover({ visible, portalNode, toolbarPos, isRunning, activeActi
   )
 }
 
-interface ResultDialogProps {
-  show: boolean
-  isRunning: boolean
-  activeActionId: string | null
-  processedText: string
-  errorText: string
-  copied: boolean
-  selectedText: string
-  lastActionId: string | null
-  onCopy: () => void
-  onReplace: () => void
-  onRerun: () => void
-  onClose: () => void
-}
+
 
 function ResultDialog({
   show,
@@ -236,12 +192,7 @@ function ResultDialog({
   )
 }
 
-interface ResultBodyProps {
-  isRunning: boolean
-  activeActionId: string | null
-  errorText: string
-  processedText: string
-}
+
 
 function ResultBody({ isRunning, activeActionId, errorText, processedText }: ResultBodyProps) {
   return (
@@ -268,18 +219,6 @@ function ResultBody({ isRunning, activeActionId, errorText, processedText }: Res
   )
 }
 
-interface ResultActionsProps {
-  copied: boolean
-  isRunning: boolean
-  processedText: string
-  errorText: string
-  selectedText: string
-  lastActionId: string | null
-  onCopy: () => void
-  onReplace: () => void
-  onRerun: () => void
-  onClose: () => void
-}
 
 function ResultActions({
   copied,

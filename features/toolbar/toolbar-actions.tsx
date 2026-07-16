@@ -39,38 +39,38 @@ export function ToolbarActions({
 
   return (
       <FloatingDelayGroup delay={200}>
-      <TooltipProvider delay={120}>
-          <div className="pp:m-0 pp:flex pp:items-center pp:gap-0.5 pp:border-0 pp:p-0" aria-label="Writing actions">
-            {visibleActions.map((action) => {
-              const Icon = action.icon
-              return (
-                <Tooltip key={action.id}>
-                  <TooltipTrigger>
-                    <Button
-                      type="button"
-                      aria-label={action.label}
-                      tabIndex={0}
-                      onClick={() => onAction(action.id)}
-                      onKeyDown={(e) => handleKeyDown(e, action.id)}
-                      disabled={isLoading}
-                      variant={"ghost"}
-                      size="icon"
-                    >
-                      {isLoading && activeActionId === action.id ? (
-                        <Loader2 className="pp:size-3.5 pp:shrink-0 pp:animate-spin" />
-                      ) : (
-                        <Icon className="pp:size-3.5 pp:shrink-0" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" sideOffset={4} align="center">
-                      {action.label}
-                  </TooltipContent>
-                </Tooltip>
-              )
-            })}
-          </div>
-      </TooltipProvider>
+        <TooltipProvider>
+            <div className="pp:m-0 pp:flex pp:items-center pp:gap-0.5 pp:border-0 pp:p-0" aria-label="Writing actions">
+              {visibleActions.map((action) => {
+                const Icon = action.icon
+                return (
+                  <Tooltip key={action.id}>
+                    <TooltipTrigger render={<Button
+                        aria-label={action.label}
+                        tabIndex={0}
+                        onClick={() => onAction(action.id)}
+                        onKeyDown={(e) => handleKeyDown(e, action.id)}
+                        disabled={isLoading}
+                        variant={"ghost"}
+                        size="icon"
+                        className="pp:rounded-none"
+                      >
+                        {isLoading && activeActionId === action.id ? (
+                          <Loader2 className="pp:size-3.5 pp:shrink-0 pp:animate-spin" />
+                        ) : (
+                          <Icon className="pp:size-3.5 pp:shrink-0" />
+                        )}
+                      </Button>}>
+  
+                    </TooltipTrigger>
+                    <TooltipContent className="pp:z-99990" side="bottom" align="center">
+                        {action.label}
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            </div>
+        </TooltipProvider>
       </FloatingDelayGroup>
   )
 }
