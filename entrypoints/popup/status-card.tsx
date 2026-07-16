@@ -7,8 +7,8 @@ import { getProviderDefinition } from "@/features/providers/catalog"
 import { getProviderSummary, type ProviderSummary } from "@/features/providers/storage"
 import {
   getHostnameFromUrl,
-  isWebsiteEnabled,
-  setWebsiteEnabled,
+  isWebsiteExcluded,
+  setWebsiteExcluded,
 } from "@/features/storage/website-access"
 
 const item = {
@@ -22,7 +22,7 @@ interface StatusCardProps {
 
 export function StatusCard({ url }: StatusCardProps) {
   const [summary, setSummary] = useState<ProviderSummary | null>(null)
-  const [isEnabledForCurrentSite, setIsEnabledForCurrentSite] = useState(false)
+  const [isExcludedForCurrentSite, setIsExcludedForCurrentSite] = useState(false)
 
   const currentHostname = useMemo(() => getHostnameFromUrl(url), [url])
 
@@ -47,13 +47,13 @@ export function StatusCard({ url }: StatusCardProps) {
     let mounted = true
 
     async function readWebsiteAccess() {
-      const enabled = currentHostname ? await isWebsiteEnabled(currentHostname) : false
+      const excluded = currentHostname ? await isWebsiteExcluded(currentHostname) : false
 
       if (!mounted) {
         return
       }
 
-      setIsEnabledForCurrentSite(enabled)
+      setIsExcludedForCurrentSite(excluded)
     }
 
     void readWebsiteAccess()
@@ -71,9 +71,9 @@ export function StatusCard({ url }: StatusCardProps) {
       return
     }
 
-    const nextState = !isEnabledForCurrentSite
-    await setWebsiteEnabled(currentHostname, nextState)
-    setIsEnabledForCurrentSite(nextState)
+    const nextState = !isExcludedForCurrentSite
+    await setWebsiteExcluded(currentHostname, nextState)
+    setIsExcludedForCurrentSite(nextState)
   }
 
   return (
@@ -129,19 +129,19 @@ export function StatusCard({ url }: StatusCardProps) {
                 pp:transition-colors pp:duration-200 pp:ease-in-out
                 focus-visible:pp:outline-none focus-visible:pp:ring-2 focus-visible:pp:ring-ring focus-visible:pp:ring-offset-2
                 disabled:pp:cursor-not-allowed disabled:pp:opacity-50
-                ${isEnabledForCurrentSite ? "pp:bg-primary" : "pp:bg-muted-foreground/30"}
+                ${!isExcludedForCurrentSite ? "pp:bg-primary" : "pp:bg-muted-foreground/30"}
               `}
               role="switch"
-              aria-checked={isEnabledForCurrentSite}
+              aria-checked={!isExcludedForCurrentSite}
               aria-label={
-                isEnabledForCurrentSite ? "Disable for this site" : "Enable for this site"
+                isExcludedForCurrentSite ? "Enable for this site" : "Disable for this site"
               }
             >
               <span
                 className={`
                   pp:pointer-events-none pp:inline-block pp:size-5 pp:rounded-full pp:bg-background pp:shadow-sm pp:ring-0
                   pp:transition-transform pp:duration-200 pp:ease-in-out
-                  ${isEnabledForCurrentSite ? "pp:translate-x-4.5" : "pp:translate-x-0.5"}
+                  ${!isExcludedForCurrentSite ? "pp:translate-x-4.5" : "pp:translate-x-0.5"}
                 `}
               />
             </button>

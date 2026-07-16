@@ -3,12 +3,11 @@ import { useFloatingPortalNode } from '@floating-ui/react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck } from 'lucide-react'
-
 import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
 import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
-import { ToolbarAction, ToolbarState, ToolbarPosition, ToolbarPopoverProps, ResultBodyProps, ResultActionsProps, ResultDialogProps } from '@/types'
+import { ToolbarAction, ToolbarState, ToolbarPopoverProps, ResultBodyProps, ResultActionsProps, ResultDialogProps } from '@/types'
 import "../assets/tailwind.css"
 
 

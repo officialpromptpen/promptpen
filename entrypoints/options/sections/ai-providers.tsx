@@ -165,7 +165,7 @@ export function AIProvidersSection(state: OptionsState) {
             </span>
           </h2>
           <p className="pp:mb-4 pp:text-sm pp:text-muted-foreground">
-            View, edit, or remove your configured AI providers.
+            Click Edit to modify the model or API key, or Delete to remove the configuration.
           </p>
 
           <div className="pp:space-y-2">
@@ -201,42 +201,51 @@ export function AIProvidersSection(state: OptionsState) {
 
                   {isPendingDelete ? (
                     <div className="pp:flex pp:items-center pp:gap-1.5 pp:shrink-0 pp:ml-2">
-                      <button
-                        type="button"
+                      <Button
+                        variant={"destructive"}
+                        aria-label={`Delete ${detail.label}`}
+                        title={`Delete ${detail.label}`}
+                        className="pp:rounded-xs"
                         onClick={async () => {
                           setDeleteConfirmProvider(null)
                           await state.handleDeleteProvider(detail.provider)
                         }}
-                        className="pp:rounded-md pp:px-2 pp:py-1 pp:text-xs pp:font-medium pp:text-destructive hover:pp:bg-destructive/10"
                       >
                         Delete
-                      </button>
-                      <button
-                        type="button"
+                      </Button>
+                      <Button
+                        variant={"outline"}
+                        aria-label={`Delete ${detail.label}`}
+                        title={`Delete ${detail.label}`}
+                        className="pp:rounded-xs"
                         onClick={() => setDeleteConfirmProvider(null)}
-                        className="pp:rounded-md pp:px-2 pp:py-1 pp:text-xs pp:text-muted-foreground hover:pp:bg-accent"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   ) : (
-                    <div className="pp:flex pp:items-center pp:gap-1 pp:shrink-0 pp:ml-2">
-                      <button
+                    <div className="pp:flex pp:items-center pp:gap-1.5 pp:shrink-0 pp:ml-2">
+                      <Button
                         type="button"
-                        onClick={() => void state.handleEditProvider(detail.provider)}
-                        className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-md pp:text-muted-foreground/60 hover:pp:bg-accent hover:pp:text-accent-foreground"
+                        variant={"ghost"}
+                        aria-label={`Edit ${detail.label}`}
+                        title={`Edit ${detail.label}`}
+                        onClick={() => {
+                          state.handleEditProvider(detail.provider)
+                          setDeleteConfirmProvider(null)
+                        }}
                       >
                         <Edit3 className="pp:size-3.5" aria-hidden="true" />
-                        <span className="sr-only">Edit {detail.label}</span>
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant={"ghost"}
+                        aria-label={`Delete ${detail.label}`}
+                        title={`Delete ${detail.label}`}
                         onClick={() => setDeleteConfirmProvider(detail.provider)}
-                        className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-md pp:text-muted-foreground/60 hover:pp:bg-accent hover:pp:text-destructive"
                       >
                         <Trash2 className="pp:size-3.5" aria-hidden="true" />
-                        <span className="sr-only">Delete {detail.label}</span>
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>

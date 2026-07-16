@@ -6,11 +6,13 @@ const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
 interface WebsiteAccessState {
   enableEverywhere: boolean
   websiteRules: WebsiteRule[]
+  excludedHostnames: string[]
 }
 
 const DEFAULT_STATE: WebsiteAccessState = {
   enableEverywhere: true,
   websiteRules: [],
+  excludedHostnames: [],
 }
 
 function normalizeHostname(hostname: string): string {
@@ -54,11 +56,19 @@ export async function getWebsiteAccessState(): Promise<WebsiteAccessState> {
         ? state.enableEverywhere
         : DEFAULT_STATE.enableEverywhere,
     websiteRules: Array.isArray(state.websiteRules) ? state.websiteRules : [],
+    excludedHostnames: Array.isArray(state.excludedHostnames) ? state.excludedHostnames : [],
   }
 }
 
 async function writeWebsiteAccessState(state: WebsiteAccessState): Promise<void> {
   await storage.setItem(`local:${WEBSITE_ACCESS_STORAGE_KEY}`, state)
+}
+
+export async function isWebsiteExcluded(hostname: string): Promise<boolean> {
+  const normalizedHostname = normalizeHostname(hostname)
+  if (!normalizedHostname) return false
+  const state = await getWebsiteAccessState()
+  return state.excludedHostnames.includes(normalizedHostname)
 }
 
 export async function isWebsiteEnabled(hostname: string): Promise<boolean> {
@@ -68,12 +78,36 @@ export async function isWebsiteEnabled(hostname: string): Promise<boolean> {
   }
 
   const state = await getWebsiteAccessState()
+  if (state.excludedHostnames.includes(normalizedHostname)) {
+    return false
+  }
+
   if (state.enableEverywhere) {
     return true
   }
 
   const match = state.websiteRules.find((rule) => rule.hostname === normalizedHostname)
   return Boolean(match?.enabled)
+}
+
+export async function setWebsiteExcluded(hostname: string, excluded: boolean): Promise<void> {
+  const normalizedHostname = normalizeHostname(hostname)
+  if (!normalizedHostname) return
+
+  const state = await getWebsiteAccessState()
+  if (excluded) {
+    if (!state.excludedHostnames.includes(normalizedHostname)) {
+      state.excludedHostnames.push(normalizedHostname)
+    }
+    const existingIndex = state.websiteRules.findIndex((rule) => rule.hostname === normalizedHostname)
+    if (existingIndex >= 0) {
+      state.websiteRules.splice(existingIndex, 1)
+    }
+  } else {
+    state.excludedHostnames = state.excludedHostnames.filter((h) => h !== normalizedHostname)
+  }
+
+  await writeWebsiteAccessState(state)
 }
 
 export async function setWebsiteEnabled(hostname: string, enabled: boolean): Promise<void> {

@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client"
 import { storage } from "@wxt-dev/storage"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
+import { getHostnameFromUrl, isWebsiteExcluded } from "@/features/storage/website-access"
 import { useEffect, useRef, useState } from "react"
 import tailwindStyles from "@/assets/tailwind.css?inline"
 
@@ -189,6 +190,11 @@ export default defineContentScript({
   matches: ["<all_urls>"],
   allFrames: true,
   async main(ctx) {
+    const hostname = getHostnameFromUrl(window.location.href)
+    if (hostname && await isWebsiteExcluded(hostname)) {
+      return
+    }
+
     await preloadTheme()
 
     const container = document.createElement("div")
