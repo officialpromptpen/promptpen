@@ -1,4 +1,4 @@
-import { Download, RotateCcw, Upload } from "lucide-react"
+import { RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import type { OptionsState } from "../hooks/use-options-state"
@@ -12,22 +12,6 @@ export function AdvancedSection(state: OptionsState) {
           Advanced settings and utilities for PromptPen.
         </p>
       </div>
-
-      <Separator />
-
-      <section className="pp:space-y-4">
-        <h2 className="pp:text-lg pp:font-medium">Data Management</h2>
-        <div className="pp:flex pp:gap-3">
-          <Button variant="outline" onClick={state.exportSettings} className="pp:gap-2">
-            <Download className="pp:h-4 pp:w-4" />
-            Export Settings
-          </Button>
-          <Button variant="outline" disabled className="pp:gap-2">
-            <Upload className="pp:h-4 pp:w-4" />
-            Import Settings
-          </Button>
-        </div>
-      </section>
 
       <Separator />
 

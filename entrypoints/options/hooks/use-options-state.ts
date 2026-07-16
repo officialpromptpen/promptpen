@@ -1,5 +1,5 @@
 import { storage } from "@wxt-dev/storage"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { getProviderDefinition } from "@/features/providers/catalog"
 import { testProviderConnectionWithValues } from "@/features/providers/sdk"
 import {
@@ -15,7 +15,6 @@ import {
 import type { AIProvider } from "@/types"
 import {
   type SectionId,
-  type CustomPrompt,
   type OptionsSettings,
 } from "../types"
 import {
@@ -23,7 +22,6 @@ import {
   defaultShortcuts,
   OPTIONS_PAGE_DESCRIPTION,
   OPTIONS_PAGE_TITLE,
-  PROMPTS_KEY,
   SETTINGS_KEY,
   SHORTCUTS_KEY,
 } from "@/constants/options"
@@ -36,13 +34,6 @@ export interface OptionsState {
   setSettings: React.Dispatch<React.SetStateAction<OptionsSettings>>
   shortcuts: Record<string, string>
   setShortcuts: React.Dispatch<React.SetStateAction<Record<string, string>>>
-  customPrompts: CustomPrompt[]
-  promptTitle: string
-  setPromptTitle: React.Dispatch<React.SetStateAction<string>>
-  promptContent: string
-  setPromptContent: React.Dispatch<React.SetStateAction<string>>
-  promptCategory: string
-  setPromptCategory: React.Dispatch<React.SetStateAction<string>>
   providerSummary: Awaited<ReturnType<typeof getProviderSummary>> | null
   configuredProviderDetails: ConfiguredProviderDetail[]
   selectedProvider: AIProvider
@@ -64,9 +55,6 @@ export interface OptionsState {
   selectProvider: (provider: AIProvider) => void
   handleEditProvider: (provider: AIProvider) => void
   handleDeleteProvider: (provider: AIProvider) => Promise<void>
-  addCustomPrompt: () => void
-  removeCustomPrompt: (promptId: string) => void
-  toggleQuickAction: (actionId: string) => void
   updateShortcut: (shortcutId: string, nextValue: string) => void
   resetAllData: () => void
   exportSettings: () => void
@@ -77,10 +65,6 @@ export function useOptionsState(): OptionsState {
   const [loaded, setLoaded] = useState(false)
   const [settings, setSettings] = useState<OptionsSettings>(defaultSettings)
   const [shortcuts, setShortcuts] = useState<Record<string, string>>(defaultShortcuts)
-  const [customPrompts, setCustomPrompts] = useState<CustomPrompt[]>([])
-  const [promptTitle, setPromptTitle] = useState("")
-  const [promptContent, setPromptContent] = useState("")
-  const [promptCategory, setPromptCategory] = useState("custom")
 
   const [providerSummary, setProviderSummary] = useState<Awaited<
     ReturnType<typeof getProviderSummary>
@@ -116,10 +100,9 @@ export function useOptionsState(): OptionsState {
 
     async function hydrate() {
       try {
-        const [storedSettings, storedShortcuts, storedPrompts] = await Promise.all([
+        const [storedSettings, storedShortcuts] = await Promise.all([
           storage.getItem<Partial<OptionsSettings>>(`local:${SETTINGS_KEY}`),
           storage.getItem<Record<string, string>>(`local:${SHORTCUTS_KEY}`),
-          storage.getItem<CustomPrompt[]>(`local:${PROMPTS_KEY}`),
         ])
 
         if (!mounted) return
@@ -129,9 +112,6 @@ export function useOptionsState(): OptionsState {
         }
         if (storedShortcuts) {
           setShortcuts({ ...defaultShortcuts, ...storedShortcuts })
-        }
-        if (Array.isArray(storedPrompts)) {
-          setCustomPrompts(storedPrompts)
         }
       } catch {
         // Ignore storage failures and continue with defaults.
@@ -155,11 +135,6 @@ export function useOptionsState(): OptionsState {
     if (!loaded) return
     void storage.setItem(`local:${SHORTCUTS_KEY}`, shortcuts)
   }, [loaded, shortcuts])
-
-  useEffect(() => {
-    if (!loaded) return
-    void storage.setItem(`local:${PROMPTS_KEY}`, customPrompts)
-  }, [customPrompts, loaded])
 
   useEffect(() => {
     let mounted = true
@@ -318,40 +293,6 @@ export function useOptionsState(): OptionsState {
     }
   }
 
-  function addCustomPrompt() {
-    if (!promptTitle.trim() || !promptContent.trim()) return
-
-    setCustomPrompts((previous) => [
-      ...previous,
-      {
-        id: `custom-${Date.now()}`,
-        title: promptTitle.trim(),
-        content: promptContent.trim(),
-        category: promptCategory,
-      },
-    ])
-
-    setPromptTitle("")
-    setPromptContent("")
-    setPromptCategory("custom")
-  }
-
-  function removeCustomPrompt(promptId: string) {
-    setCustomPrompts((previous) => previous.filter((prompt) => prompt.id !== promptId))
-  }
-
-  function toggleQuickAction(actionId: string) {
-    setSettings((previous) => {
-      const included = previous.quickActions.includes(actionId)
-      return {
-        ...previous,
-        quickActions: included
-          ? previous.quickActions.filter((action) => action !== actionId)
-          : [...previous.quickActions, actionId],
-      }
-    })
-  }
-
   function updateShortcut(shortcutId: string, nextValue: string) {
     setShortcuts((previous) => ({ ...previous, [shortcutId]: nextValue }))
   }
@@ -359,14 +300,12 @@ export function useOptionsState(): OptionsState {
   function resetAllData() {
     setSettings(defaultSettings)
     setShortcuts(defaultShortcuts)
-    setCustomPrompts([])
   }
 
   function exportSettings() {
     const payload = {
       settings,
       shortcuts,
-      customPrompts,
       exportedAt: new Date().toISOString(),
       version: "1.0.0",
     }
@@ -388,13 +327,6 @@ export function useOptionsState(): OptionsState {
     setSettings,
     shortcuts,
     setShortcuts,
-    customPrompts,
-    promptTitle,
-    setPromptTitle,
-    promptContent,
-    setPromptContent,
-    promptCategory,
-    setPromptCategory,
     providerSummary,
     configuredProviderDetails,
     selectedProvider,
@@ -416,9 +348,6 @@ export function useOptionsState(): OptionsState {
     selectProvider,
     handleEditProvider,
     handleDeleteProvider,
-    addCustomPrompt,
-    removeCustomPrompt,
-    toggleQuickAction,
     updateShortcut,
     resetAllData,
     exportSettings,

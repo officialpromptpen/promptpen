@@ -5,14 +5,14 @@ import { useToolbarStore } from "@/stores/toolbar"
 import { useEffect, useRef, useState } from "react"
 import tailwindStyles from "@/assets/tailwind.css?inline"
 
-function applyThemeToPage(theme: string) {
-  const root = document.documentElement
-  root.classList.remove("light", "dark")
+let shadowRootEl: HTMLElement | null = null
+
+function applyThemeToShadowRoot(theme: string) {
+  if (!shadowRootEl) return
   const resolved = theme === "system"
     ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
     : theme
-  root.classList.add(resolved)
-  root.style.colorScheme = resolved
+  shadowRootEl.classList.toggle("pp-dark", resolved === "dark")
 }
 
 function isTextInputElement(element: Element | null): element is HTMLInputElement {
@@ -82,23 +82,23 @@ function getTextControlSelection(): { text: string; rect: DOMRect } | null {
     }
   }
 
-  if (isTextInputElement(activeElement)) {
-    const start = activeElement.selectionStart ?? 0
-    const end = activeElement.selectionEnd ?? 0
-    if (end <= start) {
-      return null
-    }
+  // if (isTextInputElement(activeElement)) {
+  //   const start = activeElement.selectionStart ?? 0
+  //   const end = activeElement.selectionEnd ?? 0
+  //   if (end <= start) {
+  //     return null
+  //   }
 
-    const text = activeElement.value.slice(start, end).trim()
-    if (!text) {
-      return null
-    }
+  //   const text = activeElement.value.slice(start, end).trim()
+  //   if (!text) {
+  //     return null
+  //   }
 
-    return {
-      text,
-      rect: activeElement.getBoundingClientRect(),
-    }
-  }
+  //   return {
+  //     text,
+  //     rect: activeElement.getBoundingClientRect(),
+  //   }
+  // }
 
   return null
 }
@@ -113,7 +113,7 @@ function ContentScript() {
     return storage.watch<string>("local:theme", function handleThemeChange(newTheme) {
       if (!newTheme) return
       localStorage.setItem("promptpen-theme", newTheme)
-      applyThemeToPage(newTheme)
+      applyThemeToShadowRoot(newTheme)
       setThemeVersion((v) => v + 1)
     })
   }, [])
@@ -181,7 +181,6 @@ async function preloadTheme() {
     const theme = await storage.getItem<string>("local:theme")
     if (theme) {
       localStorage.setItem("promptpen-theme", theme)
-      applyThemeToPage(theme)
     }
   } catch {}
 }
@@ -204,11 +203,9 @@ export default defineContentScript({
     const rootEl = document.createElement("div")
     rootEl.id = "pp:root"
     shadowRoot.append(rootEl)
+    shadowRootEl = rootEl
 
-    const theme = localStorage.getItem("promptpen-theme")
-    if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      container.classList.add("pp-dark")
-    }
+    applyThemeToShadowRoot(localStorage.getItem("promptpen-theme") ?? "system")
 
     const root = createRoot(rootEl)
     root.render(<ContentScript />)
