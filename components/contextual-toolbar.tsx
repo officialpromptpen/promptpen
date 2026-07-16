@@ -3,7 +3,7 @@ import { useFloatingPortalNode } from '@floating-ui/react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck } from 'lucide-react'
-import { Layout } from '@/components/layout'
+
 import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
 import { Button } from './ui/button'
@@ -237,17 +237,16 @@ function ResultActions({
   const canRerun = Boolean(lastActionId) && !isRunning && Boolean(selectedText)
 
   return (
-    <TooltipProvider delay={120}>
+    <TooltipProvider>
       <div className="pp:flex pp:gap-3 pp:pt-4 pp:border-t pp:border-border">
         <Tooltip>
-          <TooltipTrigger>
-            <Button onClick={onCopy} disabled={!hasCopyableText || isRunning}>
+          <TooltipTrigger render={<Button onClick={onCopy} disabled={!hasCopyableText || isRunning}>
               {copied ? (
                 <CopyCheck className="pp:w-4 pp:h-4" color="green" />
               ) : (
                 <ClipboardCopy className="pp:w-4 pp:h-4" />
               )}
-            </Button>
+            </Button>}>
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>Copy</span>
@@ -255,10 +254,9 @@ function ResultActions({
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger>
-            <Button onClick={onReplace} disabled={!canReplace}>
+          <TooltipTrigger render={<Button onClick={onReplace} disabled={!canReplace}>
               <Replace className="pp:w-4 pp:h-4 pp:inline-block pp:mr-2" />
-            </Button>
+            </Button>}>
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>Replace</span>
@@ -266,14 +264,13 @@ function ResultActions({
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger>
-            <Button onClick={onRerun} disabled={!canRerun}>
+          <TooltipTrigger render={<Button onClick={onRerun} disabled={!canRerun}>
               {isRunning ? (
                 <Loader2 className="pp:w-4 pp:h-4 pp:animate-spin" />
               ) : (
                 <RefreshCw className="pp:w-4 pp:h-4" />
               )}
-            </Button>
+            </Button>}>
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>Re-run</span>
@@ -281,10 +278,9 @@ function ResultActions({
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger>
-            <Button onClick={onClose}>
+          <TooltipTrigger render={<Button onClick={onClose}>
               <X className="pp:w-4 pp:h-4" />
-            </Button>
+            </Button>}>
           </TooltipTrigger>
           <TooltipContent side="top">
             <span>Close</span>
@@ -496,10 +492,8 @@ function ContextualToolbarContent() {
 
 export function ContextualToolbar() {
   return (
-    <Layout variant="inline">
-      <LazyMotion features={domAnimation}>
-        <ContextualToolbarContent />
-      </LazyMotion>
-    </Layout>
+    <LazyMotion features={domAnimation}>
+      <ContextualToolbarContent />
+    </LazyMotion>
   )
 }
