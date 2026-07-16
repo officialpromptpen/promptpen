@@ -23,11 +23,14 @@ export interface ProviderAdapter {
 
 export async function createProviderAdapter(
   provider?: AIProvider,
+  modelOverride?: string,
 ): Promise<ProviderAdapter | null> {
   const config = await getRuntimeConfig(provider)
   if (!config) {
     return null
   }
+
+  const resolvedModel = modelOverride?.trim() || config.model
 
   const openai = createOpenAI({
     apiKey: config.apiKey,
@@ -41,12 +44,12 @@ export async function createProviderAdapter(
         : undefined,
   })
   const model = chatCompletionsProviders.has(config.provider)
-    ? openai.chat(config.model)
-    : openai(config.model)
+    ? openai.chat(resolvedModel)
+    : openai(resolvedModel)
 
   return {
     provider: config.provider,
-    model: config.model,
+    model: resolvedModel,
     runPrompt: async (input: string, systemPrompt?: string) => {
       const { text } = await generateText({
         model,

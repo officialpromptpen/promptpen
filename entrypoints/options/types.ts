@@ -4,6 +4,7 @@ import type { AIProvider, Theme } from "@/types"
 export type SectionId =
   | "general"
   | "ai-providers"
+  | "custom-prompts"
   | "website-access"
   | "appearance"
   | "advanced"

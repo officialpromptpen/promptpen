@@ -1,13 +1,18 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useFloatingPortalNode } from '@floating-ui/react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
+import { storage } from '@wxt-dev/storage'
 import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck } from 'lucide-react'
 import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
 import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
+import { getActionById } from '@/constants/actions'
+import { getProviderDefinition } from '@/features/providers/catalog'
+import { getConfiguredProviderDetails, getProviderSummary } from '@/features/providers/storage'
 import { ToolbarAction, ToolbarState, ToolbarPopoverProps, ResultBodyProps, ResultActionsProps, ResultDialogProps } from '@/types'
+import type { AIProvider } from '@/types'
 import "../assets/tailwind.css"
 
 
@@ -59,22 +64,26 @@ function toolbarReducer(state: ToolbarState, action: ToolbarAction): ToolbarStat
 
 
 
-const ACTION_PROMPTS: Record<string, string> = {
-  grammar:
-    'Correct grammar, spelling, and punctuation while preserving the original meaning and tone.',
-  rewrite: 'Rewrite the text to be clearer and more polished without changing meaning.',
-  improve: 'Improve clarity, structure, and readability without changing intent.',
-  shorten: 'Shorten this text while preserving key meaning.',
-  expand: 'Expand this text with relevant detail while preserving voice and intent.',
-  explain: 'Explain this text in simple, plain language.',
-  summarize: 'Summarize this text into concise bullet points with key takeaways.',
-  translate: 'Translate this text into clear English.',
-  continue: 'Continue this text naturally in the same style, tone, and context.',
+function createActionPrompt(actionId: string, text: string, customPrompt?: string): string {
+  if (actionId === 'custom-prompt') {
+    const instruction = customPrompt?.trim() || 'Improve this text.'
+    return `${instruction}\n\nText:\n"""\n${text}\n"""`
+  }
+
+  const instruction = getActionById(actionId)?.prompt ?? 'Improve this text.'
+  return `${instruction}\n\nText:\n"""\n${text}\n"""`
 }
 
-function createActionPrompt(actionId: string, text: string): string {
-  const instruction = ACTION_PROMPTS[actionId] ?? 'Improve this text.'
-  return `${instruction}\n\nText:\n"""\n${text}\n"""`
+function getActionLabel(actionId: string | null): string {
+  if (!actionId) {
+    return 'action'
+  }
+
+  if (actionId === 'custom-prompt') {
+    return 'custom prompt'
+  }
+
+  return getActionById(actionId)?.label ?? actionId
 }
 
 function getFriendlyActionError(error: unknown): string {
@@ -90,7 +99,7 @@ function getFriendlyActionError(error: unknown): string {
       message,
     )
   ) {
-    return 'No provider configured. Save provider and API key in Dashboard first.'
+    return 'No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider with API key.'
   }
 
   return `Request failed: ${message}`
@@ -98,7 +107,21 @@ function getFriendlyActionError(error: unknown): string {
 
 
 
-function ToolbarPopover({ visible, portalNode, toolbarPos, isRunning, activeActionId, onAction }: ToolbarPopoverProps) {
+function ToolbarPopover({
+  visible,
+  portalNode,
+  toolbarPos,
+  isRunning,
+  activeActionId,
+  selectedProvider,
+  selectedModel,
+  onAction,
+  onRunCustomPrompt,
+  onProviderChange,
+  onModelChange,
+  configuredProviders,
+  configuredProviderModels,
+}: ToolbarPopoverProps) {
   if (!portalNode) {
     return null
   }
@@ -113,7 +136,7 @@ function ToolbarPopover({ visible, portalNode, toolbarPos, isRunning, activeActi
             top: toolbarPos.y,
             transform: 'translate(-50%, 0)',
           }}
-          className="pp:fixed pp:z-2147483647 pp:rounded-sm  pp:border pp:border-border pp:bg-popover pp:p-1.5 pp:text-popover-foreground pp:shadow-2xl pp:backdrop-blur-md"
+          className="pp:fixed pp:z-2147483647 pp:shadow-2xl"
           initial={{ opacity: 0, scale: 0.9, y: 4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 4 }}
@@ -121,6 +144,13 @@ function ToolbarPopover({ visible, portalNode, toolbarPos, isRunning, activeActi
         >
           <ToolbarActions
             onAction={onAction}
+            onRunCustomPrompt={onRunCustomPrompt}
+            onProviderChange={onProviderChange}
+            onModelChange={onModelChange}
+            selectedProvider={selectedProvider}
+            selectedModel={selectedModel}
+            configuredProviders={configuredProviders}
+            configuredProviderModels={configuredProviderModels}
             isLoading={isRunning}
             activeActionId={activeActionId}
           />
@@ -194,13 +224,15 @@ function ResultDialog({
 
 
 function ResultBody({ isRunning, activeActionId, errorText, processedText }: ResultBodyProps) {
+  const actionLabel = getActionLabel(activeActionId)
+
   return (
     <div className="pp:p-1">
       <h2 className="pp:text-sm pp:font-semibold pp:text-muted-foreground pp:mb-1">Processed Text</h2>
       {isRunning && (
         <div className="pp:flex pp:items-center pp:gap-2 pp:text-sm pp:text-muted-foreground pp:bg-muted pp:p-3 pp:rounded-md">
           <Loader2 className="pp:w-4 pp:h-4 pp:animate-spin" />
-          <span>{activeActionId ? `Processing ${activeActionId}...` : 'Processing...'}</span>
+          <span>{activeActionId ? `Processing ${actionLabel}...` : 'Processing...'}</span>
         </div>
       )}
 
@@ -292,7 +324,14 @@ function ResultActions({
 
 function ContextualToolbarContent() {
   const [state, dispatch] = useReducer(toolbarReducer, INITIAL_TOOLBAR_STATE)
+  const [themeVersion, setThemeVersion] = useState(0)
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>('openai')
+  const [selectedModel, setSelectedModel] = useState(getProviderDefinition('openai').defaultModel)
+  const [configuredProviders, setConfiguredProviders] = useState<AIProvider[]>([])
+  const [configuredProviderModels, setConfiguredProviderModels] = useState<Partial<Record<AIProvider, string>>>({})
   const stateRef = useRef(state)
+  const providerRef = useRef<AIProvider>('openai')
+  const modelRef = useRef(getProviderDefinition('openai').defaultModel)
   const selectionRangeRef = useRef<Range | null>(null)
   const portalNode = useFloatingPortalNode({
     id: 'promptpen-contextual-toolbar-portal',
@@ -302,16 +341,81 @@ function ContextualToolbarContent() {
     stateRef.current = state
   })
 
+  useEffect(() => {
+    return storage.watch<string>('local:theme', () => {
+      setThemeVersion((current) => current + 1)
+    })
+  }, [])
+
+  useEffect(() => {
+    providerRef.current = selectedProvider
+  }, [selectedProvider])
+
+  useEffect(() => {
+    modelRef.current = selectedModel
+  }, [selectedModel])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function hydrateProviderChoice() {
+      try {
+        const [summary, configuredDetails] = await Promise.all([
+          getProviderSummary(),
+          getConfiguredProviderDetails(),
+        ])
+        if (!mounted) {
+          return
+        }
+
+        const availableProviders = configuredDetails.map((detail) => detail.provider)
+        const availableProviderModels = configuredDetails.reduce<
+          Partial<Record<AIProvider, string>>
+        >((accumulator, detail) => {
+          accumulator[detail.provider] = detail.model
+          return accumulator
+        }, {})
+
+        setConfiguredProviders(availableProviders)
+        setConfiguredProviderModels(availableProviderModels)
+
+        if (availableProviders.length === 0) {
+          setSelectedProvider(summary.defaultProvider)
+          setSelectedModel(summary.defaultModel || getProviderDefinition(summary.defaultProvider).defaultModel)
+          return
+        }
+
+        const resolvedProvider =
+          availableProviders.length === 1
+            ? availableProviders[0]
+            : (availableProviders.includes(summary.defaultProvider)
+              ? summary.defaultProvider
+              : availableProviders[0])
+        const resolvedModel =
+          availableProviderModels[resolvedProvider] ||
+          getProviderDefinition(resolvedProvider).defaultModel
+
+        setSelectedProvider(resolvedProvider)
+        setSelectedModel(resolvedModel)
+      } catch {
+        // Use defaults if provider summary is not available.
+      }
+    }
+
+    void hydrateProviderChoice()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const handleSelection = useCallback(() => {
     const selection = window.getSelection()
     if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
-      dispatch({ type: 'HIDE_TOOLBAR_IF_VISIBLE' })
       return
     }
 
     const text = selection.toString().trim()
     if (!text) {
-      dispatch({ type: 'HIDE_TOOLBAR_IF_VISIBLE' })
       return
     }
 
@@ -330,7 +434,7 @@ function ContextualToolbarContent() {
   }, [])
 
   const handleAction = useCallback(
-    async (actionId: string) => {
+    async (actionId: string, customPrompt?: string) => {
       const current = stateRef.current
       if (!current.selectedText.trim() || current.isRunning) {
         return
@@ -339,13 +443,17 @@ function ContextualToolbarContent() {
       dispatch({ type: 'RUN_ACTION', actionId })
 
       try {
-        const adapter = await createProviderAdapter()
+        const adapter = await createProviderAdapter(providerRef.current, modelRef.current)
         if (!adapter) {
-          dispatch({ type: 'ACTION_ERROR', error: 'No provider configured. Save provider and API key in Dashboard first.' })
+          dispatch({
+            type: 'ACTION_ERROR',
+            error:
+              'No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider with API key.',
+          })
           return
         }
 
-        const prompt = createActionPrompt(actionId, current.selectedText)
+        const prompt = createActionPrompt(actionId, current.selectedText, customPrompt)
         const response = await adapter.runPrompt(
           prompt,
           'You are a writing assistant. Return only the transformed output with no commentary.',
@@ -455,7 +563,7 @@ function ContextualToolbarContent() {
   } = state
 
   return (
-    <>
+    <div key={themeVersion}>
       {!showResult && (
         <ToolbarPopover
           visible={toolbarPos.visible}
@@ -463,9 +571,25 @@ function ContextualToolbarContent() {
           toolbarPos={toolbarPos}
           isRunning={isRunning}
           activeActionId={activeActionId}
+          selectedProvider={selectedProvider}
+          selectedModel={selectedModel}
           onAction={(actionId) => {
             void handleAction(actionId)
           }}
+          onRunCustomPrompt={(prompt) => {
+            void handleAction('custom-prompt', prompt)
+          }}
+          onProviderChange={(provider) => {
+            setSelectedProvider(provider)
+            setSelectedModel(
+              configuredProviderModels[provider] || getProviderDefinition(provider).defaultModel,
+            )
+          }}
+          onModelChange={(model) => {
+            setSelectedModel(model)
+          }}
+          configuredProviders={configuredProviders}
+          configuredProviderModels={configuredProviderModels}
         />
       )}
 
@@ -485,7 +609,7 @@ function ContextualToolbarContent() {
         onRerun={handleRerun}
         onClose={handleClose}
       />
-    </>
+    </div>
   )
 }
 

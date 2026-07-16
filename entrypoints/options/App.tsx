@@ -8,6 +8,7 @@ import { useOptionsState } from "./hooks/use-options-state"
 import { AdvancedSection } from "./sections/advanced"
 import { AIProvidersSection } from "./sections/ai-providers"
 import { AppearanceSection } from "./sections/appearance"
+import { CustomPromptsSection } from "./sections/custom-prompts"
 import { GeneralSection } from "./sections/general"
 import { WebsiteAccessSection } from "./sections/website-access"
 import { sections } from "@/constants/options"
@@ -21,6 +22,8 @@ function IndexOptions() {
         return <GeneralSection {...state} />
       case "ai-providers":
         return <AIProvidersSection {...state} />
+      case "custom-prompts":
+        return <CustomPromptsSection {...state} />
       case "website-access":
         return <WebsiteAccessSection {...state} />
       case "appearance":

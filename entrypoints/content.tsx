@@ -113,7 +113,6 @@ function ContentScript() {
   useEffect(() => {
     return storage.watch<string>("local:theme", function handleThemeChange(newTheme) {
       if (!newTheme) return
-      localStorage.setItem("promptpen-theme", newTheme)
       applyThemeToShadowRoot(newTheme)
       setThemeVersion((v) => v + 1)
     })
@@ -177,13 +176,13 @@ function ContentScript() {
   )
 }
 
-async function preloadTheme() {
+async function preloadTheme(): Promise<string> {
   try {
     const theme = await storage.getItem<string>("local:theme")
-    if (theme) {
-      localStorage.setItem("promptpen-theme", theme)
-    }
-  } catch {}
+    return theme ?? "system"
+  } catch {
+    return "system"
+  }
 }
 
 export default defineContentScript({
@@ -195,7 +194,7 @@ export default defineContentScript({
       return
     }
 
-    await preloadTheme()
+    const initialTheme = await preloadTheme()
 
     const container = document.createElement("div")
     container.id = "promptpen-root"
@@ -211,7 +210,7 @@ export default defineContentScript({
     shadowRoot.append(rootEl)
     shadowRootEl = rootEl
 
-    applyThemeToShadowRoot(localStorage.getItem("promptpen-theme") ?? "system")
+    applyThemeToShadowRoot(initialTheme)
 
     const root = createRoot(rootEl)
     root.render(<ContentScript />)

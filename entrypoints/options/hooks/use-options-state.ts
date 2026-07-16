@@ -3,6 +3,13 @@ import { useEffect, useState } from "react"
 import { getProviderDefinition } from "@/features/providers/catalog"
 import { testProviderConnectionWithValues } from "@/features/providers/sdk"
 import {
+  getCustomPrompts,
+  removeCustomPrompt,
+  saveCustomPrompt,
+  updateCustomPrompt,
+  type CustomPromptDefinition,
+} from "@/features/storage/custom-prompts"
+import {
   type ConfiguredProviderDetail,
   getConfiguredProviderDetails,
   getDecryptedApiKey,
@@ -36,6 +43,7 @@ export interface OptionsState {
   setShortcuts: React.Dispatch<React.SetStateAction<Record<string, string>>>
   providerSummary: Awaited<ReturnType<typeof getProviderSummary>> | null
   configuredProviderDetails: ConfiguredProviderDetail[]
+  customPrompts: CustomPromptDefinition[]
   selectedProvider: AIProvider
   setSelectedProvider: React.Dispatch<React.SetStateAction<AIProvider>>
   providerModel: string
@@ -55,6 +63,8 @@ export interface OptionsState {
   selectProvider: (provider: AIProvider) => void
   handleEditProvider: (provider: AIProvider) => void
   handleDeleteProvider: (provider: AIProvider) => Promise<void>
+  handleSaveCustomPrompt: (title: string, prompt: string, promptId?: string) => Promise<void>
+  handleDeleteCustomPrompt: (promptId: string) => Promise<void>
   updateShortcut: (shortcutId: string, nextValue: string) => void
   resetAllData: () => void
   exportSettings: () => void
@@ -72,6 +82,7 @@ export function useOptionsState(): OptionsState {
   const [configuredProviderDetails, setConfiguredProviderDetails] = useState<
     ConfiguredProviderDetail[]
   >([])
+  const [customPrompts, setCustomPrompts] = useState<CustomPromptDefinition[]>([])
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>("openai")
   const [providerModel, setProviderModel] = useState("")
   const [apiKey, setApiKey] = useState("")
@@ -153,6 +164,21 @@ export function useOptionsState(): OptionsState {
       setHasStoredApiKey(editorState.hasApiKey)
     }
     void hydrateProviders()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function hydrateCustomPrompts() {
+      const prompts = await getCustomPrompts()
+      if (!mounted) return
+      setCustomPrompts(prompts)
+    }
+
+    void hydrateCustomPrompts()
     return () => {
       mounted = false
     }
@@ -293,6 +319,24 @@ export function useOptionsState(): OptionsState {
     }
   }
 
+  async function refreshCustomPrompts() {
+    setCustomPrompts(await getCustomPrompts())
+  }
+
+  async function handleSaveCustomPrompt(title: string, prompt: string, promptId?: string) {
+    if (promptId) {
+      await updateCustomPrompt(promptId, title, prompt)
+    } else {
+      await saveCustomPrompt(title, prompt)
+    }
+    await refreshCustomPrompts()
+  }
+
+  async function handleDeleteCustomPrompt(promptId: string) {
+    await removeCustomPrompt(promptId)
+    await refreshCustomPrompts()
+  }
+
   function updateShortcut(shortcutId: string, nextValue: string) {
     setShortcuts((previous) => ({ ...previous, [shortcutId]: nextValue }))
   }
@@ -329,6 +373,7 @@ export function useOptionsState(): OptionsState {
     setShortcuts,
     providerSummary,
     configuredProviderDetails,
+    customPrompts,
     selectedProvider,
     setSelectedProvider,
     providerModel,
@@ -348,6 +393,8 @@ export function useOptionsState(): OptionsState {
     selectProvider,
     handleEditProvider,
     handleDeleteProvider,
+    handleSaveCustomPrompt,
+    handleDeleteCustomPrompt,
     updateShortcut,
     resetAllData,
     exportSettings,

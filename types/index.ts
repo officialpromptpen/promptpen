@@ -27,15 +27,25 @@ export interface WebsiteRule {
 export interface Action {
   id: string
   label: string
+  category: ActionCategory
+  prompt: string
   icon: LucideIcon
 }
 
+export type ActionCategory = "rewrite" | "modify" | "tone" | "transform"
+
 export interface ToolbarActionsProps {
   onAction: (actionId: string) => void
+  onRunCustomPrompt: (prompt: string) => void
+  onProviderChange: (provider: AIProvider) => void
+  onModelChange: (model: string) => void
+  selectedProvider: AIProvider
+  selectedModel: string
+  configuredProviders?: AIProvider[]
+  configuredProviderModels?: Partial<Record<AIProvider, string>>
   isLoading?: boolean
   activeActionId?: string | null
   enabledActionIds?: string[]
-  defaultActionId?: string | null
 }
 
 
@@ -74,7 +84,14 @@ export interface ToolbarPopoverProps {
   toolbarPos: ToolbarPosition
   isRunning: boolean
   activeActionId: string | null
+  selectedProvider: AIProvider
+  selectedModel: string
   onAction: (actionId: string) => void
+  onRunCustomPrompt: (prompt: string) => void
+  onProviderChange: (provider: AIProvider) => void
+  onModelChange: (model: string) => void
+  configuredProviders: AIProvider[]
+  configuredProviderModels: Partial<Record<AIProvider, string>>
 }
 
 
