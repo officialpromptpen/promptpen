@@ -37,12 +37,174 @@ import {
 	type CustomPromptDefinition,
 	getCustomPrompts,
 } from "@/features/storage/custom-prompts";
-import type { AIProvider, ToolbarActionsProps } from "@/types";
+import type { ActionCategory, AIProvider, ToolbarActionsProps } from "@/types";
 
 type ToolbarCategory =
 	| "all"
 	| (typeof ACTION_CATEGORY_ORDER)[number]
 	| "custom-prompt";
+
+function CategoryFilterBar({
+	categories,
+	activeCategory,
+	onCategoryChange,
+}: {
+	categories: { id: ToolbarCategory; label: string }[];
+	activeCategory: ToolbarCategory;
+	onCategoryChange: (category: ToolbarCategory) => void;
+}) {
+	return (
+		<ScrollArea className="pp:max-w-full">
+			<div className="pp:flex pp:gap-2 pp:flex-nowrap">
+				{categories.map((category) => (
+					<Button
+						key={category.id}
+						variant={
+							activeCategory === category.id ? "secondary" : "ghost"
+						}
+						size="sm"
+						onClick={() => onCategoryChange(category.id)}
+						title={`Filter by ${category.label} actions`}
+					>
+						{category.label}
+					</Button>
+				))}
+			</div>
+			<ScrollBar orientation="horizontal" />
+		</ScrollArea>
+	);
+}
+
+function ActionGroupList({
+	groupedActions,
+	isLoading,
+	activeActionId,
+	onAction,
+	onKeyDown,
+}: {
+	groupedActions: { category: ActionCategory; items: (typeof actions)[number][] }[];
+	isLoading: boolean;
+	activeActionId: string | null;
+	onAction: (actionId: string) => void;
+	onKeyDown: (event: ReactKeyboardEvent, actionId: string) => void;
+}) {
+	if (groupedActions.length === 0) {
+		return (
+			<p className="pp:rounded-md pp:bg-muted/60 pp:p-3 pp:text-sm pp:text-muted-foreground">
+				No actions matched your search.
+			</p>
+		);
+	}
+
+	return (
+		<ScrollArea className="pp:max-h-[52vh]">
+			<div className="pp:space-y-4 pp:pr-1">
+				{groupedActions.map((group) => (
+					<div key={group.category} className="pp:space-y-1.5">
+						<h3 className="pp:px-1 pp:mt-2 pp:text-xs pp:font-semibold pp:tracking-wide pp:text-muted-foreground pp:uppercase">
+							{ACTION_CATEGORY_LABELS[group.category]}
+						</h3>
+
+						{group.items.map((action) => {
+							const Icon = action.icon;
+							const isCurrent =
+								isLoading && activeActionId === action.id;
+
+							return (
+								<Button
+									key={action.id}
+									aria-label={action.label}
+									tabIndex={0}
+									onClick={() => onAction(action.id)}
+									onKeyDown={(event) =>
+										onKeyDown(event, action.id)
+									}
+									disabled={isLoading}
+									variant="ghost"
+									size="default"
+									className="pp:w-full pp:justify-start pp:gap-2 pp:rounded-md pp:px-2"
+								>
+									{isCurrent ? (
+										<Loader2 className="pp:size-3.5 pp:shrink-0 pp:animate-spin" />
+									) : (
+										<Icon className="pp:size-3.5 pp:shrink-0" />
+									)}
+									<span className="pp:flex-1 pp:text-left">
+										{action.label}
+									</span>
+								</Button>
+							);
+						})}
+					</div>
+				))}
+			</div>
+		</ScrollArea>
+	);
+}
+
+function ClosedToolbarState({ onOpen }: { onOpen: () => void }) {
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger
+					render={
+						<Button
+							aria-label="Open PromptPen actions"
+							onClick={onOpen}
+							size="icon"
+						>
+							<WandSparkles className="pp:size-4" />
+						</Button>
+					}
+				/>
+				<TooltipContent side="bottom" align="center">
+					Open actions
+				</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
+
+function CustomPromptList({
+	prompts,
+	isLoading,
+	onRun,
+}: {
+	prompts: CustomPromptDefinition[];
+	isLoading: boolean;
+	onRun: (prompt: CustomPromptDefinition) => void;
+}) {
+	if (prompts.length === 0) {
+		return (
+			<div className="pp:rounded-md pp:border pp:border-dashed pp:bg-background/70 pp:p-4 pp:text-sm pp:text-muted-foreground">
+				No custom prompts saved yet. Add them from Dashboard &gt;
+				Custom Prompts.
+			</div>
+		);
+	}
+
+	return (
+		<ScrollArea className="pp:max-h-[52vh]">
+			<div className="pp:space-y-3 pp:pr-1">
+				{prompts.map((item) => (
+					<Button
+						key={item.id}
+						variant="ghost"
+						size="default"
+						className="pp:w-full pp:justify-start pp:gap-2 pp:rounded-md pp:px-2"
+						disabled={isLoading}
+						onClick={() => onRun(item)}
+					>
+						<WandSparkles className="pp:size-3.5 pp:shrink-0" />
+						<span className="pp:flex-1 pp:text-left">
+							{item.title}
+						</span>
+					</Button>
+				))}
+			</div>
+		</ScrollArea>
+	);
+}
 
 export function ToolbarActions({
 	onAction,
@@ -97,13 +259,11 @@ export function ToolbarActions({
 
 	useEffect(() => {
 		let mounted = true;
-
 		async function hydrateCustomPrompts() {
 			const prompts = await getCustomPrompts();
 			if (!mounted) return;
 			setCustomPrompts(prompts);
 		}
-
 		void hydrateCustomPrompts();
 		return () => {
 			mounted = false;
@@ -159,16 +319,21 @@ export function ToolbarActions({
 		});
 	}, [enabledSet, activeCategory, searchValue]);
 
-	const groupedActions = useMemo(
-		() =>
-			ACTION_CATEGORY_ORDER.map((category) => ({
-				category,
-				items: searchableActions.filter(
-					(action) => action.category === category,
-				),
-			})).filter((group) => group.items.length > 0),
-		[searchableActions],
-	);
+	const groupedActions = useMemo(() => {
+		const groups: Array<{
+			category: (typeof ACTION_CATEGORY_ORDER)[number];
+			items: typeof searchableActions;
+		}> = [];
+		for (const category of ACTION_CATEGORY_ORDER) {
+			const items = searchableActions.filter(
+				(action) => action.category === category,
+			);
+			if (items.length > 0) {
+				groups.push({ category, items });
+			}
+		}
+		return groups;
+	}, [searchableActions]);
 
 	const searchableCustomPrompts = useMemo(() => {
 		const normalizedQuery = searchValue.trim().toLowerCase();
@@ -200,26 +365,7 @@ export function ToolbarActions({
 	if (actions.length === 0) return null;
 
 	if (!isPanelOpen) {
-		return (
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger
-						render={
-							<Button
-								aria-label="Open PromptPen actions"
-								onClick={() => setIsPanelOpen(true)}
-								size="icon"
-							>
-								<WandSparkles className="pp:size-4" />
-							</Button>
-						}
-					/>
-					<TooltipContent side="bottom" align="center">
-						Open actions
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
-		);
+		return <ClosedToolbarState onOpen={() => setIsPanelOpen(true)} />;
 	}
 
 	return (
@@ -332,101 +478,26 @@ export function ToolbarActions({
 							/>
 						</div>
 
-						<ScrollArea className="pp:max-w-full">
-							<div className="pp:flex pp:gap-2 pp:flex-nowrap">
-								{toolbarCategories.map((category) => (
-									<Button
-										key={category.id}
-										variant={
-											activeCategory === category.id ? "secondary" : "ghost"
-										}
-										size="sm"
-										onClick={() => setActiveCategory(category.id)}
-										title={`Filter by ${category.label} actions`}
-									>
-										{category.label}
-									</Button>
-								))}
-							</div>
-							<ScrollBar orientation="horizontal" />
-						</ScrollArea>
+						<CategoryFilterBar
+							categories={toolbarCategories}
+							activeCategory={activeCategory}
+							onCategoryChange={setActiveCategory}
+						/>
 
 						{activeCategory !== "custom-prompt" ? (
-							<ScrollArea className="pp:max-h-[52vh]">
-								<div className="pp:space-y-4 pp:pr-1">
-									{groupedActions.length === 0 ? (
-										<p className="pp:rounded-md pp:bg-muted/60 pp:p-3 pp:text-sm pp:text-muted-foreground">
-											No actions matched your search.
-										</p>
-									) : (
-										groupedActions.map((group) => (
-											<div key={group.category} className="pp:space-y-1.5">
-												<h3 className="pp:px-1 pp:mt-2 pp:text-xs pp:font-semibold pp:tracking-wide pp:text-muted-foreground pp:uppercase">
-													{ACTION_CATEGORY_LABELS[group.category]}
-												</h3>
-
-												{group.items.map((action) => {
-													const Icon = action.icon;
-													const isCurrent =
-														isLoading && activeActionId === action.id;
-
-													return (
-														<Button
-															key={action.id}
-															aria-label={action.label}
-															tabIndex={0}
-															onClick={() => onAction(action.id)}
-															onKeyDown={(event) =>
-																handleKeyDown(event, action.id)
-															}
-															disabled={isLoading}
-															variant="ghost"
-															size="default"
-															className="pp:w-full pp:justify-start pp:gap-2 pp:rounded-md pp:px-2"
-														>
-															{isCurrent ? (
-																<Loader2 className="pp:size-3.5 pp:shrink-0 pp:animate-spin" />
-															) : (
-																<Icon className="pp:size-3.5 pp:shrink-0" />
-															)}
-															<span className="pp:flex-1 pp:text-left">
-																{action.label}
-															</span>
-														</Button>
-													);
-												})}
-											</div>
-										))
-									)}
-								</div>
-							</ScrollArea>
+							<ActionGroupList
+								groupedActions={groupedActions}
+								isLoading={isLoading}
+								activeActionId={activeActionId}
+								onAction={onAction}
+								onKeyDown={handleKeyDown}
+							/>
 						) : (
-							<ScrollArea className="pp:max-h-[52vh]">
-								<div className="pp:space-y-3 pp:pr-1">
-								{searchableCustomPrompts.length === 0 ? (
-									<div className="pp:rounded-md pp:border pp:border-dashed pp:bg-background/70 pp:p-4 pp:text-sm pp:text-muted-foreground">
-										No custom prompts saved yet. Add them from Dashboard &gt;
-										Custom Prompts.
-									</div>
-								) : (
-									searchableCustomPrompts.map((item) => (
-										<Button
-											key={item.id}
-											variant="ghost"
-											size="default"
-											className="pp:w-full pp:justify-start pp:gap-2 pp:rounded-md pp:px-2"
-											disabled={isLoading}
-											onClick={() => onRunCustomPrompt(item.prompt)}
-										>
-											<WandSparkles className="pp:size-3.5 pp:shrink-0" />
-											<span className="pp:flex-1 pp:text-left">
-												{item.title}
-											</span>
-										</Button>
-									))
-								)}
-							</div>
-							</ScrollArea>
+							<CustomPromptList
+								prompts={searchableCustomPrompts}
+								isLoading={isLoading}
+								onRun={(prompt) => onRunCustomPrompt(prompt.prompt)}
+							/>
 						)}
 					</div>
 				</div>

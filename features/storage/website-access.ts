@@ -71,7 +71,7 @@ export async function isWebsiteExcluded(hostname: string): Promise<boolean> {
   return state.excludedHostnames.includes(normalizedHostname)
 }
 
-export async function isWebsiteEnabled(hostname: string): Promise<boolean> {
+async function isWebsiteEnabled(hostname: string): Promise<boolean> {
   const normalizedHostname = normalizeHostname(hostname)
   if (!normalizedHostname) {
     return false

@@ -1,5 +1,5 @@
 import { useFloatingPortalNode } from "@floating-ui/react";
-import { storage } from "@wxt-dev/storage";
+import { getThemeChangeTarget } from "@/features/storage/bridge";
 import { AnimatePresence, domAnimation, LazyMotion, m } from "framer-motion";
 import {
 	ClipboardCopy,
@@ -383,13 +383,24 @@ function ResultActions({
 	);
 }
 
-function ContextualToolbarContent() {
-	const [state, dispatch] = useReducer(toolbarReducer, INITIAL_TOOLBAR_STATE);
+function useThemeWatcher() {
 	const [themeVersion, setThemeVersion] = useState(0);
+	useEffect(() => {
+		const target = getThemeChangeTarget();
+		function handleChange() {
+			setThemeVersion((current) => current + 1);
+		}
+		target.addEventListener("change", handleChange);
+		return () => target.removeEventListener("change", handleChange);
+	}, []);
+	return themeVersion;
+}
+
+function useProviderState() {
 	const [selectedProvider, setSelectedProvider] =
 		useState<AIProvider>("openai");
 	const [selectedModel, setSelectedModel] = useState(
-		getProviderDefinition("openai").defaultModel,
+		() => getProviderDefinition("openai").defaultModel,
 	);
 	const [configuredProviders, setConfiguredProviders] = useState<AIProvider[]>(
 		[],
@@ -397,47 +408,6 @@ function ContextualToolbarContent() {
 	const [configuredProviderModels, setConfiguredProviderModels] = useState<
 		Partial<Record<AIProvider, string>>
 	>({});
-	const [portalRoot, setPortalRoot] = useState<ShadowRoot | HTMLElement | null>(
-		null,
-	);
-	const stateRef = useRef(state);
-	const providerRef = useRef<AIProvider>("openai");
-	const modelRef = useRef(getProviderDefinition("openai").defaultModel);
-	const selectionRangeRef = useRef<Range | null>(null);
-	const hostRef = useRef<HTMLDivElement | null>(null);
-
-	const portalNode = useFloatingPortalNode({
-		id: "promptpen-contextual-toolbar-portal",
-		root: portalRoot,
-	});
-
-	useEffect(() => {
-		const rootNode = hostRef.current?.getRootNode();
-		if (rootNode instanceof ShadowRoot) {
-			setPortalRoot(rootNode.getElementById("pp:root") ?? rootNode);
-		}
-	}, []);
-
-	useEffect(() => {
-		stateRef.current = state;
-	});
-
-	useEffect(() => {
-		const unwatch = storage.watch<string>("sync:promptpen-theme", () => {
-			setThemeVersion((current) => current + 1);
-		});
-		return () => {
-			if (typeof unwatch === "function") unwatch();
-		};
-	}, []);
-
-	useEffect(() => {
-		providerRef.current = selectedProvider;
-	}, [selectedProvider]);
-
-	useEffect(() => {
-		modelRef.current = selectedModel;
-	}, [selectedModel]);
 
 	useEffect(() => {
 		let mounted = true;
@@ -448,9 +418,7 @@ function ContextualToolbarContent() {
 					getProviderSummary(),
 					getConfiguredProviderDetails(),
 				]);
-				if (!mounted) {
-					return;
-				}
+				if (!mounted) return;
 
 				const availableProviders = configuredDetails.map(
 					(detail) => detail.provider,
@@ -497,6 +465,19 @@ function ContextualToolbarContent() {
 		};
 	}, []);
 
+	return {
+		selectedProvider,
+		setSelectedProvider,
+		selectedModel,
+		setSelectedModel,
+		configuredProviders,
+		configuredProviderModels,
+	};
+}
+
+function useSelectionHandler(dispatch: (action: ToolbarAction) => void) {
+	const selectionRangeRef = useRef<Range | null>(null);
+
 	const handleSelection = useCallback(() => {
 		const selection = window.getSelection();
 		if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
@@ -504,9 +485,7 @@ function ContextualToolbarContent() {
 		}
 
 		const text = selection.toString().trim();
-		if (!text) {
-			return;
-		}
+		if (!text) return;
 
 		const range = selection.getRangeAt(0).cloneRange();
 		selectionRangeRef.current = range;
@@ -520,14 +499,34 @@ function ContextualToolbarContent() {
 			text,
 			position: { x: anchorX, y: anchorY, visible: true },
 		});
-	}, []);
+	}, [dispatch]);
 
+	useEffect(() => {
+		document.addEventListener("mouseup", handleSelection, true);
+		document.addEventListener("keyup", handleSelection, true);
+		document.addEventListener("selectionchange", handleSelection, true);
+
+		return () => {
+			document.removeEventListener("mouseup", handleSelection, true);
+			document.removeEventListener("keyup", handleSelection, true);
+			document.removeEventListener("selectionchange", handleSelection, true);
+		};
+	}, [handleSelection]);
+
+	return { selectionRangeRef, handleSelection };
+}
+
+function useActionHandlers(
+	stateRef: React.MutableRefObject<ToolbarState>,
+	providerRef: React.MutableRefObject<AIProvider>,
+	modelRef: React.MutableRefObject<string>,
+	dispatch: (action: ToolbarAction) => void,
+	selectionRangeRef: React.MutableRefObject<Range | null>,
+) {
 	const handleAction = useCallback(
 		async (actionId: string, customPrompt?: string) => {
 			const current = stateRef.current;
-			if (!current.selectedText.trim() || current.isRunning) {
-				return;
-			}
+			if (!current.selectedText.trim() || current.isRunning) return;
 
 			dispatch({ type: "RUN_ACTION", actionId });
 
@@ -573,24 +572,22 @@ function ContextualToolbarContent() {
 				});
 			}
 		},
-		[],
+		[stateRef, providerRef, modelRef, dispatch],
 	);
 
 	const handleCopy = useCallback(async () => {
 		const current = stateRef.current;
 		const textToCopy = current.processedText || current.errorText;
-		if (!textToCopy) {
-			return;
-		}
+		if (!textToCopy) return;
 
 		try {
 			await navigator.clipboard.writeText(textToCopy);
 			dispatch({ type: "COPIED" });
 			window.setTimeout(() => dispatch({ type: "COPY_RESET" }), 1400);
 		} catch {
-			// Ignore clipboard failures; user can still manually copy from the result panel.
+			// Ignore clipboard failures.
 		}
-	}, []);
+	}, [stateRef, dispatch]);
 
 	const handleRerun = useCallback(() => {
 		const current = stateRef.current;
@@ -603,7 +600,7 @@ function ContextualToolbarContent() {
 		}
 
 		void handleAction(current.lastActionId);
-	}, [handleAction]);
+	}, [stateRef, handleAction]);
 
 	const handleReplace = useCallback(() => {
 		const current = stateRef.current;
@@ -645,25 +642,70 @@ function ContextualToolbarContent() {
 					"Failed to replace text in this area. Select text again and retry.",
 			});
 		}
-	}, []);
+	}, [stateRef, dispatch, selectionRangeRef]);
 
 	const handleClose = useCallback(() => {
 		dispatch({ type: "RESET" });
 		selectionRangeRef.current = null;
 		window.getSelection()?.removeAllRanges();
+	}, [dispatch, selectionRangeRef]);
+
+	return { handleAction, handleCopy, handleRerun, handleReplace, handleClose };
+}
+
+function ContextualToolbarContent() {
+	const [state, dispatch] = useReducer(toolbarReducer, INITIAL_TOOLBAR_STATE);
+	const themeVersion = useThemeWatcher();
+	const {
+		selectedProvider,
+		setSelectedProvider,
+		selectedModel,
+		setSelectedModel,
+		configuredProviders,
+		configuredProviderModels,
+	} = useProviderState();
+	const { selectionRangeRef } = useSelectionHandler(dispatch);
+	const stateRef = useRef(state);
+	const providerRef = useRef(selectedProvider);
+	const modelRef = useRef(selectedModel);
+	const hostRef = useRef<HTMLDivElement | null>(null);
+
+	const [portalRoot, setPortalRoot] = useState<ShadowRoot | HTMLElement | null>(
+		null,
+	);
+
+	const portalNode = useFloatingPortalNode({
+		id: "promptpen-contextual-toolbar-portal",
+		root: portalRoot,
+	});
+
+	useEffect(() => {
+		const rootNode = hostRef.current?.getRootNode();
+		if (rootNode instanceof ShadowRoot) {
+			setPortalRoot(rootNode.getElementById("pp:root") ?? rootNode);
+		}
 	}, []);
 
 	useEffect(() => {
-		document.addEventListener("mouseup", handleSelection, true);
-		document.addEventListener("keyup", handleSelection, true);
-		document.addEventListener("selectionchange", handleSelection, true);
+		stateRef.current = state;
+	});
 
-		return () => {
-			document.removeEventListener("mouseup", handleSelection, true);
-			document.removeEventListener("keyup", handleSelection, true);
-			document.removeEventListener("selectionchange", handleSelection, true);
-		};
-	}, [handleSelection]);
+	useEffect(() => {
+		providerRef.current = selectedProvider;
+	}, [selectedProvider]);
+
+	useEffect(() => {
+		modelRef.current = selectedModel;
+	}, [selectedModel]);
+
+	const { handleAction, handleCopy, handleRerun, handleReplace, handleClose } =
+		useActionHandlers(
+			stateRef,
+			providerRef,
+			modelRef,
+			dispatch,
+			selectionRangeRef,
+		);
 
 	const {
 		selectedText,

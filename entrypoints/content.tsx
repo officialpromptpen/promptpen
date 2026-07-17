@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client"
 import { storage } from "@wxt-dev/storage"
 import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root"
+import { getThemeChangeTarget } from "@/features/storage/bridge"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
 import { getHostnameFromUrl, isWebsiteExcluded } from "@/features/storage/website-access"
@@ -115,13 +116,14 @@ function ContentScript() {
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const unwatch = storage.watch<Theme>("sync:promptpen-theme", (newTheme) => {
+    const target = getThemeChangeTarget()
+    function handleThemeChange(event: Event) {
+      const newTheme = (event as CustomEvent).detail as Theme | undefined
       if (!newTheme) return
       applyTheme(newTheme)
-    })
-    return () => {
-      if (typeof unwatch === "function") unwatch()
     }
+    target.addEventListener("change", handleThemeChange)
+    return () => target.removeEventListener("change", handleThemeChange)
   }, [])
 
   useEffect(() => {
