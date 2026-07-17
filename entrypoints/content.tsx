@@ -1,10 +1,11 @@
 import { createRoot } from "react-dom/client"
 import { storage } from "@wxt-dev/storage"
+import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
 import { getHostnameFromUrl, isWebsiteExcluded } from "@/features/storage/website-access"
 import { useEffect, useRef, useState } from "react"
-import tailwindStyles from "@/assets/tailwind.css?inline"
+import "@/assets/tailwind.css"
 
 let shadowRootEl: HTMLElement | null = null
 
@@ -83,23 +84,23 @@ function getTextControlSelection(): { text: string; rect: DOMRect } | null {
     }
   }
 
-  // if (isTextInputElement(activeElement)) {
-  //   const start = activeElement.selectionStart ?? 0
-  //   const end = activeElement.selectionEnd ?? 0
-  //   if (end <= start) {
-  //     return null
-  //   }
+  if (isTextInputElement(activeElement)) {
+    const start = activeElement.selectionStart ?? 0
+    const end = activeElement.selectionEnd ?? 0
+    if (end <= start) {
+      return null
+    }
 
-  //   const text = activeElement.value.slice(start, end).trim()
-  //   if (!text) {
-  //     return null
-  //   }
+    const text = activeElement.value.slice(start, end).trim()
+    if (!text) {
+      return null
+    }
 
-  //   return {
-  //     text,
-  //     rect: activeElement.getBoundingClientRect(),
-  //   }
-  // }
+    return {
+      text,
+      rect: activeElement.getBoundingClientRect(),
+    }
+  }
 
   return null
 }
@@ -169,11 +170,7 @@ function ContentScript() {
     }
   }, [isPinned, show, hide])
 
-  return (
-    <>
-      <ContextualToolbar key={themeVersion} />
-    </>
-  )
+  return <ContextualToolbar />
 }
 
 async function preloadTheme(): Promise<string> {
@@ -188,6 +185,7 @@ async function preloadTheme(): Promise<string> {
 export default defineContentScript({
   matches: ["<all_urls>"],
   allFrames: true,
+  cssInjectionMode: "ui",
   async main(ctx) {
     const hostname = getHostnameFromUrl(window.location.href)
     if (hostname && await isWebsiteExcluded(hostname)) {
@@ -196,28 +194,29 @@ export default defineContentScript({
 
     const initialTheme = await preloadTheme()
 
-    const container = document.createElement("div")
-    container.id = "promptpen-root"
-    document.body.append(container)
+    const ui = await createShadowRootUi(ctx, {
+      name: "promptpen-root",
+      mode: "closed",
+      position: "inline",
+      anchor: "body",
+      onMount(uiContainer) {
+        const rootEl = document.createElement("div")
+        rootEl.id = "pp:root"
+        uiContainer.append(rootEl)
 
-    const shadowRoot = container.attachShadow({ mode: "closed" })
-    const styleEl = document.createElement("style")
-    styleEl.textContent = tailwindStyles
-    shadowRoot.append(styleEl)
+        shadowRootEl = rootEl
+        applyThemeToShadowRoot(initialTheme)
 
-    const rootEl = document.createElement("div")
-    rootEl.id = "pp:root"
-    shadowRoot.append(rootEl)
-    shadowRootEl = rootEl
-
-    applyThemeToShadowRoot(initialTheme)
-
-    const root = createRoot(rootEl)
-    root.render(<ContentScript />)
-
-    ctx.onInvalidated(() => {
-      root.unmount()
-      container.remove()
+        const root = createRoot(rootEl)
+        root.render(<ContentScript />)
+        return { root }
+      },
+      onRemove(mounted) {
+        mounted?.root.unmount()
+        shadowRootEl = null
+      },
     })
+
+    ui.mount()
   },
 })

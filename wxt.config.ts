@@ -17,6 +17,9 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   vite: () => ({
     plugins: [tailwindcss()],
+    css: {
+      sourcemap: false,
+    },
   }),
   suppressWarnings: {
     firefoxDataCollection: true,

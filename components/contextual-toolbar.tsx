@@ -13,7 +13,6 @@ import { getProviderDefinition } from '@/features/providers/catalog'
 import { getConfiguredProviderDetails, getProviderSummary } from '@/features/providers/storage'
 import { ToolbarAction, ToolbarState, ToolbarPopoverProps, ResultBodyProps, ResultActionsProps, ResultDialogProps } from '@/types'
 import type { AIProvider } from '@/types'
-import "../assets/tailwind.css"
 
 
 const INITIAL_TOOLBAR_STATE: ToolbarState = {
@@ -62,8 +61,6 @@ function toolbarReducer(state: ToolbarState, action: ToolbarAction): ToolbarStat
   }
 }
 
-
-
 function createActionPrompt(actionId: string, text: string, customPrompt?: string): string {
   if (actionId === 'custom-prompt') {
     const instruction = customPrompt?.trim() || 'Improve this text.'
@@ -104,8 +101,6 @@ function getFriendlyActionError(error: unknown): string {
 
   return `Request failed: ${message}`
 }
-
-
 
 function ToolbarPopover({
   visible,
@@ -161,8 +156,6 @@ function ToolbarPopover({
     portalNode,
   )
 }
-
-
 
 function ResultDialog({
   show,
@@ -220,8 +213,6 @@ function ResultDialog({
     </AnimatePresence>
   )
 }
-
-
 
 function ResultBody({ isRunning, activeActionId, errorText, processedText }: ResultBodyProps) {
   const actionLabel = getActionLabel(activeActionId)
@@ -323,19 +314,32 @@ function ResultActions({
 }
 
 function ContextualToolbarContent() {
+  
   const [state, dispatch] = useReducer(toolbarReducer, INITIAL_TOOLBAR_STATE)
   const [themeVersion, setThemeVersion] = useState(0)
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>('openai')
   const [selectedModel, setSelectedModel] = useState(getProviderDefinition('openai').defaultModel)
   const [configuredProviders, setConfiguredProviders] = useState<AIProvider[]>([])
   const [configuredProviderModels, setConfiguredProviderModels] = useState<Partial<Record<AIProvider, string>>>({})
+  const [portalRoot, setPortalRoot] = useState<ShadowRoot | null>(null)
   const stateRef = useRef(state)
   const providerRef = useRef<AIProvider>('openai')
   const modelRef = useRef(getProviderDefinition('openai').defaultModel)
   const selectionRangeRef = useRef<Range | null>(null)
+  const hostRef = useRef<HTMLDivElement | null>(null)
+  
+  
   const portalNode = useFloatingPortalNode({
     id: 'promptpen-contextual-toolbar-portal',
+    root: portalRoot,
   })
+
+  useEffect(() => {
+    const rootNode = hostRef.current?.getRootNode()
+    if (rootNode instanceof ShadowRoot) {
+      setPortalRoot(rootNode)
+    }
+  }, [])
 
   useEffect(() => {
     stateRef.current = state
@@ -568,7 +572,7 @@ function ContextualToolbarContent() {
   } = state
 
   return (
-    <div key={themeVersion}>
+    <div key={themeVersion} ref={hostRef}>
       {!showResult && (
         <ToolbarPopover
           visible={toolbarPos.visible}
