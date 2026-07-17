@@ -342,9 +342,14 @@ function ContextualToolbarContent() {
   })
 
   useEffect(() => {
-    return storage.watch<string>('local:theme', () => {
+    const unsubscribe = storage.watch<string>('local:theme', () => {
       setThemeVersion((current) => current + 1)
     })
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe()
+      }
+    }
   }, [])
 
   useEffect(() => {
