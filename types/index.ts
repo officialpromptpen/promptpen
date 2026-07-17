@@ -2,7 +2,6 @@ import {
 type LucideIcon
 } from "lucide-react"
 
-export type Theme = "light" | "dark" | "system"
  
 export type AIProvider =
   | "openrouter"
