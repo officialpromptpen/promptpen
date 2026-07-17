@@ -2,7 +2,6 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useFloatingPortalNode } from '@floating-ui/react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
-import { storage } from '@wxt-dev/storage'
 import { Loader2, RefreshCw, Replace, TriangleAlert, X, ClipboardCopy, CopyCheck } from 'lucide-react'
 import { createProviderAdapter } from '@/features/providers/sdk'
 import { ToolbarActions } from '@/features/toolbar/toolbar-actions'
@@ -316,7 +315,6 @@ function ResultActions({
 function ContextualToolbarContent() {
   
   const [state, dispatch] = useReducer(toolbarReducer, INITIAL_TOOLBAR_STATE)
-  const [themeVersion, setThemeVersion] = useState(0)
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>('openai')
   const [selectedModel, setSelectedModel] = useState(getProviderDefinition('openai').defaultModel)
   const [configuredProviders, setConfiguredProviders] = useState<AIProvider[]>([])
@@ -344,17 +342,6 @@ function ContextualToolbarContent() {
   useEffect(() => {
     stateRef.current = state
   })
-
-  useEffect(() => {
-    const unsubscribe = storage.watch<string>('local:theme', () => {
-      setThemeVersion((current) => current + 1)
-    })
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe()
-      }
-    }
-  }, [])
 
   useEffect(() => {
     providerRef.current = selectedProvider
@@ -572,7 +559,7 @@ function ContextualToolbarContent() {
   } = state
 
   return (
-    <div key={themeVersion} ref={hostRef}>
+    <div ref={hostRef}>
       {!showResult && (
         <ToolbarPopover
           visible={toolbarPos.visible}

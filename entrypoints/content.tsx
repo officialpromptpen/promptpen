@@ -1,21 +1,10 @@
 import { createRoot } from "react-dom/client"
-import { storage } from "@wxt-dev/storage"
 import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
 import { getHostnameFromUrl, isWebsiteExcluded } from "@/features/storage/website-access"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import "@/assets/tailwind.css"
-
-let shadowRootEl: HTMLElement | null = null
-
-function applyThemeToShadowRoot(theme: string) {
-  if (!shadowRootEl) return
-  const resolved = theme === "system"
-    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-    : theme
-  shadowRootEl.classList.toggle("pp-dark", resolved === "dark")
-}
 
 function isTextInputElement(element: Element | null): element is HTMLInputElement {
   if (!(element instanceof HTMLInputElement)) {
@@ -107,17 +96,7 @@ function getTextControlSelection(): { text: string; rect: DOMRect } | null {
 
 function ContentScript() {
   const { show, hide, isPinned } = useToolbarStore()
-  const [themeVersion, setThemeVersion] = useState(0)
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
-  useEffect(() => {
-    return storage.watch<string>("local:theme", function handleThemeChange(newTheme) {
-      if (!newTheme) return
-      applyThemeToShadowRoot(newTheme)
-      setThemeVersion((v) => v + 1)
-    })
-  }, [])
 
   useEffect(() => {
     function handleSelection() {
@@ -173,15 +152,6 @@ function ContentScript() {
   return <ContextualToolbar />
 }
 
-async function preloadTheme(): Promise<string> {
-  try {
-    const theme = await storage.getItem<string>("local:theme")
-    return theme ?? "system"
-  } catch {
-    return "system"
-  }
-}
-
 export default defineContentScript({
   matches: ["<all_urls>"],
   allFrames: true,
@@ -191,8 +161,6 @@ export default defineContentScript({
     if (hostname && await isWebsiteExcluded(hostname)) {
       return
     }
-
-    const initialTheme = await preloadTheme()
 
     const ui = await createShadowRootUi(ctx, {
       name: "promptpen-root",
@@ -204,16 +172,12 @@ export default defineContentScript({
         rootEl.id = "pp:root"
         uiContainer.append(rootEl)
 
-        shadowRootEl = rootEl
-        applyThemeToShadowRoot(initialTheme)
-
         const root = createRoot(rootEl)
         root.render(<ContentScript />)
         return { root }
       },
       onRemove(mounted) {
         mounted?.root.unmount()
-        shadowRootEl = null
       },
     })
 
