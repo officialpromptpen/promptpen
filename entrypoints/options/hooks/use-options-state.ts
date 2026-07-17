@@ -221,7 +221,7 @@ export function useOptionsState(): OptionsState {
       setHasStoredApiKey(true)
       setApiKey("")
       setProviderStatusType("success")
-      setProviderStatusMessage("Provider settings saved.")
+      setProviderStatusMessage("Provider settings saved. Reload the website after saving for the AI provider to work.")
 
       setSettings((previous) => ({
         ...previous,
