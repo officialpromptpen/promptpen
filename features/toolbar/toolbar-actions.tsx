@@ -1,3 +1,4 @@
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { FloatingDelayGroup } from "@floating-ui/react";
 import {
 	ChevronDown,
@@ -230,7 +231,7 @@ export function ToolbarActions({
 				<div className="pp:flex  pp:flex-row pp:px-2.5 pp:justify-between pp:items-center pp:gap-3 pp:border-b pp:border-border pp:py-3">
 					<div className="pp:flex pp:items-center pp:gap-2 pp:text-sm pp:font-semibold">
 						<Sparkles className="pp:size-4" />
-						PromptPen Actions
+						PromptPen Actions 
 					</div>
 
 					<div className="pp:ml-auto pp:flex pp:items-center pp:gap-2">
@@ -331,70 +332,77 @@ export function ToolbarActions({
 							/>
 						</div>
 
-						<div className="pp:flex pp:my-2.5 pp:flex-wrap pp:gap-1.5">
-							{toolbarCategories.map((category) => (
-								<Button
-									key={category.id}
-									variant={
-										activeCategory === category.id ? "secondary" : "ghost"
-									}
-									size="sm"
-									onClick={() => setActiveCategory(category.id)}
-								>
-									{category.label}
-								</Button>
-							))}
-						</div>
+						<ScrollArea className="pp:max-w-full">
+							<div className="pp:flex pp:gap-2 pp:flex-nowrap">
+								{toolbarCategories.map((category) => (
+									<Button
+										key={category.id}
+										variant={
+											activeCategory === category.id ? "secondary" : "ghost"
+										}
+										size="sm"
+										onClick={() => setActiveCategory(category.id)}
+										title={`Filter by ${category.label} actions`}
+									>
+										{category.label}
+									</Button>
+								))}
+							</div>
+							<ScrollBar orientation="horizontal" />
+						</ScrollArea>
 
 						{activeCategory !== "custom-prompt" ? (
-							<div className="pp:max-h-[52vh] pp:space-y-4 pp:overflow-auto pp:pr-1">
-								{groupedActions.length === 0 ? (
-									<p className="pp:rounded-md pp:bg-muted/60 pp:p-3 pp:text-sm pp:text-muted-foreground">
-										No actions matched your search.
-									</p>
-								) : (
-									groupedActions.map((group) => (
-										<section key={group.category} className="pp:space-y-1.5">
-											<h3 className="pp:px-1 pp:text-xs pp:font-semibold pp:tracking-wide pp:text-muted-foreground pp:uppercase">
-												{ACTION_CATEGORY_LABELS[group.category]}
-											</h3>
+							<ScrollArea className="pp:max-h-[52vh]">
+								<div className="pp:space-y-4 pp:pr-1">
+									{groupedActions.length === 0 ? (
+										<p className="pp:rounded-md pp:bg-muted/60 pp:p-3 pp:text-sm pp:text-muted-foreground">
+											No actions matched your search.
+										</p>
+									) : (
+										groupedActions.map((group) => (
+											<div key={group.category} className="pp:space-y-1.5">
+												<h3 className="pp:px-1 pp:mt-2 pp:text-xs pp:font-semibold pp:tracking-wide pp:text-muted-foreground pp:uppercase">
+													{ACTION_CATEGORY_LABELS[group.category]}
+												</h3>
 
-											{group.items.map((action) => {
-												const Icon = action.icon;
-												const isCurrent =
-													isLoading && activeActionId === action.id;
+												{group.items.map((action) => {
+													const Icon = action.icon;
+													const isCurrent =
+														isLoading && activeActionId === action.id;
 
-												return (
-													<Button
-														key={action.id}
-														aria-label={action.label}
-														tabIndex={0}
-														onClick={() => onAction(action.id)}
-														onKeyDown={(event) =>
-															handleKeyDown(event, action.id)
-														}
-														disabled={isLoading}
-														variant="ghost"
-														size="default"
-														className="pp:w-full pp:justify-start pp:gap-2 pp:rounded-md pp:px-2"
-													>
-														{isCurrent ? (
-															<Loader2 className="pp:size-3.5 pp:shrink-0 pp:animate-spin" />
-														) : (
-															<Icon className="pp:size-3.5 pp:shrink-0" />
-														)}
-														<span className="pp:flex-1 pp:text-left">
-															{action.label}
-														</span>
-													</Button>
-												);
-											})}
-										</section>
-									))
-								)}
-							</div>
+													return (
+														<Button
+															key={action.id}
+															aria-label={action.label}
+															tabIndex={0}
+															onClick={() => onAction(action.id)}
+															onKeyDown={(event) =>
+																handleKeyDown(event, action.id)
+															}
+															disabled={isLoading}
+															variant="ghost"
+															size="default"
+															className="pp:w-full pp:justify-start pp:gap-2 pp:rounded-md pp:px-2"
+														>
+															{isCurrent ? (
+																<Loader2 className="pp:size-3.5 pp:shrink-0 pp:animate-spin" />
+															) : (
+																<Icon className="pp:size-3.5 pp:shrink-0" />
+															)}
+															<span className="pp:flex-1 pp:text-left">
+																{action.label}
+															</span>
+														</Button>
+													);
+												})}
+											</div>
+										))
+									)}
+								</div>
+							</ScrollArea>
 						) : (
-							<div className="pp:max-h-[52vh] pp:space-y-3 pp:overflow-auto pp:pr-1">
+							<ScrollArea className="pp:max-h-[52vh]">
+								<div className="pp:space-y-3 pp:pr-1">
 								{searchableCustomPrompts.length === 0 ? (
 									<div className="pp:rounded-md pp:border pp:border-dashed pp:bg-background/70 pp:p-4 pp:text-sm pp:text-muted-foreground">
 										No custom prompts saved yet. Add them from Dashboard &gt;
@@ -418,6 +426,7 @@ export function ToolbarActions({
 									))
 								)}
 							</div>
+							</ScrollArea>
 						)}
 					</div>
 				</div>
