@@ -1,5 +1,5 @@
-import { Settings } from "lucide-react"
-import type { AIProvider, Theme } from "@/types"
+import type { Settings } from "lucide-react"
+import type { AIProvider } from "@/types"
 
 export type SectionId =
   | "general"
@@ -18,5 +18,4 @@ export interface Section {
 export interface OptionsSettings {
   defaultProvider: AIProvider | null
   defaultModel: string | null
-  theme: Theme
 }

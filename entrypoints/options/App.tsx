@@ -3,7 +3,6 @@ import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion"
 import { useState } from "react"
 import { Bug, ChevronRight, Info, Loader2, Pen, Star, Lightbulb } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
-import { ThemeProvider } from "@/features/theme/theme-provider"
 import { cn } from "@/lib/utils"
 import { useOptionsState } from "./hooks/use-options-state"
 import { AdvancedSection } from "./sections/advanced"
@@ -37,8 +36,7 @@ function IndexOptions() {
   }
 
   return (
-    <ThemeProvider defaultTheme={state.settings.theme}>
-      <div className="pp:flex pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
+    <div className="pp:flex pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
         <aside className="pp:flex pp:w-60 pp:flex-col pp:border-r pp:bg-card">
           <div className="pp:flex pp:h-14 pp:items-center pp:gap-2 pp:px-5">
             <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg pp:bg-primary">
@@ -200,8 +198,7 @@ function IndexOptions() {
             )}
           </AnimatePresence>
         </LazyMotion>
-      </div>
-    </ThemeProvider>
+    </div>
   )
 }
 

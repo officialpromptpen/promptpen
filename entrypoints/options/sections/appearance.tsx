@@ -2,7 +2,6 @@ import { Check, Monitor, Moon, Sun } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import type { OptionsState } from "../hooks/use-options-state"
-import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 
 const themeButtons = [
@@ -12,8 +11,7 @@ const themeButtons = [
 ]
 
 export function AppearanceSection(_state: OptionsState) {
-  const { setTheme, theme } = useTheme()
-  const current = theme ?? "system"
+  const selected = true
 
   return (
     <div className="pp:mx-auto pp:max-w-2xl pp:space-y-8 pp:px-8 pp:py-8">
@@ -30,8 +28,6 @@ export function AppearanceSection(_state: OptionsState) {
         <h2 className="pp:text-lg pp:font-medium">Theme</h2>
         <div className="pp:grid pp:grid-cols-3 pp:h-20 pp:gap-3">
           {themeButtons.map((themeOption) => {
-            const Icon = themeOption.icon
-            const selected = current === themeOption.id
 
             return (
               <Button
@@ -43,11 +39,9 @@ export function AppearanceSection(_state: OptionsState) {
                     : "pp:bg-background pp:text-muted-foreground hover:pp:bg-accent hover:pp:text-accent-foreground",
                 )}
                 variant={selected ? "default" : "outline"}
-                onClick={() => {
-                  setTheme(themeOption.id)
-                }}
+                
               >
-                <Icon className="pp:h-5 pp:w-5 pp:shrink-0" />
+                <Sun className="pp:h-5 pp:w-5 pp:shrink-0" />
                 <span className="pp:font-medium pp:text-sm pp:flex-1 pp:text-left">
                   {themeOption.label}
                 </span>

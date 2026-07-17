@@ -19,7 +19,6 @@ export const sections: Section[] = [
 export const defaultSettings: OptionsSettings = {
   defaultProvider: null,
   defaultModel: null,
-  theme: "system",
 }
 
 export const defaultShortcuts: Record<string, string> = {
