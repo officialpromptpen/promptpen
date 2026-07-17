@@ -4,6 +4,7 @@ import { Globe, Pen } from "lucide-react"
 import { Layout } from "@/components/layout"
 import { Navigation } from "@/components/navigation"
 import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/features/theme/theme-toggle"
 import { useActiveTab } from "@/hooks/use-active-tab"
 import { StatusCard } from "./status-card"
 
@@ -39,7 +40,10 @@ function IndexPopup() {
               </div>
               <span className="pp:text-sm pp:font-semibold">PromptPen</span>
             </div>
-            <p className="pp:text-xs pp:text-muted-foreground">v{browser.runtime.getManifest().version}</p>
+            <div className="pp:flex pp:items-center pp:gap-1">
+              <ThemeToggle />
+              <p className="pp:text-xs pp:text-muted-foreground">v{browser.runtime.getManifest().version}</p>
+            </div>
           </header>
 
           <Separator />

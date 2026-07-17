@@ -1,10 +1,26 @@
 import { createRoot } from "react-dom/client"
+import { storage } from "@wxt-dev/storage"
 import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
 import { getHostnameFromUrl, isWebsiteExcluded } from "@/features/storage/website-access"
 import { useEffect, useRef } from "react"
 import "@/assets/tailwind.css"
+
+type Theme = "light" | "dark" | "system"
+let shadowRootEl: HTMLElement | null = null
+
+function resolveTheme(theme: Theme): "light" | "dark" {
+  return theme === "system"
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : theme
+}
+
+function applyTheme(theme: Theme) {
+  if (!shadowRootEl) return
+  const resolved = resolveTheme(theme)
+  shadowRootEl.classList.toggle("pp-dark", resolved === "dark")
+}
 
 function isTextInputElement(element: Element | null): element is HTMLInputElement {
   if (!(element instanceof HTMLInputElement)) {
@@ -99,6 +115,16 @@ function ContentScript() {
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    const unwatch = storage.watch<Theme>("sync:promptpen-theme", (newTheme) => {
+      if (!newTheme) return
+      applyTheme(newTheme)
+    })
+    return () => {
+      if (typeof unwatch === "function") unwatch()
+    }
+  }, [])
+
+  useEffect(() => {
     function handleSelection() {
       if (isPinned) {
         return
@@ -172,12 +198,18 @@ export default defineContentScript({
         rootEl.id = "pp:root"
         uiContainer.append(rootEl)
 
+        shadowRootEl = rootEl
+        void storage.getItem<Theme>("sync:promptpen-theme").then((stored) => {
+          applyTheme(stored ?? "system")
+        })
+
         const root = createRoot(rootEl)
         root.render(<ContentScript />)
         return { root }
       },
       onRemove(mounted) {
         mounted?.root.unmount()
+        shadowRootEl = null
       },
     })
 

@@ -1,3 +1,5 @@
+import { Separator } from "@/components/ui/separator"
+import { ThemeSelector } from "@/features/theme/theme-selector"
 import type { OptionsState } from "../hooks/use-options-state"
 
 export function AppearanceSection(_state: OptionsState) {
@@ -9,6 +11,13 @@ export function AppearanceSection(_state: OptionsState) {
           Customize the look and feel of PromptPen.
         </p>
       </div>
+
+      <Separator />
+
+      <section className="pp:space-y-4">
+        <h2 className="pp:text-lg pp:font-medium">Theme</h2>
+        <ThemeSelector />
+      </section>
     </div>
   )
 }

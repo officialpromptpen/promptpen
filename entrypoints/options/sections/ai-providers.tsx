@@ -129,7 +129,7 @@ export function AIProvidersSection(state: OptionsState) {
             className={cn(
               "pp:mt-4 pp:flex pp:items-center pp:gap-2 pp:rounded-md pp:border pp:px-3 pp:py-2 pp:text-sm",
               state.providerStatusType === "success"
-                ? "pp:border-green-500/30 pp:bg-green-500/10 pp:text-green-700 dark:pp:text-green-300"
+                ? "pp:border-green-500/30 pp:bg-green-500/10 pp:text-green-700 pp:dark:text-green-300"
                 : "pp:border-destructive/40 pp:bg-destructive/10 pp:text-destructive",
             )}
           >
