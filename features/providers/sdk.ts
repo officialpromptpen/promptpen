@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import { generateText } from "ai"
-import type { AIProvider } from "@/types"
+import type { AIProvider, ProviderAdapter, ProviderTestResult } from "@/types"
 import { getProviderDefinition } from "./catalog"
 import { getRuntimeConfig } from "./storage"
 
@@ -14,12 +14,6 @@ const chatCompletionsProviders = new Set<AIProvider>([
   "deepseek",
   "mistral",
 ])
-
-export interface ProviderAdapter {
-  provider: AIProvider
-  model: string
-  runPrompt: (input: string, systemPrompt?: string) => Promise<string>
-}
 
 export async function createProviderAdapter(
   provider?: AIProvider,
@@ -66,7 +60,7 @@ export async function testProviderConnectionWithValues(
   model: string,
   apiKey: string,
   baseUrl?: string,
-): Promise<{ ok: boolean; message?: string }> {
+): Promise<ProviderTestResult> {
   const definition = getProviderDefinition(provider)
   const resolvedBaseUrl = baseUrl ?? definition.baseUrl
 

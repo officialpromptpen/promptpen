@@ -5,7 +5,13 @@ import {
   getProviderDefinition,
   PROVIDER_DEFINITIONS,
 } from "@/features/providers/catalog"
-import type { AIProvider } from "@/types"
+import type {
+  AIProvider,
+  ProviderRuntimeConfig,
+  ProviderSummary,
+  ConfiguredProviderDetail,
+  ProviderEditorState,
+} from "@/types"
 
 const STORAGE_KEY = "promptpen.providers.v1"
 const ENCRYPTION_SALT = "promptpen/providers/config"
@@ -24,20 +30,6 @@ interface StoredProviderConfig {
 interface StoredProviderState {
   defaultProvider: AIProvider
   providers: Partial<Record<AIProvider, StoredProviderConfig>>
-}
-
-export interface ProviderRuntimeConfig {
-  provider: AIProvider
-  model: string
-  apiKey: string
-  baseUrl?: string
-}
-
-export interface ProviderSummary {
-  configuredProviders: AIProvider[]
-  unconfiguredProviders: AIProvider[]
-  defaultProvider: AIProvider
-  defaultModel: string
 }
 
 const encoder = new TextEncoder()
@@ -206,10 +198,7 @@ export async function getDecryptedApiKey(provider: AIProvider): Promise<string |
   return decryptString(config.encryptedApiKey)
 }
 
-export async function getProviderEditorState(provider: AIProvider): Promise<{
-  model: string
-  hasApiKey: boolean
-}> {
+export async function getProviderEditorState(provider: AIProvider): Promise<ProviderEditorState> {
   const state = await readState()
   const config = state.providers[provider]
 
@@ -227,13 +216,6 @@ export async function removeProviderConfig(provider: AIProvider): Promise<void> 
     state.defaultProvider = remaining.length > 0 ? remaining[0] : DEFAULT_PROVIDER
   }
   await writeState(state)
-}
-
-export interface ConfiguredProviderDetail {
-  provider: AIProvider
-  label: string
-  model: string
-  updatedAt: number
 }
 
 export async function getConfiguredProviderDetails(): Promise<ConfiguredProviderDetail[]> {

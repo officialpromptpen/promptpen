@@ -7,10 +7,8 @@ import {
   removeCustomPrompt,
   saveCustomPrompt,
   updateCustomPrompt,
-  type CustomPromptDefinition,
 } from "@/features/storage/custom-prompts"
 import {
-  type ConfiguredProviderDetail,
   getConfiguredProviderDetails,
   getDecryptedApiKey,
   getProviderEditorState,
@@ -19,11 +17,7 @@ import {
   saveProviderConfig,
   setDefaultProvider,
 } from "@/features/providers/storage"
-import type { AIProvider } from "@/types"
-import {
-  type SectionId,
-  type OptionsSettings,
-} from "../types"
+import type { AIProvider, ConfiguredProviderDetail, CustomPromptDefinition, OptionsState, SectionId, OptionsSettings } from "@/types"
 import {
   defaultSettings,
   defaultShortcuts,
@@ -32,43 +26,6 @@ import {
   SETTINGS_KEY,
   SHORTCUTS_KEY,
 } from "@/constants/options"
-
-export interface OptionsState {
-  activeSection: SectionId
-  setActiveSection: (id: SectionId) => void
-  loaded: boolean
-  settings: OptionsSettings
-  setSettings: React.Dispatch<React.SetStateAction<OptionsSettings>>
-  shortcuts: Record<string, string>
-  setShortcuts: React.Dispatch<React.SetStateAction<Record<string, string>>>
-  providerSummary: Awaited<ReturnType<typeof getProviderSummary>> | null
-  configuredProviderDetails: ConfiguredProviderDetail[]
-  customPrompts: CustomPromptDefinition[]
-  selectedProvider: AIProvider
-  setSelectedProvider: React.Dispatch<React.SetStateAction<AIProvider>>
-  providerModel: string
-  setProviderModel: React.Dispatch<React.SetStateAction<string>>
-  apiKey: string
-  setApiKey: React.Dispatch<React.SetStateAction<string>>
-  hasStoredApiKey: boolean
-  isSavingProvider: boolean
-  isTestingProvider: boolean
-  connectionVerified: boolean
-  providerStatusMessage: string
-  providerStatusType: "idle" | "success" | "error"
-  selectedProviderDefinition: ReturnType<typeof getProviderDefinition>
-  unconfiguredProviders: number
-  handleSaveProvider: () => Promise<void>
-  handleTestProvider: () => Promise<void>
-  selectProvider: (provider: AIProvider) => void
-  handleEditProvider: (provider: AIProvider) => void
-  handleDeleteProvider: (provider: AIProvider) => Promise<void>
-  handleSaveCustomPrompt: (title: string, prompt: string, promptId?: string) => Promise<void>
-  handleDeleteCustomPrompt: (promptId: string) => Promise<void>
-  updateShortcut: (shortcutId: string, nextValue: string) => void
-  resetAllData: () => void
-  exportSettings: () => void
-}
 
 export function useOptionsState(): OptionsState {
   const [activeSection, setActiveSection] = useState<SectionId>("general")

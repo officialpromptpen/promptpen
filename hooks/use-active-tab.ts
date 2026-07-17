@@ -1,11 +1,6 @@
 import { browser } from "wxt/browser"
 import { useEffect, useState } from "react"
-
-interface ActiveTabState {
-  title: string
-  url: string
-  loading: boolean
-}
+import type { ActiveTabState } from "@/types"
 
 const FALLBACK_TITLE = "No active page"
 

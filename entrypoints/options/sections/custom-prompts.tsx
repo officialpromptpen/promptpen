@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { Plus, PencilLine, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import type { OptionsState } from "../hooks/use-options-state"
+import type { OptionsState } from "@/types"
 
 export function CustomPromptsSection(state: OptionsState) {
   const [title, setTitle] = useState("")

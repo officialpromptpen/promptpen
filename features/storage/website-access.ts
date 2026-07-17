@@ -1,13 +1,7 @@
 import { storage } from "@wxt-dev/storage"
-import type { WebsiteRule } from "@/types"
+import type { WebsiteRule, WebsiteAccessState } from "@/types"
 
 const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
-
-interface WebsiteAccessState {
-  enableEverywhere: boolean
-  websiteRules: WebsiteRule[]
-  excludedHostnames: string[]
-}
 
 const DEFAULT_STATE: WebsiteAccessState = {
   enableEverywhere: true,

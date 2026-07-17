@@ -1,9 +1,5 @@
 import type { ReactNode } from "react"
-
-interface LayoutProps {
-  children: ReactNode
-  variant?: "panel" | "inline"
-}
+import type { LayoutProps } from "@/types"
 
 export function Layout({ children, variant = "panel" }: LayoutProps) {
   if (variant === "inline") {

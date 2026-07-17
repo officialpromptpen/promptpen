@@ -7,7 +7,7 @@ import {
   siOpenrouter,
 } from "simple-icons"
 import type { SimpleIcon } from "simple-icons"
-import type { AIProvider } from "@/types"
+import type { AIProvider, ProviderIconProps } from "@/types"
 
 type BrandIcon = SimpleIcon | null
 
@@ -68,7 +68,7 @@ function initialsForProvider(provider: AIProvider): string {
   }
 }
 
-export function ProviderIcon({ provider, className = "pp:size-4" }: { provider: AIProvider; className?: string }) {
+export function ProviderIcon({ provider, className = "pp:size-4" }: ProviderIconProps) {
   const icon = PROVIDER_ICONS[provider] ?? getFallbackIcon(provider)
 
   if (icon) {

@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { getProviderDefinition } from "@/features/providers/catalog"
-import { getProviderSummary, type ProviderSummary } from "@/features/providers/storage"
+import { getProviderSummary } from "@/features/providers/storage"
+import type { ProviderSummary, StatusCardProps } from "@/types"
 import {
   getHostnameFromUrl,
   isWebsiteExcluded,
@@ -14,10 +15,6 @@ import {
 const item = {
   hidden: { opacity: 0, y: 8 },
   show: { opacity: 1, y: 0 },
-}
-
-interface StatusCardProps {
-  url: string
 }
 
 export function StatusCard({ url }: StatusCardProps) {

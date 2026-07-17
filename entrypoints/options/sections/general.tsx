@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator"
 import { PROVIDER_DEFINITIONS } from "@/features/providers/catalog"
-import type { OptionsState } from "../hooks/use-options-state"
+import type { OptionsState } from "@/types"
 
 export function GeneralSection(state: OptionsState) {
   return (

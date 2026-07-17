@@ -2,8 +2,7 @@ import { browser } from "wxt/browser"
 import { storage } from "@wxt-dev/storage"
 import { useCallback, useEffect, useState } from "react"
 import { getThemeChangeTarget } from "@/features/storage/bridge"
-
-export type Theme = "light" | "dark" | "system"
+import type { Theme } from "@/types"
 
 const THEME_KEY = "sync:promptpen-theme"
 const RAW_THEME_KEY = "promptpen-theme"

@@ -1,11 +1,4 @@
-import type { AIProvider } from "@/types"
-
-export interface ProviderDefinition {
-  id: AIProvider
-  label: string
-  defaultModel: string
-  baseUrl?: string
-}
+import type { AIProvider, ProviderDefinition } from "@/types"
 
 export const PROVIDER_DEFINITIONS: ProviderDefinition[] = [
   { id: "openai", label: "OpenAI", defaultModel: "gpt-4o-mini" },

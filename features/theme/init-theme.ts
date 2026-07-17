@@ -1,6 +1,5 @@
 import { storage } from "@wxt-dev/storage"
-
-type Theme = "light" | "dark" | "system"
+import type { Theme } from "@/types"
 
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "light"

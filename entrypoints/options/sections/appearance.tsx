@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator"
 import { ThemeSelector } from "@/features/theme/theme-selector"
-import type { OptionsState } from "../hooks/use-options-state"
+import type { OptionsState } from "@/types"
 
 export function AppearanceSection(_state: OptionsState) {
   return (

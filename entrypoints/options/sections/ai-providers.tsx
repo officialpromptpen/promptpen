@@ -10,7 +10,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { PROVIDER_DEFINITIONS } from "@/features/providers/catalog"
 import { cn } from "@/lib/utils"
-import type { OptionsState } from "../hooks/use-options-state"
+import type { OptionsState } from "@/types"
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",

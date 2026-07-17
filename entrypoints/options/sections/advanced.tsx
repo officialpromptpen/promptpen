@@ -1,7 +1,7 @@
 import { RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import type { OptionsState } from "../hooks/use-options-state"
+import type { OptionsState } from "@/types"
 
 export function AdvancedSection(state: OptionsState) {
   return (

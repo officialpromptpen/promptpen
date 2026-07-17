@@ -1,18 +1,7 @@
 import { create } from "zustand"
+import type { ToolbarStore } from "@/types"
 
-interface ToolbarState {
-  isVisible: boolean
-  isPinned: boolean
-  isEditableSelection: boolean
-  selectedText: string
-  selectionRect: DOMRect | null
-  selectionRange: Range | null
-  show: (text: string, rect: DOMRect, range: Range | null, isEditableSelection: boolean) => void
-  hide: () => void
-  setPinned: (isPinned: boolean) => void
-}
-
-export const useToolbarStore = create<ToolbarState>((set) => ({
+export const useToolbarStore = create<ToolbarStore>((set) => ({
   isVisible: false,
   isPinned: false,
   isEditableSelection: false,

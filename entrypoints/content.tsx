@@ -6,9 +6,9 @@ import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
 import { getHostnameFromUrl, isWebsiteExcluded } from "@/features/storage/website-access"
 import { useEffect, useRef } from "react"
+import type { Theme } from "@/types"
 import "@/assets/tailwind.css"
 
-type Theme = "light" | "dark" | "system"
 let shadowRootEl: HTMLElement | null = null
 
 function resolveTheme(theme: Theme): "light" | "dark" {

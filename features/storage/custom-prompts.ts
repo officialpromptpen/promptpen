@@ -1,13 +1,7 @@
 import { storage } from "@wxt-dev/storage"
+import type { CustomPromptDefinition } from "@/types"
 
 const STORAGE_KEY = "promptpen.custom-prompts.v1"
-
-export interface CustomPromptDefinition {
-  id: string
-  title: string
-  prompt: string
-  updatedAt: number
-}
 
 function createId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`

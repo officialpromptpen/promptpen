@@ -7,7 +7,7 @@ import {
   setWebsiteEnabled,
   setWebsiteExcluded,
 } from "@/features/storage/website-access"
-import type { OptionsState } from "../hooks/use-options-state"
+import type { OptionsState, AddFormProps, WebsiteListSectionProps, WebsiteAccessStateParam } from "@/types"
 import { Button } from "@/components/ui/button"
 
 function parseHostnames(input: string): string[] {
@@ -17,7 +17,7 @@ function parseHostnames(input: string): string[] {
     .filter(Boolean) as string[]
 }
 
-function getEnabledHostnames(accessState: { websiteRules: { enabled: boolean; hostname: string }[] }) {
+function getEnabledHostnames(accessState: WebsiteAccessStateParam) {
   const result: string[] = []
   for (const rule of accessState.websiteRules) {
     if (rule.enabled) result.push(rule.hostname)
@@ -35,17 +35,7 @@ function AddForm({
   description,
   icon,
   preview,
-}: {
-  id: string
-  value: string
-  onChange: (value: string) => void
-  onAdd: () => void
-  placeholder: string
-  label: string
-  description: string
-  icon: React.ReactNode
-  preview: string[]
-}) {
+}: AddFormProps) {
   return (
     <section className="pp:space-y-4">
       <div className="pp:space-y-1.5">
@@ -95,17 +85,7 @@ function WebsiteListSection({
   icon,
   emptyTitle,
   emptyDescription,
-}: {
-  title: string
-  items: string[]
-  deleteConfirm: string | null
-  onRemove: (hostname: string) => void
-  onDeleteConfirm: (hostname: string | null) => void
-  onCancelDelete: () => void
-  icon: React.ReactNode
-  emptyTitle: string
-  emptyDescription: string
-}) {
+}: WebsiteListSectionProps) {
   return (
     <section className="pp:space-y-4">
       <h2 className="pp:text-lg pp:font-medium">

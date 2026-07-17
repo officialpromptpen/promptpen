@@ -34,25 +34,25 @@ import {
 } from "@/features/providers/catalog";
 import { ProviderIcon } from "@/features/providers/provider-icons";
 import {
-	type CustomPromptDefinition,
 	getCustomPrompts,
 } from "@/features/storage/custom-prompts";
-import type { ActionCategory, AIProvider, ToolbarActionsProps } from "@/types";
-
-type ToolbarCategory =
-	| "all"
-	| (typeof ACTION_CATEGORY_ORDER)[number]
-	| "custom-prompt";
+import type {
+	ActionCategory,
+	AIProvider,
+	CustomPromptDefinition,
+	ToolbarActionsProps,
+	ToolbarCategory,
+	CategoryFilterBarProps,
+	ActionGroupListProps,
+	ClosedToolbarStateProps,
+	CustomPromptListProps,
+} from "@/types";
 
 function CategoryFilterBar({
 	categories,
 	activeCategory,
 	onCategoryChange,
-}: {
-	categories: { id: ToolbarCategory; label: string }[];
-	activeCategory: ToolbarCategory;
-	onCategoryChange: (category: ToolbarCategory) => void;
-}) {
+}: CategoryFilterBarProps) {
 	return (
 		<ScrollArea className="pp:max-w-full">
 			<div className="pp:flex pp:gap-2 pp:flex-nowrap">
@@ -81,13 +81,7 @@ function ActionGroupList({
 	activeActionId,
 	onAction,
 	onKeyDown,
-}: {
-	groupedActions: { category: ActionCategory; items: (typeof actions)[number][] }[];
-	isLoading: boolean;
-	activeActionId: string | null;
-	onAction: (actionId: string) => void;
-	onKeyDown: (event: ReactKeyboardEvent, actionId: string) => void;
-}) {
+}: ActionGroupListProps) {
 	if (groupedActions.length === 0) {
 		return (
 			<p className="pp:rounded-md pp:bg-muted/60 pp:p-3 pp:text-sm pp:text-muted-foreground">
@@ -142,7 +136,7 @@ function ActionGroupList({
 	);
 }
 
-function ClosedToolbarState({ onOpen }: { onOpen: () => void }) {
+function ClosedToolbarState({ onOpen }: ClosedToolbarStateProps) {
 	return (
 		<TooltipProvider>
 			<Tooltip>
@@ -169,11 +163,7 @@ function CustomPromptList({
 	prompts,
 	isLoading,
 	onRun,
-}: {
-	prompts: CustomPromptDefinition[];
-	isLoading: boolean;
-	onRun: (prompt: CustomPromptDefinition) => void;
-}) {
+}: CustomPromptListProps) {
 	if (prompts.length === 0) {
 		return (
 			<div className="pp:rounded-md pp:border pp:border-dashed pp:bg-background/70 pp:p-4 pp:text-sm pp:text-muted-foreground">
