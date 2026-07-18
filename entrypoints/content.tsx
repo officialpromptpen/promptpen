@@ -4,7 +4,7 @@ import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root"
 import { getThemeChangeTarget } from "@/features/storage/bridge"
 import { ContextualToolbar } from "@/components/contextual-toolbar"
 import { useToolbarStore } from "@/stores/toolbar"
-import { getHostnameFromUrl, isWebsiteExcluded } from "@/features/storage/website-access"
+import { getHostnameFromUrl, isWebsiteEnabled } from "@/features/storage/website-access"
 import { useEffect, useRef } from "react"
 import type { Theme } from "@/types"
 import "@/assets/tailwind.css"
@@ -186,7 +186,7 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx) {
     const hostname = getHostnameFromUrl(window.location.href)
-    if (hostname && await isWebsiteExcluded(hostname)) {
+    if (hostname && !(await isWebsiteEnabled(hostname))) {
       return
     }
 

@@ -4,7 +4,7 @@ import type { WebsiteRule, WebsiteAccessState } from "@/types"
 const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
 
 const DEFAULT_STATE: WebsiteAccessState = {
-  enableEverywhere: true,
+  enableEverywhere: false,
   websiteRules: [],
   excludedHostnames: [],
 }
@@ -65,7 +65,7 @@ export async function isWebsiteExcluded(hostname: string): Promise<boolean> {
   return state.excludedHostnames.includes(normalizedHostname)
 }
 
-async function isWebsiteEnabled(hostname: string): Promise<boolean> {
+export async function isWebsiteEnabled(hostname: string): Promise<boolean> {
   const normalizedHostname = normalizeHostname(hostname)
   if (!normalizedHostname) {
     return false
@@ -76,12 +76,12 @@ async function isWebsiteEnabled(hostname: string): Promise<boolean> {
     return false
   }
 
-  if (state.enableEverywhere) {
+  const match = state.websiteRules.find((rule) => rule.hostname === normalizedHostname)
+  if (match?.enabled) {
     return true
   }
 
-  const match = state.websiteRules.find((rule) => rule.hostname === normalizedHostname)
-  return Boolean(match?.enabled)
+  return state.enableEverywhere
 }
 
 export async function setWebsiteExcluded(hostname: string, excluded: boolean): Promise<void> {
@@ -111,18 +111,22 @@ export async function setWebsiteEnabled(hostname: string, enabled: boolean): Pro
   }
 
   const state = await getWebsiteAccessState()
-  const existingIndex = state.websiteRules.findIndex((rule) => rule.hostname === normalizedHostname)
 
-  const rule: WebsiteRule = {
-    id: normalizedHostname,
-    hostname: normalizedHostname,
-    enabled,
-  }
-
-  if (existingIndex >= 0) {
-    state.websiteRules[existingIndex] = rule
+  if (enabled) {
+    const existingIndex = state.websiteRules.findIndex((rule) => rule.hostname === normalizedHostname)
+    const rule: WebsiteRule = {
+      id: normalizedHostname,
+      hostname: normalizedHostname,
+      enabled: true,
+    }
+    if (existingIndex >= 0) {
+      state.websiteRules[existingIndex] = rule
+    } else {
+      state.websiteRules.push(rule)
+    }
   } else {
-    state.websiteRules.push(rule)
+    state.websiteRules = state.websiteRules.filter((rule) => rule.hostname !== normalizedHostname)
+    state.excludedHostnames = state.excludedHostnames.filter((h) => h !== normalizedHostname)
   }
 
   await writeWebsiteAccessState(state)

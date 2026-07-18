@@ -1,5 +1,5 @@
 import { m } from "framer-motion"
-import { Globe, Sparkles, TriangleAlert } from "lucide-react"
+import { Globe, RefreshCw, Sparkles, TriangleAlert } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,8 +8,8 @@ import { getProviderSummary } from "@/features/providers/storage"
 import type { ProviderSummary, StatusCardProps } from "@/types"
 import {
   getHostnameFromUrl,
-  isWebsiteExcluded,
-  setWebsiteExcluded,
+  isWebsiteEnabled,
+  setWebsiteEnabled,
 } from "@/features/storage/website-access"
 
 const item = {
@@ -19,7 +19,8 @@ const item = {
 
 export function StatusCard({ url }: StatusCardProps) {
   const [summary, setSummary] = useState<ProviderSummary | null>(null)
-  const [isExcludedForCurrentSite, setIsExcludedForCurrentSite] = useState(false)
+  const [isEnabledForCurrentSite, setIsEnabledForCurrentSite] = useState(false)
+  const [justEnabled, setJustEnabled] = useState(false)
 
   const currentHostname = useMemo(() => getHostnameFromUrl(url), [url])
 
@@ -44,13 +45,13 @@ export function StatusCard({ url }: StatusCardProps) {
     let mounted = true
 
     async function readWebsiteAccess() {
-      const excluded = currentHostname ? await isWebsiteExcluded(currentHostname) : false
+      const enabled = currentHostname ? await isWebsiteEnabled(currentHostname) : false
 
       if (!mounted) {
         return
       }
 
-      setIsExcludedForCurrentSite(excluded)
+      setIsEnabledForCurrentSite(enabled)
     }
 
     void readWebsiteAccess()
@@ -68,9 +69,12 @@ export function StatusCard({ url }: StatusCardProps) {
       return
     }
 
-    const nextState = !isExcludedForCurrentSite
-    await setWebsiteExcluded(currentHostname, nextState)
-    setIsExcludedForCurrentSite(nextState)
+    const nextState = !isEnabledForCurrentSite
+    await setWebsiteEnabled(currentHostname, nextState)
+    setIsEnabledForCurrentSite(nextState)
+    if (nextState) {
+      setJustEnabled(true)
+    }
   }
 
   return (
@@ -126,23 +130,30 @@ export function StatusCard({ url }: StatusCardProps) {
                 pp:transition-colors pp:duration-200 pp:ease-in-out
                 focus-visible:pp:outline-none focus-visible:pp:ring-2 focus-visible:pp:ring-ring focus-visible:pp:ring-offset-2
                 disabled:pp:cursor-not-allowed disabled:pp:opacity-50
-                ${!isExcludedForCurrentSite ? "pp:bg-primary" : "pp:bg-muted-foreground/30"}
+                ${isEnabledForCurrentSite ? "pp:bg-primary" : "pp:bg-muted-foreground/30"}
               `}
               role="switch"
-              aria-checked={!isExcludedForCurrentSite}
+              aria-checked={isEnabledForCurrentSite}
               aria-label={
-                isExcludedForCurrentSite ? "Enable for this site" : "Disable for this site"
+                isEnabledForCurrentSite ? "Disable for this site" : "Enable for this site"
               }
             >
               <span
                 className={`
                   pp:pointer-events-none pp:inline-block pp:size-5 pp:rounded-full pp:bg-background pp:shadow-sm pp:ring-0
                   pp:transition-transform pp:duration-200 pp:ease-in-out
-                  ${!isExcludedForCurrentSite ? "pp:translate-x-4.5" : "pp:translate-x-0.5"}
+                  ${isEnabledForCurrentSite ? "pp:translate-x-4.5" : "pp:translate-x-0.5"}
                 `}
               />
             </button>
           </div>
+
+          {justEnabled && (
+            <div className="pp:mt-2 pp:rounded-md pp:border pp:border-primary/40 pp:bg-primary/10 pp:px-2 pp:py-1.5 pp:text-xs pp:text-primary pp:flex pp:items-center pp:gap-1.5">
+              <RefreshCw className="pp:size-3.5 pp:shrink-0" aria-hidden="true" />
+              <span>Reload the page to use the toolbar.</span>
+            </div>
+          )}
         </CardContent>
       </Card>
     </m.div>

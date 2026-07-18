@@ -232,8 +232,8 @@ export function WebsiteAccessSection(_state: OptionsState) {
       <div>
         <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">Website Access</h1>
         <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
-          Manage which websites PromptPen can access. Add sites to explicitly allow or exclude them.
-          Excluded sites will never show the PromptPen toolbar.
+          PromptPen is disabled by default. Add sites below to allow the toolbar on specific domains.
+          Excluded sites will never show the PromptPen toolbar regardless of the allow list.
         </p>
       </div>
 
