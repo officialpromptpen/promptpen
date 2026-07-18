@@ -4,7 +4,6 @@ import {
 	ChevronDown,
 	Loader2,
 	Search,
-	Sparkles,
 	WandSparkles,
 	X,
 } from "lucide-react";
@@ -47,6 +46,7 @@ import type {
 	ClosedToolbarStateProps,
 	CustomPromptListProps,
 } from "@/types";
+import { Logo } from "@/components/Logo";
 
 function CategoryFilterBar({
 	categories,
@@ -365,9 +365,12 @@ export function ToolbarActions({
 				aria-label="PromptPen action panel"
 			>
 				<div className="pp:flex  pp:flex-row pp:px-2.5 pp:justify-between pp:items-center pp:gap-3 pp:border-b pp:border-border pp:py-3">
-					<div className="pp:flex pp:items-center pp:gap-2 pp:text-sm pp:font-semibold">
-						<Sparkles className="pp:size-4" />
-						PromptPen Actions 
+
+					<div className="pp:flex pp:items-center pp:gap-2">
+						<div className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-lg">
+							<Logo />
+						</div>
+						<span className="pp:text-sm pp:font-semibold">PromptPen Actions</span>
 					</div>
 
 					<div className="pp:ml-auto pp:flex pp:items-center pp:gap-2">
