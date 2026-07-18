@@ -1,6 +1,6 @@
 {
   "name": "promptpen",
-  "description": "AI-powered writing assistant Chrome Extension",
+  "description": "AI-powered writing assistant",
   "private": true,
   "version": "0.0.0",
   "type": "module",
