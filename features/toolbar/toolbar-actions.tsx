@@ -36,8 +36,6 @@ import {
 	getCustomPrompts,
 } from "@/features/storage/custom-prompts";
 import type {
-	ActionCategory,
-	AIProvider,
 	CustomPromptDefinition,
 	ToolbarActionsProps,
 	ToolbarCategory,

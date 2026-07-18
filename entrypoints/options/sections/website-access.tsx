@@ -1,4 +1,4 @@
-import { Globe, GlobeLock, MinusCircle, Plus, X } from "lucide-react"
+import { GlobeLock, MinusCircle, Plus, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Separator } from "@/components/ui/separator"
 import {

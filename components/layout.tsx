@@ -1,4 +1,3 @@
-import type { ReactNode } from "react"
 import type { LayoutProps } from "@/types"
 
 export function Layout({ children, variant = "panel" }: LayoutProps) {
