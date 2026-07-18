@@ -1,12 +1,13 @@
 import { browser } from "wxt/browser"
 import { LazyMotion, domAnimation, m } from "framer-motion"
-import { Globe, Pen } from "lucide-react"
+import { Globe } from "lucide-react"
 import { Layout } from "@/components/layout"
 import { Navigation } from "@/components/navigation"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/features/theme/theme-toggle"
 import { useActiveTab } from "@/hooks/use-active-tab"
 import { StatusCard } from "./status-card"
+import {Logo} from "@/components/Logo"
 
 const item = {
   hidden: { opacity: 0, y: 8 },
@@ -28,18 +29,20 @@ function IndexPopup() {
     <Layout>
       <LazyMotion features={domAnimation}>
         <m.div
-          className="pp:flex pp:flex-1 pp:flex-col pp:gap-4 pp:overflow-y-auto pp:p-4 pp:mask-[linear-gradient(to_bottom,black_90%,transparent_100%)]"
+          className="pp:flex pp:flex-1 pp:flex-col pp:gap-4 pp:overflow-y-hidden pp:p-4 pp:mask-[linear-gradient(to_bottom,black_90%,transparent_100%)]"
           variants={container}
           initial="hidden"
           animate="show"
         >
           <header className="pp:flex pp:items-center pp:justify-between">
             <div className="pp:flex pp:items-center pp:gap-2">
-              <div className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-lg pp:bg-primary">
-                <Pen className="pp:size-4 pp:text-primary-foreground" />
+              <div className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-lg">
+                <Logo/>            
               </div>
               <span className="pp:text-sm pp:font-semibold">PromptPen</span>
             </div>
+
+            
             <div className="pp:flex pp:items-center pp:gap-1">
               <ThemeToggle />
               <p className="pp:text-xs pp:text-muted-foreground">v{browser.runtime.getManifest().version}</p>

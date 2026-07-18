@@ -1,7 +1,7 @@
 import { browser } from "wxt/browser"
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion"
 import { useState } from "react"
-import { Bug, ChevronRight, Info, Loader2, Pen, Star, Lightbulb } from "lucide-react"
+import { Bug, ChevronRight, Info, Loader2, Star, Lightbulb } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { useOptionsState } from "./hooks/use-options-state"
@@ -13,6 +13,8 @@ import { GeneralSection } from "./sections/general"
 import { WebsiteAccessSection } from "./sections/website-access"
 import { sections } from "@/constants/options"
 import { Button } from "@/components/ui/button"
+import {Logo} from "@/components/Logo"
+
 
 function IndexOptions() {
   const state = useOptionsState()
@@ -39,8 +41,8 @@ function IndexOptions() {
     <div className="pp:flex pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
         <aside className="pp:flex pp:w-60 pp:flex-col pp:border-r pp:bg-card">
           <div className="pp:flex pp:h-14 pp:items-center pp:gap-2 pp:px-5">
-            <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg pp:bg-primary">
-              <Pen className="pp:h-4 pp:w-4 pp:text-primary-foreground" />
+            <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg">
+              <Logo />            
             </div>
             <span className="pp:text-sm pp:font-semibold">PromptPen</span>
           </div>
@@ -139,8 +141,8 @@ function IndexOptions() {
                   transition={{ duration: 0.15 }}
                 >
                   <div className="pp:flex pp:items-center pp:gap-3">
-                    <div className="pp:flex pp:h-9 pp:w-9 pp:items-center pp:justify-center pp:rounded-lg pp:bg-primary">
-                      <Pen className="pp:h-5 pp:w-5 pp:text-primary-foreground" />
+                    <div className="pp:flex pp:h-9 pp:w-9 pp:items-center pp:justify-center pp:rounded-lg">
+                      <Logo />
                     </div>
                     <div>
                       <h2 className="pp:text-sm pp:font-semibold">PromptPen</h2>
