@@ -3,9 +3,8 @@ import tailwindcss from "@tailwindcss/vite"
 
 export default defineConfig({
   manifest: {
-    name: "PromptPen",
-    description: "AI-powered writing assistant",
-    version: "0.0.0",
+    name: "PromptPen Beta",
+    description: "PromptPen Beta — AI-powered writing assistant",
     permissions: ["storage", "activeTab", "contextMenus"],
     host_permissions: ["<all_urls>"],
     browser_specific_settings: {
