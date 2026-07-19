@@ -2,6 +2,7 @@ import { storage } from "@wxt-dev/storage"
 import type { WebsiteRule, WebsiteAccessState } from "@/types"
 
 const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
+const WWW_PREFIX_RE = /^www\./
 
 const DEFAULT_STATE: WebsiteAccessState = {
   enableEverywhere: false,
@@ -13,7 +14,7 @@ function normalizeHostname(hostname: string): string {
   return hostname
     .trim()
     .toLowerCase()
-    .replace(/^www\./, "")
+    .replace(WWW_PREFIX_RE, "")
 }
 
 export function getHostnameFromUrl(url: string): string {

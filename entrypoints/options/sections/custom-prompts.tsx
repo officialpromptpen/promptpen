@@ -12,7 +12,7 @@ export function CustomPromptsSection(state: OptionsState) {
 
   const canSave = title.trim().length > 0 && prompt.trim().length > 0
 
-  const sortedPrompts = useMemo(() => state.customPrompts, [state.customPrompts])
+  const sortedPrompts = state.customPrompts
 
   async function handleSubmit() {
     if (!canSave) {

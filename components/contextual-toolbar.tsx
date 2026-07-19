@@ -2,13 +2,13 @@ import { useFloatingPortalNode } from "@floating-ui/react";
 import { getThemeChangeTarget } from "@/features/storage/bridge";
 import { AnimatePresence, domAnimation, LazyMotion, m } from "framer-motion";
 import {
-	ClipboardCopy,
-	CopyCheck,
-	Loader2,
-	RefreshCw,
-	Replace,
-	TriangleAlert,
-	X,
+  ClipboardCopy,
+  CopyCheck,
+  Loader2,
+  RefreshCw,
+  Replace,
+  TriangleAlert,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -16,27 +16,31 @@ import { getActionById } from "@/constants/actions";
 import { getProviderDefinition } from "@/features/providers/catalog";
 import { createProviderAdapter } from "@/features/providers/sdk";
 import {
-	getConfiguredProviderDetails,
-	getProviderSummary,
+  getConfiguredProviderDetails,
+  getProviderSummary,
 } from "@/features/providers/storage";
 import { ToolbarActions } from "@/features/toolbar/toolbar-actions";
 import type {
-	AIProvider,
-	ResultActionsProps,
-	ResultBodyProps,
-	ResultDialogProps,
-	ToolbarAction,
-	ToolbarPopoverProps,
-	ToolbarState,
+  AIProvider,
+  ResultActionsProps,
+  ResultBodyProps,
+  ResultDialogProps,
+  ToolbarAction,
+  ToolbarPopoverProps,
+  ToolbarState,
 } from "@/types";
 import { Button } from "./ui/button";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "./ui/tooltip";
 import { Separator } from "./ui/separator";
+
+const EXTENSION_CONTEXT_INVALIDATED_RE = /extension context invalidated/i;
+const SETUP_FAILURE_RE =
+  /not configured|no provider|no api key|missing api key|provider.*(required|missing)|usefloating hook|contextual-toolbar\.tsx/i;
 
 const INITIAL_TOOLBAR_STATE: ToolbarState = {
 	selectedText: "",
@@ -130,16 +134,12 @@ function getActionLabel(actionId: string | null): string {
 function getFriendlyActionError(error: unknown): string {
 	const message = error instanceof Error ? error.message : "Unknown AI error";
 
-	if (/extension context invalidated/i.test(message)) {
+	if (EXTENSION_CONTEXT_INVALIDATED_RE.test(message)) {
 		return "Extension was reloaded or updated. Refresh this page, select text again, and retry.";
 	}
 
 	// Some provider setup failures can bubble up with unrelated text; normalize to a clear next step.
-	if (
-		/not configured|no provider|no api key|missing api key|provider.*(required|missing)|usefloating hook|contextual-toolbar\.tsx/i.test(
-			message,
-		)
-	) {
+	if (SETUP_FAILURE_RE.test(message)) {
 		return "No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider with API key.";
 	}
 

@@ -10,9 +10,11 @@ import {
 import type { OptionsState, AddFormProps, WebsiteListSectionProps, WebsiteAccessStateParam } from "@/types"
 import { Button } from "@/components/ui/button"
 
+const HOSTNAME_SEPARATOR_RE = /[,;]/
+
 function parseHostnames(input: string): string[] {
   return input
-    .split(/[,;]/)
+    .split(HOSTNAME_SEPARATOR_RE)
     .map((part) => getHostnameFromInput(part.trim()))
     .filter(Boolean) as string[]
 }

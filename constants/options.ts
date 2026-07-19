@@ -1,5 +1,5 @@
 import { Globe, Palette, Puzzle, Settings, Sparkles, FilePenLine } from "lucide-react"
-import type { Section, OptionsSettings } from "@/entrypoints/options/types"
+import type { Section, OptionsSettings } from "@/types"
 
 export const SETTINGS_KEY = "promptpen.options.settings.v1"
 export const SHORTCUTS_KEY = "promptpen.options.shortcuts.v1"
