@@ -1,5 +1,5 @@
 import { defineConfig } from "wxt"
-import tailwindcss from "@tailwindcss/vite"
+import type { FirefoxDataCollectionPermissions } from "wxt"
 
 export default defineConfig({
   manifest: {
@@ -9,18 +9,17 @@ export default defineConfig({
     host_permissions: ["<all_urls>"],
     browser_specific_settings: {
       gecko: {
-        id: "promptpen@example.com",
+        id: "promptpen@frontendweb.agency",
+        data_collection_permissions: {
+          required: ["none"],
+        } satisfies FirefoxDataCollectionPermissions,
       },
     },
   },
   modules: ["@wxt-dev/module-react"],
   vite: () => ({
-    plugins: [tailwindcss()],
     build: {
       sourcemap: false,
     },
   }),
-  suppressWarnings: {
-    firefoxDataCollection: true,
-  },
 })

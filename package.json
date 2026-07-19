@@ -20,7 +20,6 @@
     "@ai-sdk/openai": "^4.0.11",
     "@base-ui/react": "^1.6.0",
     "@floating-ui/react": "^0.27.20",
-    "@tailwindcss/vite": "^4.3.2",
     "@wxt-dev/storage": "^1.2.8",
     "ai": "^7.0.22",
     "class-variance-authority": "^0.7.1",
@@ -28,6 +27,7 @@
     "driver.js": "^1.8.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.24.0",
+    "postcss": "^8.5.19",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "shadcn": "^4.13.0",
@@ -37,6 +37,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/chrome": "^0.2.2",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
