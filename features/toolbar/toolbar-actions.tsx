@@ -146,6 +146,8 @@ function ClosedToolbarState({ onOpen }: ClosedToolbarStateProps) {
 							aria-label="Open PromptPen actions"
 							onClick={onOpen}
 							size="icon"
+							className="pp:rounded-none pp:bg-primary pp:text-primary-foreground pp:hover:bg-primary/95 pp:focus-visible:ring-2 pp:focus-visible:ring-ring/40"
+
 						>
 							<WandSparkles className="pp:size-4" />
 						</Button>
