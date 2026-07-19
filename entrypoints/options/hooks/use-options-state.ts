@@ -20,18 +20,15 @@ import {
 import type { AIProvider, ConfiguredProviderDetail, CustomPromptDefinition, OptionsState, SectionId, OptionsSettings } from "@/types"
 import {
   defaultSettings,
-  defaultShortcuts,
   OPTIONS_PAGE_DESCRIPTION,
   OPTIONS_PAGE_TITLE,
   SETTINGS_KEY,
-  SHORTCUTS_KEY,
 } from "@/constants/options"
 
 export function useOptionsState(): OptionsState {
   const [activeSection, setActiveSection] = useState<SectionId>("general")
   const [loaded, setLoaded] = useState(false)
   const [settings, setSettings] = useState<OptionsSettings>(defaultSettings)
-  const [shortcuts, setShortcuts] = useState<Record<string, string>>(defaultShortcuts)
 
   const [providerSummary, setProviderSummary] = useState<Awaited<
     ReturnType<typeof getProviderSummary>
@@ -68,18 +65,12 @@ export function useOptionsState(): OptionsState {
 
     async function hydrate() {
       try {
-        const [storedSettings, storedShortcuts] = await Promise.all([
-          storage.getItem<Partial<OptionsSettings>>(`local:${SETTINGS_KEY}`),
-          storage.getItem<Record<string, string>>(`local:${SHORTCUTS_KEY}`),
-        ])
+        const storedSettings = await storage.getItem<Partial<OptionsSettings>>(`local:${SETTINGS_KEY}`)
 
         if (!mounted) return
 
         if (storedSettings) {
           setSettings({ ...defaultSettings, ...storedSettings })
-        }
-        if (storedShortcuts) {
-          setShortcuts({ ...defaultShortcuts, ...storedShortcuts })
         }
       } catch {
         // Ignore storage failures and continue with defaults.
@@ -98,11 +89,6 @@ export function useOptionsState(): OptionsState {
     if (!loaded) return
     void storage.setItem(`local:${SETTINGS_KEY}`, settings)
   }, [loaded, settings])
-
-  useEffect(() => {
-    if (!loaded) return
-    void storage.setItem(`local:${SHORTCUTS_KEY}`, shortcuts)
-  }, [loaded, shortcuts])
 
   useEffect(() => {
     let mounted = true
@@ -294,19 +280,13 @@ export function useOptionsState(): OptionsState {
     await refreshCustomPrompts()
   }
 
-  function updateShortcut(shortcutId: string, nextValue: string) {
-    setShortcuts((previous) => ({ ...previous, [shortcutId]: nextValue }))
-  }
-
   function resetAllData() {
     setSettings(defaultSettings)
-    setShortcuts(defaultShortcuts)
   }
 
   function exportSettings() {
     const payload = {
       settings,
-      shortcuts,
       exportedAt: new Date().toISOString(),
       version: "1.0.0",
     }
@@ -326,8 +306,6 @@ export function useOptionsState(): OptionsState {
     loaded,
     settings,
     setSettings,
-    shortcuts,
-    setShortcuts,
     providerSummary,
     configuredProviderDetails,
     customPrompts,
@@ -352,7 +330,6 @@ export function useOptionsState(): OptionsState {
     handleDeleteProvider,
     handleSaveCustomPrompt,
     handleDeleteCustomPrompt,
-    updateShortcut,
     resetAllData,
     exportSettings,
   }

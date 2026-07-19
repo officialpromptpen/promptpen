@@ -245,8 +245,6 @@ export interface OptionsState {
   loaded: boolean
   settings: OptionsSettings
   setSettings: React.Dispatch<React.SetStateAction<OptionsSettings>>
-  shortcuts: Record<string, string>
-  setShortcuts: React.Dispatch<React.SetStateAction<Record<string, string>>>
   providerSummary: ProviderSummary | null
   configuredProviderDetails: ConfiguredProviderDetail[]
   customPrompts: CustomPromptDefinition[]
@@ -271,7 +269,6 @@ export interface OptionsState {
   handleDeleteProvider: (provider: AIProvider) => Promise<void>
   handleSaveCustomPrompt: (title: string, prompt: string, promptId?: string) => Promise<void>
   handleDeleteCustomPrompt: (promptId: string) => Promise<void>
-  updateShortcut: (shortcutId: string, nextValue: string) => void
   resetAllData: () => void
   exportSettings: () => void
 }

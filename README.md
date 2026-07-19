@@ -14,7 +14,6 @@ AI-powered writing assistant for Chrome and Firefox. Select text on any webpage 
 - **Multi-provider** — Use any provider with OpenAI-compatible APIs
 - **Website access control** — Enable/disable on specific sites
 - **Dark mode** — System-aware theming with manual override
-- **Keyboard shortcuts** — Quick access via configurable hotkeys (`Alt+T` toggle toolbar, etc.)
 - **Context menu** — Right-click selected text to open actions
 
 ## Supported Providers
