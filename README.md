@@ -1,6 +1,8 @@
-# PromptPen
+# PromptPen (Beta)
 
 AI-powered writing assistant for Chrome and Firefox. Select text on any webpage and instantly improve, rewrite, or transform it with your preferred AI provider.
+
+> **Beta notice:** 99% of features are fully operational. Please test it out and report bugs to [contact@frontendweb.agency](mailto:contact@frontendweb.agency) to help us reach stable release.
 
 ## Features
 
@@ -50,9 +52,12 @@ This starts the extension in watch mode with hot reload and opens a browser inst
 pnpm run build
 pnpm run zip      # creates .output/promptpen-*.zip
 
-# Firefox
+# Firefox (MV2 — default)
 pnpm run build:firefox
 pnpm run zip:firefox
+
+# Firefox (MV3 — experimental)
+pnpm run zip:firefox:mv3
 ```
 
 ## Install in Chrome
@@ -68,15 +73,57 @@ pnpm run zip:firefox
 
 1. Go to `about:debugging#/runtime/this-firefox`
 2. Click **Load Temporary Add-on**
-3. Select the `.output/firefox-mv2/manifest.json` file
+3. Select `.output/firefox-mv2/manifest.json` (or `.output/firefox-mv3/manifest.json` for MV3)
 
-### Permanent (signed)
+### Permanent (signed via AMO)
 
-1. Go to `about:addons`
-2. Click the gear icon → **Install Add-on From File**
-3. Select the built `.zip` from `pnpm run zip:firefox`
+1. Run `pnpm run zip:firefox` — produces two files in `.output/`:
+   - `promptpen-*-firefox.zip` (compiled extension)
+   - `promptpen-*-sources.zip` (raw source code for review)
+2. Go to [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) and submit the extension
+3. Upload **both** ZIPs when prompted (required for minified/bundled code)
+4. In **Reviewer Directions**, paste:
+   > "This is a beta release (v0.1.0-beta1). 99% of features are fully functional. Refer to the README in the sources ZIP for WXT build instructions: run `pnpm install && pnpm run zip:firefox` to reproduce the build. Node.js 22+, pnpm required."
+5. Select **Yes** when asked "Does your add-on contain minified or machine-generated code?"
 
-Alternatively, zip the `.output/firefox-mv2/` directory and submit it through [AMO](https://addons.mozilla.org).
+## Usage Guide
+
+### 1. Add an AI Provider
+
+Open the extension settings (right-click the PromptPen icon → **Options** or **Dashboard**). Go to the **AI Providers** tab.
+
+### 2. Select a Provider
+
+Click on a provider from the list — for example, **OpenRouter**.
+
+### 3. Add Model, API Key, Test, and Save
+
+Enter your model name (e.g. `openai/gpt-4o-mini`) and your API key from OpenRouter. Click **Test Connection** to verify everything works, then click **Save**.
+
+### 4. Reload the Website
+
+Reload the webpage where you want to use PromptPen. The extension is now active on that site.
+
+### 5. Select Text
+
+Select any text on the page with your mouse. A floating toolbar icon appears near the selection.
+
+### 6. Open Actions
+
+Click the toolbar icon to open the full PromptPen action panel. You'll see all available actions grouped by category: Rewrite, Modify, Tone, Transform.
+
+### 7. Choose an Action
+
+Click any action — for example **Improve writing** or **Fix spelling and grammar**. PromptPen processes your selected text using the AI provider.
+
+### 8. Review the Result
+
+The result appears in a dialog with two options:
+
+- **Copy** — copies the result to your clipboard
+- **Replace** — replaces your selected text with the new version
+
+![PromptPen in action](https://via.placeholder.com/800x450/1e1d8f/ffffff?text=PromptPen+Screenshot)
 
 ## Type quality
 
