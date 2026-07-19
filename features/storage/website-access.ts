@@ -58,13 +58,6 @@ async function writeWebsiteAccessState(state: WebsiteAccessState): Promise<void>
   await storage.setItem(`local:${WEBSITE_ACCESS_STORAGE_KEY}`, state)
 }
 
-export async function isWebsiteExcluded(hostname: string): Promise<boolean> {
-  const normalizedHostname = normalizeHostname(hostname)
-  if (!normalizedHostname) return false
-  const state = await getWebsiteAccessState()
-  return state.excludedHostnames.includes(normalizedHostname)
-}
-
 export async function isWebsiteEnabled(hostname: string): Promise<boolean> {
   const normalizedHostname = normalizeHostname(hostname)
   if (!normalizedHostname) {

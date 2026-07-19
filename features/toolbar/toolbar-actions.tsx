@@ -36,7 +36,9 @@ import {
 	getCustomPrompts,
 } from "@/features/storage/custom-prompts";
 import type {
+	AIProvider,
 	CustomPromptDefinition,
+	ProviderDefinition,
 	ToolbarActionsProps,
 	ToolbarCategory,
 	CategoryFilterBarProps,
@@ -194,6 +196,115 @@ function CustomPromptList({
 	);
 }
 
+function ProviderSelector({
+	availableProviders,
+	selectedProvider,
+	selectedProviderDefinition,
+	selectedProviderTitleModel,
+	canSwitchProviders,
+	isLoading,
+	onProviderChange,
+}: {
+	availableProviders: ProviderDefinition[];
+	selectedProvider: AIProvider;
+	selectedProviderDefinition: ProviderDefinition;
+	selectedProviderTitleModel: string;
+	canSwitchProviders: boolean;
+	isLoading: boolean;
+	onProviderChange: (provider: AIProvider) => void;
+}) {
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const menuRef = useRef<HTMLDivElement | null>(null);
+
+	useEffect(() => {
+		const handlePointerDown = (event: MouseEvent) => {
+			if (!menuRef.current?.contains(event.target as Node)) {
+				setIsMenuOpen(false);
+			}
+		};
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setIsMenuOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handlePointerDown);
+		document.addEventListener("keydown", handleEscape);
+		return () => {
+			document.removeEventListener("mousedown", handlePointerDown);
+			document.removeEventListener("keydown", handleEscape);
+		};
+	}, []);
+
+	if (availableProviders.length === 0) return null;
+
+	return (
+		<div className="pp:relative" ref={menuRef}>
+			<Tooltip>
+				<TooltipTrigger
+					render={
+						<Button
+							type="button"
+							aria-label={`Select AI provider: ${selectedProviderDefinition.label}`}
+							aria-expanded={isMenuOpen}
+							aria-haspopup="menu"
+							disabled={isLoading}
+							variant="outline"
+							size="icon-sm"
+							title={`${selectedProviderDefinition.label} · ${selectedProviderTitleModel}`}
+							onClick={() => {
+								if (!canSwitchProviders) return;
+								setIsMenuOpen((current) => !current);
+							}}
+							className="pp:rounded-md pp:border-border/70 pp:bg-background"
+						>
+							<ProviderIcon provider={selectedProvider} className="pp:size-4" />
+						</Button>
+					}
+				/>
+				<TooltipContent side="bottom" align="center">
+					{selectedProviderDefinition.label} · {selectedProviderTitleModel}
+				</TooltipContent>
+			</Tooltip>
+
+			{isMenuOpen && canSwitchProviders && (
+				<div className="pp:absolute pp:right-0 pp:top-[calc(100%+8px)] pp:z-50 pp:min-w-56 pp:rounded-xl pp:border pp:border-border/70 pp:bg-popover pp:p-1 pp:shadow-xl">
+					{availableProviders.map((provider) => {
+						const isSelected = provider.id === selectedProvider;
+
+						return (
+							<button
+								key={provider.id}
+								type="button"
+								role="menuitemradio"
+								aria-checked={isSelected}
+								onClick={() => {
+									onProviderChange(provider.id);
+									setIsMenuOpen(false);
+								}}
+								className={[
+									"pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors",
+									isSelected
+										? "pp:bg-accent pp:text-accent-foreground"
+										: "hover:pp:bg-accent/60",
+								].join(" ")}
+							>
+								<ProviderIcon
+									provider={provider.id}
+									className="pp:size-4 pp:shrink-0"
+								/>
+								<span className="pp:flex-1">{provider.label}</span>
+								{isSelected && (
+									<ChevronDown className="pp:size-3.5 pp:rotate-180 pp:text-muted-foreground" />
+								)}
+							</button>
+						);
+					})}
+				</div>
+			)}
+		</div>
+	);
+}
+
 export function ToolbarActions({
 	onAction,
 	onRunCustomPrompt,
@@ -212,8 +323,6 @@ export function ToolbarActions({
 	const [customPrompts, setCustomPrompts] = useState<CustomPromptDefinition[]>(
 		[],
 	);
-	const [isProviderMenuOpen, setIsProviderMenuOpen] = useState(false);
-	const providerMenuRef = useRef<HTMLDivElement | null>(null);
 
 	const handleKeyDown = useCallback(
 		(event: ReactKeyboardEvent, actionId: string) => {
@@ -255,28 +364,6 @@ export function ToolbarActions({
 		void hydrateCustomPrompts();
 		return () => {
 			mounted = false;
-		};
-	}, []);
-
-	useEffect(() => {
-		const handlePointerDown = (event: MouseEvent) => {
-			if (!providerMenuRef.current?.contains(event.target as Node)) {
-				setIsProviderMenuOpen(false);
-			}
-		};
-
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				setIsProviderMenuOpen(false);
-			}
-		};
-
-		document.addEventListener("mousedown", handlePointerDown);
-		document.addEventListener("keydown", handleEscape);
-
-		return () => {
-			document.removeEventListener("mousedown", handlePointerDown);
-			document.removeEventListener("keydown", handleEscape);
 		};
 	}, []);
 
@@ -372,78 +459,15 @@ export function ToolbarActions({
 					</div>
 
 					<div className="pp:ml-auto pp:flex pp:items-center pp:gap-2">
-						{availableProviders.length > 0 && (
-							<div className="pp:relative" ref={providerMenuRef}>
-								<Tooltip>
-									<TooltipTrigger
-										render={
-											<Button
-												type="button"
-												aria-label={`Select AI provider: ${selectedProviderDefinition.label}`}
-												aria-expanded={isProviderMenuOpen}
-												aria-haspopup="menu"
-												disabled={isLoading}
-												variant="outline"
-												size="icon-sm"
-												title={`${selectedProviderDefinition.label} · ${selectedProviderTitleModel}`}
-												onClick={() => {
-													if (!canSwitchProviders) {
-														return;
-													}
-													setIsProviderMenuOpen((current) => !current);
-												}}
-												className="pp:rounded-md pp:border-border/70 pp:bg-background"
-											>
-												<ProviderIcon
-													provider={selectedProvider}
-													className="pp:size-4"
-												/>
-											</Button>
-										}
-									/>
-									<TooltipContent side="bottom" align="center">
-										{selectedProviderDefinition.label} ·{" "}
-										{selectedProviderTitleModel}
-									</TooltipContent>
-								</Tooltip>
-
-								{isProviderMenuOpen && canSwitchProviders && (
-									<div className="pp:absolute pp:right-0 pp:top-[calc(100%+8px)] pp:z-50 pp:min-w-56 pp:rounded-xl pp:border pp:border-border/70 pp:bg-popover pp:p-1 pp:shadow-xl">
-										{availableProviders.map((provider) => {
-											const isSelected = provider.id === selectedProvider;
-
-											return (
-												<button
-													key={provider.id}
-													type="button"
-													role="menuitemradio"
-													aria-checked={isSelected}
-													onClick={() => {
-														onProviderChange(provider.id);
-														setIsProviderMenuOpen(false);
-													}}
-													className={[
-														"pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors",
-														isSelected
-															? "pp:bg-accent pp:text-accent-foreground"
-															: "hover:pp:bg-accent/60",
-													].join(" ")}
-												>
-													<ProviderIcon
-														provider={provider.id}
-														className="pp:size-4 pp:shrink-0"
-													/>
-													<span className="pp:flex-1">{provider.label}</span>
-													{isSelected && (
-														<ChevronDown className="pp:size-3.5 pp:rotate-180 pp:text-muted-foreground" />
-													)}
-												</button>
-											);
-										})}
-									</div>
-								)}
-							</div>
-						)}
+						<ProviderSelector
+							availableProviders={availableProviders}
+							selectedProvider={selectedProvider}
+							selectedProviderDefinition={selectedProviderDefinition}
+							selectedProviderTitleModel={selectedProviderTitleModel}
+							canSwitchProviders={canSwitchProviders}
+							isLoading={isLoading}
+							onProviderChange={onProviderChange}
+						/>
 
 						<Button
 							aria-label="Close action panel"
