@@ -31,6 +31,7 @@ import {
 	getProviderDefinition,
 	PROVIDER_DEFINITIONS,
 } from "@/features/providers/catalog";
+
 import { ProviderIcon } from "@/features/providers/provider-icons";
 import {
 	getCustomPrompts,
@@ -47,6 +48,15 @@ import type {
 	CustomPromptListProps,
 } from "@/types";
 import { Logo } from "@/components/Logo";
+
+const TOOLBAR_CATEGORIES = [
+	{ id: "all" as const, label: "All" },
+	...ACTION_CATEGORY_ORDER.map((category) => ({
+		id: category,
+		label: ACTION_CATEGORY_LABELS[category],
+	})),
+	{ id: "custom-prompt" as const, label: "Custom Prompt" },
+];
 
 function CategoryFilterBar({
 	categories,
@@ -427,17 +437,7 @@ export function ToolbarActions({
 		});
 	}, [customPrompts, searchValue]);
 
-	const toolbarCategories = useMemo(
-		() => [
-			{ id: "all" as const, label: "All" },
-			...ACTION_CATEGORY_ORDER.map((category) => ({
-				id: category,
-				label: ACTION_CATEGORY_LABELS[category],
-			})),
-			{ id: "custom-prompt" as const, label: "Custom Prompt" },
-		],
-		[],
-	);
+	const toolbarCategories = TOOLBAR_CATEGORIES;
 
 	if (actions.length === 0) return null;
 

@@ -1,6 +1,6 @@
 import { browser } from "wxt/browser"
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Bug, ChevronRight, Info, Loader2, Star, Lightbulb } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -13,12 +13,29 @@ import { GeneralSection } from "./sections/general"
 import { WebsiteAccessSection } from "./sections/website-access"
 import { sections } from "@/constants/options"
 import { Button } from "@/components/ui/button"
-import {Logo} from "@/components/Logo"
+import { Logo } from "@/components/Logo"
+import { getTourStep, startDashboardTour } from "@/features/onboarding/tour"
 
 
 function IndexOptions() {
   const state = useOptionsState()
   const [aboutOpen, setAboutOpen] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function maybeStartTour() {
+      const step = await getTourStep()
+      if (!mounted || step !== "dashboard") return
+      startDashboardTour(state.setActiveSection)
+    }
+
+    void maybeStartTour()
+
+    return () => {
+      mounted = false
+    }
+  }, [state.setActiveSection])
 
   function renderSection() {
     switch (state.activeSection) {
@@ -39,7 +56,7 @@ function IndexOptions() {
 
   return (
     <div className="pp:flex pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
-        <aside className="pp:flex pp:w-60 pp:flex-col pp:border-r pp:bg-card">
+        <aside id="pp-tour-sidebar" className="pp:flex pp:w-60 pp:flex-col pp:border-r pp:bg-card">
           <div className="pp:flex pp:h-14 pp:items-center pp:gap-2 pp:px-5">
             <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg">
               <Logo />            
@@ -58,6 +75,7 @@ function IndexOptions() {
                   <button
                     type="button"
                     key={section.id}
+                    id={`pp-tour-nav-${section.id}`}
                     onClick={() => state.setActiveSection(section.id)}
                     className={cn(
                       "pp:flex pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:text-sm pp:font-medium pp:transition-colors",

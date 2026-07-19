@@ -56,7 +56,7 @@ export function AIProvidersSection(state: OptionsState) {
           </p>
         </div>
 
-        <div className="pp:grid pp:gap-4 sm:pp:grid-cols-2">
+        <div id="pp-tour-provider-list" className="pp:grid pp:gap-4 sm:pp:grid-cols-2">
           <label className="pp:space-y-1.5">
             <span className="pp:text-sm pp:font-medium">Provider</span>
             <select
@@ -72,7 +72,7 @@ export function AIProvidersSection(state: OptionsState) {
             </select>
           </label>
 
-          <label className="pp:space-y-1.5">
+          <label id="pp-tour-model-field" className="pp:space-y-1.5">
             <span className="pp:text-sm pp:font-medium">Model</span>
             <input
               value={state.providerModel}
@@ -83,7 +83,7 @@ export function AIProvidersSection(state: OptionsState) {
           </label>
         </div>
 
-        <label className="pp:mt-4 pp:block pp:space-y-1.5">
+        <label id="pp-tour-api-key-field" className="pp:mt-4 pp:block pp:space-y-1.5">
           <span className="pp:text-sm pp:font-medium">
             API Key{" "}
             <span className="pp:text-muted-foreground">
@@ -103,6 +103,7 @@ export function AIProvidersSection(state: OptionsState) {
 
         <div className="pp:mt-6 pp:flex pp:flex-wrap pp:items-center pp:gap-3">
           <Button
+            id="pp-tour-save-btn"
             onClick={state.handleSaveProvider}
             disabled={state.isSavingProvider || !state.connectionVerified}
             className="pp:gap-2"
@@ -111,6 +112,7 @@ export function AIProvidersSection(state: OptionsState) {
             Save provider
           </Button>
           <Button
+            id="pp-tour-test-btn"
             variant="outline"
             onClick={state.handleTestProvider}
             disabled={state.isTestingProvider}
@@ -157,7 +159,7 @@ export function AIProvidersSection(state: OptionsState) {
       </div>
 
       {state.configuredProviderDetails.length > 0 && (
-        <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
+        <div id="pp-tour-provider-setup" className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
           <h2 className="pp:mb-1 pp:text-lg pp:font-semibold">
             Configured Providers
             <span className="pp:ml-2 pp:text-sm pp:font-normal pp:text-muted-foreground">

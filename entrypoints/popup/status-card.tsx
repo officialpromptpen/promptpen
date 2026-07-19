@@ -79,7 +79,7 @@ export function StatusCard({ url }: StatusCardProps) {
 
   return (
     <m.div variants={item} className="pp:space-y-3">
-      <Card className="pp:border-dashed">
+      <Card id="pp-tour-ai-status" className="pp:border-dashed">
         <CardContent className="pp:p-3">
           <div className="pp:flex pp:items-center pp:gap-3">
             <div className="pp:flex pp:size-8 pp:items-center pp:justify-center pp:rounded-full pp:bg-primary/10 pp:shrink-0">
@@ -109,7 +109,7 @@ export function StatusCard({ url }: StatusCardProps) {
         </CardContent>
       </Card>
 
-      <Card className="pp:border-dashed">
+      <Card id="pp-tour-website-access" className="pp:border-dashed">
         <CardContent className="pp:p-3">
           <div className="pp:flex pp:items-center pp:gap-2 pp:pb-2">
             <Globe className="pp:size-4 pp:text-muted-foreground" aria-hidden="true" />

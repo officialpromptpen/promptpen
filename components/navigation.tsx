@@ -7,8 +7,8 @@ function openOptions() {
 }
 
 const links = [
-  { label: "Dashboard", icon: LayoutDashboard, action: openOptions },
-  { label: "Settings", icon: Settings, action: openOptions },
+  { label: "Home", id: "pp-tour-home-btn", icon: LayoutDashboard, action: openOptions },
+  { label: "Dashboard", id: "pp-tour-dashboard-btn", icon: Settings, action: openOptions },
 ] as const
 
 export function Navigation() {
@@ -22,6 +22,7 @@ export function Navigation() {
         return (
           <Button
             key={link.label}
+            id={link.id}
             variant="ghost"
             size="sm"
             className="pp:flex pp:flex-col pp:gap-0.5 pp:h-auto pp:py-2 pp:px-4 pp:text-xs pp:text-muted-foreground hover:pp:text-foreground"

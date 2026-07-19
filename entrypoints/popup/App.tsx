@@ -1,13 +1,15 @@
 import { browser } from "wxt/browser"
 import { LazyMotion, domAnimation, m } from "framer-motion"
 import { Globe } from "lucide-react"
+import { useEffect } from "react"
 import { Layout } from "@/components/layout"
 import { Navigation } from "@/components/navigation"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/features/theme/theme-toggle"
 import { useActiveTab } from "@/hooks/use-active-tab"
 import { StatusCard } from "./status-card"
-import {Logo} from "@/components/Logo"
+import { Logo } from "@/components/Logo"
+import { startPopupTour } from "@/features/onboarding/tour"
 
 const item = {
   hidden: { opacity: 0, y: 8 },
@@ -24,6 +26,10 @@ const container = {
 
 function IndexPopup() {
   const { title, url, loading } = useActiveTab()
+
+  useEffect(() => {
+    void startPopupTour()
+  }, [])
 
   return (
     <Layout>
@@ -44,7 +50,7 @@ function IndexPopup() {
 
             
             <div className="pp:flex pp:items-center pp:gap-1">
-              <ThemeToggle />
+              <span id="pp-tour-theme-toggle"><ThemeToggle /></span>
               <p className="pp:text-xs pp:text-muted-foreground">v{browser.runtime.getManifest().version}</p>
             </div>
           </header>

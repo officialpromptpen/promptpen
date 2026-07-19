@@ -25,6 +25,7 @@
     "ai": "^7.0.22",
     "class-variance-authority": "^0.7.1",
     "cnfast": "^0.0.8",
+    "driver.js": "^1.8.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
