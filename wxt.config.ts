@@ -21,5 +21,8 @@ export default defineConfig({
     build: {
       sourcemap: false,
     },
+    define: {
+      "import.meta": {},
+    },
   }),
 })
