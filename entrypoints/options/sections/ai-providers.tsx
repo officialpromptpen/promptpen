@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { PROVIDER_DEFINITIONS, CATEGORY_LABELS } from "@/features/providers/registry"
+import { PROVIDER_DEFINITIONS, CATEGORY_LABELS, getProviderDefinition } from "@/features/providers/registry"
 import { cn } from "@/lib/utils"
 import type { OptionsState, ProviderCategory } from "@/types"
 
@@ -39,17 +39,26 @@ export function AIProvidersSection(state: OptionsState) {
         <div className="pp:mb-6">
           <div className="pp:flex pp:items-center pp:justify-between pp:gap-3">
             <h2 className="pp:text-lg pp:font-semibold">Provider Setup</h2>
-            <span
-              className={
-                state.unconfiguredProviders > 0
-                  ? "pp:rounded-full pp:border pp:border-red-500/30 pp:bg-red-500/10 pp:px-2.5 pp:py-1 pp:text-xs pp:font-medium pp:text-red-600"
-                  : "pp:rounded-full pp:border pp:border-green-500/30 pp:bg-green-500/10 pp:px-2.5 pp:py-1 pp:text-xs pp:font-medium pp:text-green-600"
-              }
-            >
-              {state.unconfiguredProviders > 0
-                ? `${state.unconfiguredProviders} not configured`
-                : "All configured"}
-            </span>
+            {(() => {
+              const cloudUnconfigured = state.providerSummary
+                ? state.providerSummary.unconfiguredProviders.filter(
+                    (p) => getProviderDefinition(p).category !== "self-hosted",
+                  ).length
+                : 0
+              return (
+                <span
+                  className={
+                    cloudUnconfigured > 0
+                      ? "pp:rounded-full pp:border pp:border-red-500/30 pp:bg-red-500/10 pp:px-2.5 pp:py-1 pp:text-xs pp:font-medium pp:text-red-600"
+                      : "pp:rounded-full pp:border pp:border-green-500/30 pp:bg-green-500/10 pp:px-2.5 pp:py-1 pp:text-xs pp:font-medium pp:text-green-600"
+                  }
+                >
+                  {cloudUnconfigured > 0
+                    ? `${cloudUnconfigured} not configured`
+                    : "All configured"}
+                </span>
+              )
+            })()}
           </div>
           <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
             Select a provider and enter your API key to get started.
@@ -64,7 +73,7 @@ export function AIProvidersSection(state: OptionsState) {
               onChange={(event) => state.selectProvider(event.target.value as never)}
               className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
             >
-              {PROVIDER_DEFINITIONS.reduce(
+              {PROVIDER_DEFINITIONS.filter((p) => p.category !== "self-hosted").reduce(
                 (groups, p) => {
                   const cat = (p.category ?? "openai-compatible") as ProviderCategory
                   const key = CATEGORY_LABELS[cat]
@@ -169,7 +178,7 @@ export function AIProvidersSection(state: OptionsState) {
               <span className="pp:font-medium pp:text-foreground">
                 {state.providerSummary?.configuredProviders.length ?? 0}
               </span>{" "}
-              / {PROVIDER_DEFINITIONS.length} providers
+              / {PROVIDER_DEFINITIONS.filter((p) => p.category !== "self-hosted").length} providers
             </span>
           </div>
         </div>

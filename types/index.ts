@@ -180,6 +180,7 @@ export interface ProviderRuntimeConfig {
   provider: AIProvider
   model: string
   apiKey: string
+  baseUrl?: string
 }
 
 export interface ProviderSummary {
@@ -225,6 +226,7 @@ export interface CustomPromptDefinition {
 export type SectionId =
   | "general"
   | "ai-providers"
+  | "self-hosted"
   | "custom-prompts"
   | "website-access"
   | "appearance"

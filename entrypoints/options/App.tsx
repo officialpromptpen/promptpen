@@ -10,6 +10,7 @@ import { AIProvidersSection } from "./sections/ai-providers"
 import { AppearanceSection } from "./sections/appearance"
 import { CustomPromptsSection } from "./sections/custom-prompts"
 import { GeneralSection } from "./sections/general"
+import { SelfHostedSection } from "./sections/self-hosted"
 import { WebsiteAccessSection } from "./sections/website-access"
 import { sections } from "@/constants/options"
 import { Button } from "@/components/ui/button"
@@ -43,6 +44,8 @@ function IndexOptions() {
         return <GeneralSection {...state} />
       case "ai-providers":
         return <AIProvidersSection {...state} />
+      case "self-hosted":
+        return <SelfHostedSection />
       case "custom-prompts":
         return <CustomPromptsSection {...state} />
       case "website-access":

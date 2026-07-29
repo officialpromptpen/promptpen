@@ -24,6 +24,7 @@ interface EncryptedPayload {
 interface StoredProviderConfig {
   model: string
   encryptedApiKey?: EncryptedPayload
+  baseUrl?: string
   updatedAt: number
 }
 
@@ -115,6 +116,7 @@ export async function saveProviderConfig(
   provider: AIProvider,
   model: string,
   apiKey?: string,
+  baseUrl?: string,
 ): Promise<void> {
   const state = await readState()
   const existingConfig = state.providers[provider]
@@ -125,6 +127,7 @@ export async function saveProviderConfig(
   state.providers[provider] = {
     model: model.trim() || getProviderModel(provider),
     encryptedApiKey,
+    baseUrl: baseUrl?.trim() || existingConfig?.baseUrl,
     updatedAt: Date.now(),
   }
 
@@ -185,6 +188,7 @@ export async function getRuntimeConfig(
     provider,
     model: config?.model ?? providerDefinition.defaultModel,
     apiKey,
+    baseUrl: config?.baseUrl,
   }
 }
 

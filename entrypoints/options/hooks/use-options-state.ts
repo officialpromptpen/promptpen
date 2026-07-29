@@ -128,7 +128,7 @@ export function useOptionsState(): OptionsState {
   }, [])
 
   const selectedProviderDefinition = getProviderDefinition(selectedProvider)
-  const unconfiguredProviders = providerSummary?.unconfiguredProviders.length ?? 11
+  const unconfiguredProviders = providerSummary?.unconfiguredProviders.length ?? 0
 
   async function refreshProviderSummary() {
     const summary = await getProviderSummary()
