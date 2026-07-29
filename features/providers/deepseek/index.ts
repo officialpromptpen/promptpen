@@ -5,6 +5,7 @@ export const provider: ProviderModule = {
   id: "deepseek",
   label: "DeepSeek",
   defaultModel: "deepseek-chat",
+  category: "cloud",
   createModel: (config) => {
     const client = createDeepSeek({ apiKey: config.apiKey })
     return client(config.model)

@@ -3,6 +3,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  onnxruntime-node: true
+  protobufjs: set this to true or false
+  sharp: set this to true or false
   spawn-sync: true
-
-

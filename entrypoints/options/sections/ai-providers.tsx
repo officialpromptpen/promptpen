@@ -8,9 +8,9 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { PROVIDER_DEFINITIONS } from "@/features/providers/registry"
+import { PROVIDER_DEFINITIONS, CATEGORY_LABELS } from "@/features/providers/registry"
 import { cn } from "@/lib/utils"
-import type { OptionsState } from "@/types"
+import type { OptionsState, ProviderCategory } from "@/types"
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -64,10 +64,27 @@ export function AIProvidersSection(state: OptionsState) {
               onChange={(event) => state.selectProvider(event.target.value as never)}
               className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
             >
-              {PROVIDER_DEFINITIONS.map((provider) => (
-                <option key={provider.id} value={provider.id}>
-                  {provider.label}
-                </option>
+              {PROVIDER_DEFINITIONS.reduce(
+                (groups, p) => {
+                  const cat = (p.category ?? "openai-compatible") as ProviderCategory
+                  const key = CATEGORY_LABELS[cat]
+                  const existing = groups.find((g) => g.key === key)
+                  if (existing) {
+                    existing.providers.push(p)
+                  } else {
+                    groups.push({ key, label: key, providers: [p] })
+                  }
+                  return groups
+                },
+                [] as Array<{ key: string; label: string; providers: typeof PROVIDER_DEFINITIONS }>,
+              ).map((group) => (
+                <optgroup key={group.key} label={group.label}>
+                  {group.providers.map((provider) => (
+                    <option key={provider.id} value={provider.id}>
+                      {provider.label}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </label>

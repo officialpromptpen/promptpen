@@ -5,6 +5,7 @@ export const provider: ProviderModule = {
   id: "together",
   label: "Together AI",
   defaultModel: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+  category: "openai-compatible",
   createModel: (config) => {
     const client = createOpenAI({
       apiKey: config.apiKey,

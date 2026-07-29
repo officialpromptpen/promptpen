@@ -5,6 +5,7 @@ export const provider: ProviderModule = {
   id: "ollama",
   label: "Ollama",
   defaultModel: "llama3.1",
+  category: "self-hosted",
   createModel: (config) => {
     const client = createOpenAI({
       apiKey: config.apiKey,

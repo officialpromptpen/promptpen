@@ -38,6 +38,7 @@ const PROVIDER_ICONS: Record<AIProvider, BrandIcon> = {
   deepseek: siDeepseek,
   mistral: siMistralai,
   "openai-compatible": null,
+  transformers: null,
 }
 
 function initialsForProvider(provider: AIProvider): string {
@@ -62,6 +63,8 @@ function initialsForProvider(provider: AIProvider): string {
       return "CO"
     case "ollama":
       return "OL"
+    case "transformers":
+      return "TF"
     case "openai":
     default:
       return "AI"

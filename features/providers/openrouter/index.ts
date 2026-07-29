@@ -5,6 +5,7 @@ export const provider: ProviderModule = {
   id: "openrouter",
   label: "OpenRouter",
   defaultModel: "openai/gpt-4o-mini",
+  category: "openai-compatible",
   createModel: (config) => {
     const client = createOpenAI({
       apiKey: config.apiKey,

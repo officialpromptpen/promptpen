@@ -26,6 +26,7 @@
     "@ai-sdk/openai": "^4.0.11",
     "@base-ui/react": "^1.6.0",
     "@floating-ui/react": "^0.27.20",
+    "@huggingface/transformers": "^4.2.0",
     "@wxt-dev/storage": "^1.2.8",
     "ai": "^7.0.22",
     "class-variance-authority": "^0.7.1",

@@ -8,6 +8,7 @@ import {
 	X,
 } from "lucide-react";
 import {
+	Fragment,
 	type KeyboardEvent as ReactKeyboardEvent,
 	useCallback,
 	useEffect,
@@ -30,6 +31,7 @@ import {
 import {
 	getProviderDefinition,
 	PROVIDER_DEFINITIONS,
+	CATEGORY_LABELS,
 } from "@/features/providers/registry";
 
 import { ProviderIcon } from "@/features/providers/provider-icons";
@@ -37,8 +39,9 @@ import {
 	getCustomPrompts,
 } from "@/features/storage/custom-prompts";
 import type {
-	AIProvider,
+		AIProvider,
 	CustomPromptDefinition,
+	ProviderCategory,
 	ProviderDefinition,
 	ToolbarActionsProps,
 	ToolbarCategory,
@@ -280,37 +283,58 @@ function ProviderSelector({
 
 			{isMenuOpen && canSwitchProviders && (
 				<div className="pp:absolute pp:right-0 pp:top-[calc(100%+8px)] pp:z-50 pp:min-w-56 pp:rounded-xl pp:border pp:border-border/70 pp:bg-popover pp:p-1 pp:shadow-xl">
-					{availableProviders.map((provider) => {
-						const isSelected = provider.id === selectedProvider;
+					{availableProviders.reduce<
+						Array<{ category: ProviderCategory; providers: typeof availableProviders }>
+					>(
+						(groups, p) => {
+							const cat = (p.category ?? "openai-compatible") as ProviderCategory
+							const existing = groups.find((g) => g.category === cat)
+							if (existing) {
+								existing.providers.push(p)
+							} else {
+								groups.push({ category: cat, providers: [p] })
+							}
+							return groups
+						},
+						[],
+					).map((group) => (
+						<Fragment key={group.category}>
+							<div className="pp:px-3 pp:py-1.5 pp:text-[11px] pp:font-semibold pp:uppercase pp:tracking-wider pp:text-muted-foreground">
+								{CATEGORY_LABELS[group.category]}
+							</div>
+							{group.providers.map((provider) => {
+								const isSelected = provider.id === selectedProvider;
 
-						return (
-							<button
-								key={provider.id}
-								type="button"
-								role="menuitemradio"
-								aria-checked={isSelected}
-								onClick={() => {
-									onProviderChange(provider.id);
-									setIsMenuOpen(false);
-								}}
-								className={[
-									"pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors",
-									isSelected
-										? "pp:bg-accent pp:text-accent-foreground"
-										: "hover:pp:bg-accent/60",
-								].join(" ")}
-							>
-								<ProviderIcon
-									provider={provider.id}
-									className="pp:size-4 pp:shrink-0"
-								/>
-								<span className="pp:flex-1">{provider.label}</span>
-								{isSelected && (
-									<ChevronDown className="pp:size-3.5 pp:rotate-180 pp:text-muted-foreground" />
-								)}
-							</button>
-						);
-					})}
+								return (
+									<button
+										key={provider.id}
+										type="button"
+										role="menuitemradio"
+										aria-checked={isSelected}
+										onClick={() => {
+											onProviderChange(provider.id);
+											setIsMenuOpen(false);
+										}}
+										className={[
+											"pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors",
+											isSelected
+												? "pp:bg-accent pp:text-accent-foreground"
+												: "hover:pp:bg-accent/60",
+										].join(" ")}
+									>
+										<ProviderIcon
+											provider={provider.id}
+											className="pp:size-4 pp:shrink-0"
+										/>
+										<span className="pp:flex-1">{provider.label}</span>
+										{isSelected && (
+											<ChevronDown className="pp:size-3.5 pp:rotate-180 pp:text-muted-foreground" />
+										)}
+									</button>
+								);
+							})}
+						</Fragment>
+					))}
 				</div>
 			)}
 		</div>

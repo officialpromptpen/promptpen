@@ -2,6 +2,8 @@ import type { LucideIcon, Settings } from "lucide-react"
 import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from "react"
 import type { getProviderDefinition } from "@/features/providers/registry"
 
+export type ProviderCategory = "cloud" | "openai-compatible" | "self-hosted"
+
 // ──────────────────────────── Core Domain Types ────────────────────────────
 
 export type AIProvider =
@@ -16,6 +18,7 @@ export type AIProvider =
   | "deepseek"
   | "mistral"
   | "openai-compatible"
+  | "transformers"
 
 export type Theme = "light" | "dark" | "system"
 
@@ -164,6 +167,7 @@ export interface ProviderDefinition {
   id: AIProvider
   label: string
   defaultModel: string
+  category?: ProviderCategory
 }
 
 export interface ProviderAdapter {

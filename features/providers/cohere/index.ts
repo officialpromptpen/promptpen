@@ -5,6 +5,7 @@ export const provider: ProviderModule = {
   id: "cohere",
   label: "Cohere",
   defaultModel: "command-r-plus",
+  category: "cloud",
   createModel: (config) => {
     const client = createCohere({ apiKey: config.apiKey })
     return client(config.model)

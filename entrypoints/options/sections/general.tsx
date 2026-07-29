@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator"
-import { PROVIDER_DEFINITIONS } from "@/features/providers/registry"
-import type { OptionsState } from "@/types"
+import { PROVIDER_DEFINITIONS, CATEGORY_LABELS } from "@/features/providers/registry"
+import type { OptionsState, ProviderCategory } from "@/types"
 
 export function GeneralSection(state: OptionsState) {
   return (
@@ -34,10 +34,27 @@ export function GeneralSection(state: OptionsState) {
             className="pp:h-9 pp:w-56 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
           >
             <option value="">None (auto-select)</option>
-            {PROVIDER_DEFINITIONS.map((provider) => (
-              <option key={provider.id} value={provider.id}>
-                {provider.label}
-              </option>
+            {PROVIDER_DEFINITIONS.reduce(
+              (groups, p) => {
+                const cat = (p.category ?? "openai-compatible") as ProviderCategory
+                const key = CATEGORY_LABELS[cat]
+                const existing = groups.find((g) => g.key === key)
+                if (existing) {
+                  existing.providers.push(p)
+                } else {
+                  groups.push({ key, label: key, providers: [p] })
+                }
+                return groups
+              },
+              [] as Array<{ key: string; label: string; providers: typeof PROVIDER_DEFINITIONS }>,
+            ).map((group) => (
+              <optgroup key={group.key} label={group.label}>
+                {group.providers.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
