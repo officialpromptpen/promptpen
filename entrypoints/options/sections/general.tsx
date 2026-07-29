@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator"
-import { PROVIDER_DEFINITIONS } from "@/features/providers/catalog"
+import { PROVIDER_DEFINITIONS } from "@/features/providers/registry"
 import type { OptionsState } from "@/types"
 
 export function GeneralSection(state: OptionsState) {

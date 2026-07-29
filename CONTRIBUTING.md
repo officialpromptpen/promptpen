@@ -138,17 +138,60 @@ This project targets a 100/100 score from `react-doctor`. The CI workflow (`.git
 
 ## Adding a New AI Provider
 
-1. Open `features/providers/catalog.ts`
-2. Add an entry to `PROVIDER_DEFINITIONS`:
+Each provider lives in its own folder under `features/providers/`. There are two categories:
 
-```ts
-{ id: "my-provider", label: "My Provider", defaultModel: "model-name", baseUrl: "https://api.example.com/v1" }
-```
+- **Native SDK provider** — uses its own `@ai-sdk/*` package (e.g., `@ai-sdk/anthropic`)
+- **OpenAI-compatible provider** — uses `@ai-sdk/openai` with a custom `baseURL`
+
+### Steps
+
+1. Create a folder `features/providers/<provider-id>/` with an `index.ts`:
+
+   ```ts
+   // Native SDK provider
+   import { createX } from "@ai-sdk/x"
+   import type { ProviderModule } from "../_types"
+
+   export const provider: ProviderModule = {
+     id: "my-provider",
+     label: "My Provider",
+     defaultModel: "model-name",
+     createModel: (config) => {
+       const client = createX({ apiKey: config.apiKey })
+       return client(config.model)
+     },
+   }
+   ```
+
+   ```ts
+   // OpenAI-compatible provider
+   import { createOpenAI } from "@ai-sdk/openai"
+   import type { ProviderModule } from "../_types"
+
+   export const provider: ProviderModule = {
+     id: "my-provider",
+     label: "My Provider",
+     defaultModel: "model-name",
+     createModel: (config) => {
+       const client = createOpenAI({
+         apiKey: config.apiKey,
+         baseURL: "https://api.example.com/v1",
+       })
+       return client.chat(config.model)
+     },
+   }
+   ```
+
+2. Register it in `features/providers/registry.ts`:
+
+   ```ts
+   import { provider as myProvider } from "./my-provider"
+   // Add to PROVIDER_MODULES array
+   ```
 
 3. Add the provider ID to the `AIProvider` union type in `types/index.ts`
-4. Add the provider to the `chatCompletionsProviders` Set in `features/providers/sdk.ts` (if it supports chat completions via OpenAI-compatible API)
-5. Add a brand icon mapping in `features/providers/provider-icons.tsx`
-6. Runtime config vars (API key env name, etc.) go in `features/providers/storage.ts`
+4. Add a brand icon mapping in `features/providers/provider-icons.tsx`
+5. Install the `@ai-sdk/*` package if using a native SDK provider
 
 ## Theming
 

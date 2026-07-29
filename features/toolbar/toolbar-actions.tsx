@@ -30,7 +30,7 @@ import {
 import {
 	getProviderDefinition,
 	PROVIDER_DEFINITIONS,
-} from "@/features/providers/catalog";
+} from "@/features/providers/registry";
 
 import { ProviderIcon } from "@/features/providers/provider-icons";
 import {

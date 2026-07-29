@@ -4,7 +4,7 @@ import {
   DEFAULT_PROVIDER,
   getProviderDefinition,
   PROVIDER_DEFINITIONS,
-} from "@/features/providers/catalog"
+} from "./registry"
 import type {
   AIProvider,
   ProviderRuntimeConfig,
@@ -185,7 +185,6 @@ export async function getRuntimeConfig(
     provider,
     model: config?.model ?? providerDefinition.defaultModel,
     apiKey,
-    baseUrl: providerDefinition.baseUrl,
   }
 }
 

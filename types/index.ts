@@ -1,6 +1,6 @@
 import type { LucideIcon, Settings } from "lucide-react"
 import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from "react"
-import type { getProviderDefinition } from "@/features/providers/catalog"
+import type { getProviderDefinition } from "@/features/providers/registry"
 
 // ──────────────────────────── Core Domain Types ────────────────────────────
 
@@ -164,7 +164,6 @@ export interface ProviderDefinition {
   id: AIProvider
   label: string
   defaultModel: string
-  baseUrl?: string
 }
 
 export interface ProviderAdapter {
@@ -177,7 +176,6 @@ export interface ProviderRuntimeConfig {
   provider: AIProvider
   model: string
   apiKey: string
-  baseUrl?: string
 }
 
 export interface ProviderSummary {

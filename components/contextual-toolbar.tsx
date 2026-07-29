@@ -13,7 +13,7 @@ import {
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getActionById } from "@/constants/actions";
-import { getProviderDefinition } from "@/features/providers/catalog";
+import { getProviderDefinition } from "@/features/providers/registry";
 import { createProviderAdapter } from "@/features/providers/sdk";
 import {
   getConfiguredProviderDetails,

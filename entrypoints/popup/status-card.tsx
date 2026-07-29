@@ -3,7 +3,7 @@ import { Globe, RefreshCw, Sparkles, TriangleAlert } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { getProviderDefinition } from "@/features/providers/catalog"
+import { getProviderDefinition } from "@/features/providers/registry"
 import { getProviderSummary } from "@/features/providers/storage"
 import type { ProviderSummary, StatusCardProps } from "@/types"
 import {

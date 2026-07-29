@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { PROVIDER_DEFINITIONS } from "@/features/providers/catalog"
+import { PROVIDER_DEFINITIONS } from "@/features/providers/registry"
 import { cn } from "@/lib/utils"
 import type { OptionsState } from "@/types"
 

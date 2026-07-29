@@ -1,6 +1,6 @@
 import { storage } from "@wxt-dev/storage"
 import { useEffect, useState } from "react"
-import { getProviderDefinition } from "@/features/providers/catalog"
+import { getProviderDefinition } from "@/features/providers/registry"
 import { testProviderConnectionWithValues } from "@/features/providers/sdk"
 import {
   getCustomPrompts,
