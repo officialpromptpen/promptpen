@@ -110,13 +110,11 @@ function createActionPrompt(
 	text: string,
 	customPrompt?: string,
 ): string {
-	if (actionId === "custom-prompt") {
-		const instruction = customPrompt?.trim() || "Improve this text.";
-		return `${instruction}\n\nText:\n"""\n${text}\n"""`;
-	}
+	const instruction = actionId === "custom-prompt"
+		? (customPrompt?.trim() || "Improve this text.")
+		: (getActionById(actionId)?.prompt ?? "Improve this text.");
 
-	const instruction = getActionById(actionId)?.prompt ?? "Improve this text.";
-	return `${instruction}\n\nText:\n"""\n${text}\n"""`;
+	return `${instruction}\n\nText:\n${text}`;
 }
 
 function getActionLabel(actionId: string | null): string {
@@ -138,7 +136,18 @@ function getFriendlyActionError(error: unknown): string {
 		return "Extension was reloaded or updated. Refresh this page, select text again, and retry.";
 	}
 
-	// Some provider setup failures can bubble up with unrelated text; normalize to a clear next step.
+	if (message.includes("Ollama") && (message.includes("ECONNREFUSED") || message.includes("fetch failed"))) {
+		return "Ollama is not running. Start Ollama on your machine and make sure the service is accessible.";
+	}
+
+	if (message.includes("TransformersModelError") || message.startsWith("Failed to load model")) {
+		return `In-browser model error: ${message}`;
+	}
+
+	if (message.includes("model not found") || message.includes("not found on Hugging Face")) {
+		return `Model not found. Check the model ID in Dashboard > Self-Hosted > Transformers.js.`;
+	}
+
 	if (SETUP_FAILURE_RE.test(message)) {
 		return "No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider with API key.";
 	}
@@ -551,7 +560,7 @@ function useActionHandlers(
 				);
 				const response = await adapter.runPrompt(
 					prompt,
-					"You are a writing assistant. Return only the transformed output with no commentary.",
+					"You are a text transformation tool. Output ONLY the transformed text — no greetings, no explanations, no commentary, no markdown, no quotation marks, no prefixes like 'Here is'. Never wrap the text in quotes or backticks. Never add introductory or concluding sentences. Output the result directly as plain text.",
 				);
 
 				const normalized = response.trim();

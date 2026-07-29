@@ -16,8 +16,8 @@ interface StoredSelfHostedState {
 
 const DEFAULT_TRANSFORMERS_MODELS: StoredTransformersModel[] = [
   {
-    modelId: "Xenova/Qwen2-0.5B-Instruct",
-    label: "Qwen2-0.5B-Instruct",
+    modelId: "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA",
+    label: "SmolLM2-135M-Instruct-ONNX-MHA",
     addedAt: Date.now(),
     status: "not-downloaded",
     downloadProgress: 0,
@@ -90,4 +90,56 @@ export async function setTransformersModels(
   models: StoredTransformersModel[],
 ): Promise<void> {
   await writeState({ transformersModels: models })
+}
+
+export interface SystemRequirements {
+  meetsMinimum: boolean
+  wasm: boolean
+  wasmSimd: boolean
+  webgpu: boolean
+  cpuCores: number
+  deviceMemory: number | null
+  issues: string[]
+}
+
+export function checkSystemRequirements(): SystemRequirements {
+  const wasm = !!(typeof WebAssembly !== "undefined" && WebAssembly.validate)
+  let wasmSimd = false
+  if (wasm) {
+    try {
+      const simdModule = new Uint8Array([
+        0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10,
+        1, 8, 0, 65, 0, 253, 15, 253, 98, 11,
+      ])
+      wasmSimd = WebAssembly.validate(simdModule)
+    } catch {
+      wasmSimd = false
+    }
+  }
+
+  const webgpu = "gpu" in navigator && navigator.gpu !== undefined
+  const cpuCores = navigator.hardwareConcurrency || 0
+  const deviceMemory = "deviceMemory" in navigator ? (navigator as unknown as { deviceMemory: number }).deviceMemory : null
+
+  const issues: string[] = []
+
+  if (!wasm) {
+    issues.push("WebAssembly is not supported. Transformers.js requires WebAssembly to run.")
+  }
+  if (cpuCores < 2) {
+    issues.push("Your CPU may be too slow. At least 2 CPU cores are recommended.")
+  }
+  if (deviceMemory !== null && deviceMemory < 2) {
+    issues.push(`Only ${deviceMemory}GB of RAM detected. At least 2GB is recommended for small models.`)
+  }
+
+  return {
+    meetsMinimum: issues.length === 0,
+    wasm,
+    wasmSimd,
+    webgpu,
+    cpuCores,
+    deviceMemory,
+    issues,
+  }
 }

@@ -7,6 +7,12 @@ export default defineConfig({
     description: "PromptPen — AI-powered writing assistant",
     permissions: ["storage", "activeTab"],
     host_permissions: ["<all_urls>"],
+    web_accessible_resources: [
+      {
+        resources: ["onnx/*"],
+        matches: ["<all_urls>"],
+      },
+    ],
     browser_specific_settings: {
       gecko: {
         id: "promptpen@frontendweb.agency",

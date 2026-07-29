@@ -5,3 +5,6 @@ allowBuilds:
   esbuild: true
   onnxruntime-node: true
   spawn-sync: true
+
+minimumReleaseAgeExclude:
+  - '@browser-ai/transformers-js@3.0.0'

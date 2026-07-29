@@ -25,6 +25,7 @@ interface StoredProviderConfig {
   model: string
   encryptedApiKey?: EncryptedPayload
   baseUrl?: string
+  encryptedAccessToken?: EncryptedPayload
   updatedAt: number
 }
 
@@ -117,17 +118,34 @@ export async function saveProviderConfig(
   model: string,
   apiKey?: string,
   baseUrl?: string,
+  accessToken?: string,
 ): Promise<void> {
   const state = await readState()
   const existingConfig = state.providers[provider]
-  const encryptedApiKey = apiKey?.trim()
-    ? await encryptString(apiKey.trim())
-    : existingConfig?.encryptedApiKey
+  const providerDefinition = getProviderDefinition(provider)
+  const isSelfHosted = providerDefinition.category === "self-hosted"
+
+  let encryptedApiKey = existingConfig?.encryptedApiKey
+
+  if (apiKey?.trim()) {
+    encryptedApiKey = await encryptString(apiKey.trim())
+  } else if (isSelfHosted && !encryptedApiKey) {
+    encryptedApiKey = undefined
+  }
+
+  let encryptedAccessToken = existingConfig?.encryptedAccessToken
+
+  if (accessToken?.trim()) {
+    encryptedAccessToken = await encryptString(accessToken.trim())
+  } else if (accessToken !== undefined && !accessToken.trim()) {
+    encryptedAccessToken = undefined
+  }
 
   state.providers[provider] = {
     model: model.trim() || getProviderModel(provider),
     encryptedApiKey,
     baseUrl: baseUrl?.trim() || existingConfig?.baseUrl,
+    encryptedAccessToken,
     updatedAt: Date.now(),
   }
 
@@ -147,7 +165,8 @@ export async function getProviderSummary(): Promise<ProviderSummary> {
 
   for (const provider of PROVIDER_DEFINITIONS) {
     const config = state.providers[provider.id]
-    if (config?.encryptedApiKey) {
+    const isSelfHosted = provider.category === "self-hosted"
+    if (isSelfHosted ? config : config?.encryptedApiKey) {
       configuredProviders.push(provider.id)
     } else {
       unconfiguredProviders.push(provider.id)
@@ -173,8 +192,26 @@ export async function getRuntimeConfig(
   const provider = requestedProvider ?? state.defaultProvider
   const providerDefinition = getProviderDefinition(provider)
   const config = state.providers[provider]
-  const encryptedApiKey = config?.encryptedApiKey
 
+  const isSelfHosted = providerDefinition.category === "self-hosted"
+
+  if (isSelfHosted) {
+    if (!config) {
+      return null
+    }
+    const accessToken = config.encryptedAccessToken
+      ? await decryptString(config.encryptedAccessToken)
+      : undefined
+    return {
+      provider,
+      model: config?.model ?? providerDefinition.defaultModel,
+      apiKey: "",
+      baseUrl: config?.baseUrl,
+      accessToken: accessToken || undefined,
+    }
+  }
+
+  const encryptedApiKey = config?.encryptedApiKey
   if (!encryptedApiKey) {
     return null
   }
@@ -211,6 +248,15 @@ export async function getProviderEditorState(provider: AIProvider): Promise<Prov
   }
 }
 
+export async function getDecryptedAccessToken(provider: AIProvider): Promise<string | null> {
+  const state = await readState()
+  const config = state.providers[provider]
+  if (!config?.encryptedAccessToken) {
+    return null
+  }
+  return decryptString(config.encryptedAccessToken)
+}
+
 export async function removeProviderConfig(provider: AIProvider): Promise<void> {
   const state = await readState()
   delete state.providers[provider]
@@ -227,14 +273,15 @@ export async function getConfiguredProviderDetails(): Promise<ConfiguredProvider
 
   for (const provider of PROVIDER_DEFINITIONS) {
     const config = state.providers[provider.id]
-    if (config?.encryptedApiKey) {
-      details.push({
-        provider: provider.id,
-        label: provider.label,
-        model: config.model ?? provider.defaultModel,
-        updatedAt: config.updatedAt,
-      })
-    }
+    if (!config) continue
+    const isConfigured = provider.category === "self-hosted" || !!config.encryptedApiKey
+    if (!isConfigured) continue
+    details.push({
+      provider: provider.id,
+      label: provider.label,
+      model: config.model ?? provider.defaultModel,
+      updatedAt: config.updatedAt,
+    })
   }
 
   return details.sort((a, b) => b.updatedAt - a.updatedAt)

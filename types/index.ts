@@ -181,6 +181,7 @@ export interface ProviderRuntimeConfig {
   model: string
   apiKey: string
   baseUrl?: string
+  accessToken?: string
 }
 
 export interface ProviderSummary {

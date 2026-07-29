@@ -14,7 +14,7 @@ export async function createProviderAdapter(
 
   const resolvedModel = modelOverride?.trim() || config.model
   const mod = getProviderModule(config.provider)
-  const model = mod.createModel({ apiKey: config.apiKey, model: resolvedModel })
+  const model = mod.createModel({ apiKey: config.apiKey, model: resolvedModel, accessToken: config.accessToken })
 
   return {
     provider: config.provider,

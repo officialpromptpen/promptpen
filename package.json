@@ -25,6 +25,7 @@
     "@ai-sdk/mistral": "^4.0.16",
     "@ai-sdk/openai": "^4.0.11",
     "@base-ui/react": "^1.6.0",
+    "@browser-ai/transformers-js": "^3.0.0",
     "@floating-ui/react": "^0.27.20",
     "@huggingface/transformers": "^4.2.0",
     "@wxt-dev/storage": "^1.2.8",

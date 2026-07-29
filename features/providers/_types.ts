@@ -6,6 +6,7 @@ export interface ProviderModuleConfig {
   model: string
   baseUrl?: string
   headers?: Record<string, string>
+  accessToken?: string
 }
 
 export interface ProviderModule {
