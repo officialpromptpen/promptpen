@@ -13,7 +13,7 @@ import type {
   ProviderEditorState,
 } from "@/types"
 
-const STORAGE_KEY = "promptpen.providers.v1"
+export const STORAGE_KEY = "promptpen.providers.v1"
 const ENCRYPTION_SALT = "promptpen/providers/config"
 
 interface EncryptedPayload {
