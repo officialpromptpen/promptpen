@@ -1,19 +1,16 @@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { FloatingDelayGroup } from "@floating-ui/react";
 import {
-	ChevronDown,
 	Loader2,
 	Search,
 	WandSparkles,
 	X,
 } from "lucide-react";
 import {
-	Fragment,
 	type KeyboardEvent as ReactKeyboardEvent,
 	useCallback,
 	useEffect,
 	useMemo,
-	useRef,
 	useState,
 } from "react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +20,8 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { AIProviderSelectIcon } from "@/components/ai-provider-select-icon";
+import type { AIProviderOption } from "@/components/ai-provider-constants";
 import {
 	ACTION_CATEGORY_LABELS,
 	ACTION_CATEGORY_ORDER,
@@ -33,16 +32,14 @@ import {
 	PROVIDER_DEFINITIONS,
 	CATEGORY_LABELS,
 } from "@/features/providers/registry";
-
-import { ProviderIcon } from "@/features/providers/provider-icons";
+import { setDefaultProvider } from "@/features/providers/storage";
 import {
 	getCustomPrompts,
 } from "@/features/storage/custom-prompts";
 import type {
-		AIProvider,
+	AIProvider,
 	CustomPromptDefinition,
 	ProviderCategory,
-	ProviderDefinition,
 	ToolbarActionsProps,
 	ToolbarCategory,
 	CategoryFilterBarProps,
@@ -211,136 +208,6 @@ function CustomPromptList({
 	);
 }
 
-function ProviderSelector({
-	availableProviders,
-	selectedProvider,
-	selectedProviderDefinition,
-	selectedProviderTitleModel,
-	canSwitchProviders,
-	isLoading,
-	onProviderChange,
-}: {
-	availableProviders: ProviderDefinition[];
-	selectedProvider: AIProvider;
-	selectedProviderDefinition: ProviderDefinition;
-	selectedProviderTitleModel: string;
-	canSwitchProviders: boolean;
-	isLoading: boolean;
-	onProviderChange: (provider: AIProvider) => void;
-}) {
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const menuRef = useRef<HTMLDivElement | null>(null);
-
-	useEffect(() => {
-		const handlePointerDown = (event: MouseEvent) => {
-			if (!menuRef.current?.contains(event.target as Node)) {
-				setIsMenuOpen(false);
-			}
-		};
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				setIsMenuOpen(false);
-			}
-		};
-		document.addEventListener("mousedown", handlePointerDown);
-		document.addEventListener("keydown", handleEscape);
-		return () => {
-			document.removeEventListener("mousedown", handlePointerDown);
-			document.removeEventListener("keydown", handleEscape);
-		};
-	}, []);
-
-	if (availableProviders.length === 0) return null;
-
-	return (
-		<div className="pp:relative" ref={menuRef}>
-			<Tooltip>
-				<TooltipTrigger
-					render={
-						<Button
-							type="button"
-							aria-label={`Select AI provider: ${selectedProviderDefinition.label}`}
-							aria-expanded={isMenuOpen}
-							aria-haspopup="menu"
-							disabled={isLoading}
-							variant="outline"
-							size="icon-sm"
-							title={`${selectedProviderDefinition.label} · ${selectedProviderTitleModel}`}
-							onClick={() => {
-								if (!canSwitchProviders) return;
-								setIsMenuOpen((current) => !current);
-							}}
-							className="pp:rounded-md pp:border-border/70 pp:bg-background"
-						>
-							<ProviderIcon provider={selectedProvider} className="pp:size-4" />
-						</Button>
-					}
-				/>
-				<TooltipContent side="bottom" align="center">
-					{selectedProviderDefinition.label} · {selectedProviderTitleModel}
-				</TooltipContent>
-			</Tooltip>
-
-			{isMenuOpen && canSwitchProviders && (
-				<div className="pp:absolute pp:right-0 pp:top-[calc(100%+8px)] pp:z-50 pp:min-w-56 pp:rounded-xl pp:border pp:border-border/70 pp:bg-popover pp:p-1 pp:shadow-xl">
-					{availableProviders.reduce<
-						Array<{ category: ProviderCategory; providers: typeof availableProviders }>
-					>(
-						(groups, p) => {
-							const cat = (p.category ?? "openai-compatible") as ProviderCategory
-							const existing = groups.find((g) => g.category === cat)
-							if (existing) {
-								existing.providers.push(p)
-							} else {
-								groups.push({ category: cat, providers: [p] })
-							}
-							return groups
-						},
-						[],
-					).map((group) => (
-						<Fragment key={group.category}>
-							<div className="pp:px-3 pp:py-1.5 pp:text-[11px] pp:font-semibold pp:uppercase pp:tracking-wider pp:text-muted-foreground">
-								{CATEGORY_LABELS[group.category]}
-							</div>
-							{group.providers.map((provider) => {
-								const isSelected = provider.id === selectedProvider;
-
-								return (
-									<button
-										key={provider.id}
-										type="button"
-										role="menuitemradio"
-										aria-checked={isSelected}
-										onClick={() => {
-											onProviderChange(provider.id);
-											setIsMenuOpen(false);
-										}}
-										className={[
-											"pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors",
-											isSelected
-												? "pp:bg-accent pp:text-accent-foreground"
-												: "hover:pp:bg-accent/60",
-										].join(" ")}
-									>
-										<ProviderIcon
-											provider={provider.id}
-											className="pp:size-4 pp:shrink-0"
-										/>
-										<span className="pp:flex-1">{provider.label}</span>
-										{isSelected && (
-											<ChevronDown className="pp:size-3.5 pp:rotate-180 pp:text-muted-foreground" />
-										)}
-									</button>
-								);
-							})}
-						</Fragment>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
-
 export function ToolbarActions({
 	onAction,
 	onRunCustomPrompt,
@@ -375,20 +242,21 @@ export function ToolbarActions({
 		[enabledActionIds],
 	);
 
-	const availableProviders = useMemo(
+	const providerOptions = useMemo(
 		() =>
-			PROVIDER_DEFINITIONS.filter((provider) =>
-				configuredProviders?.includes(provider.id),
-			),
+			(configuredProviders ?? []).map((id) => {
+				const def = getProviderDefinition(id);
+				return {
+					id,
+					name: def.label,
+					group:
+						CATEGORY_LABELS[
+							def.category ?? ("openai-compatible" as ProviderCategory)
+						],
+				};
+			}),
 		[configuredProviders],
 	);
-
-	const selectedProviderDefinition = getProviderDefinition(selectedProvider);
-	const selectedProviderTitleModel =
-		selectedModel ||
-		configuredProviderModels?.[selectedProvider] ||
-		selectedProviderDefinition.defaultModel;
-	const canSwitchProviders = availableProviders.length > 1;
 
 	useEffect(() => {
 		let mounted = true;
@@ -485,14 +353,15 @@ export function ToolbarActions({
 					</div>
 
 					<div className="pp:ml-auto pp:flex pp:items-center pp:gap-2">
-						<ProviderSelector
-							availableProviders={availableProviders}
-							selectedProvider={selectedProvider}
-							selectedProviderDefinition={selectedProviderDefinition}
-							selectedProviderTitleModel={selectedProviderTitleModel}
-							canSwitchProviders={canSwitchProviders}
-							isLoading={isLoading}
-							onProviderChange={onProviderChange}
+						<AIProviderSelectIcon
+							value={selectedProvider}
+							providers={providerOptions}
+							onValueChange={(provider) => {
+								if (!provider) return;
+								setDefaultProvider(provider as AIProvider);
+								onProviderChange(provider as AIProvider);
+							}}
+							disabled={isLoading}
 						/>
 
 						<Button
