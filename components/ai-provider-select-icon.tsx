@@ -1,7 +1,7 @@
 import * as React from "react"
+import { Select as SelectPrimitive } from "@base-ui/react/select"
 import {
   Select,
-  SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select"
 import { ProviderIcon } from "@/features/providers/provider-icons"
 import { cn } from "@/lib/utils"
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import type { AIProviderOption } from "@/components/ai-provider-constants"
 import type { AIProvider } from "@/types"
 
@@ -33,6 +34,43 @@ function groupProviders(providers: AIProviderOption[]) {
     }
   }
   return Array.from(map.entries())
+}
+
+function ShadowSelectContent({
+  children,
+  container,
+  className,
+}: {
+  children: React.ReactNode
+  container: HTMLElement | ShadowRoot | null
+  className?: string
+}) {
+  return (
+    <SelectPrimitive.Portal container={container}>
+      <SelectPrimitive.Positioner
+        side="bottom"
+        sideOffset={4}
+        alignItemWithTrigger
+        className="pp:z-[2147483647]"
+      >
+        <SelectPrimitive.Popup
+          data-slot="select-content"
+          className={cn(
+            "pp:z-[2147483647] pp:max-h-(--available-height) pp:w-(--anchor-width) pp:min-w-36 pp:overflow-x-hidden pp:overflow-y-auto pp:rounded-lg pp:bg-popover pp:text-popover-foreground pp:shadow-md pp:ring-1 pp:ring-foreground/10 pp:data-open:animate-in pp:data-open:fade-in-0 pp:data-open:zoom-in-95 pp:data-closed:animate-out pp:data-closed:fade-out-0 pp:data-closed:zoom-out-95",
+            className,
+          )}
+        >
+          <SelectPrimitive.ScrollUpArrow className="pp:flex pp:w-full pp:items-center pp:justify-center pp:bg-popover pp:py-1">
+            <ChevronUpIcon className="pp:size-4" />
+          </SelectPrimitive.ScrollUpArrow>
+          <SelectPrimitive.List>{children}</SelectPrimitive.List>
+          <SelectPrimitive.ScrollDownArrow className="pp:flex pp:w-full pp:items-center pp:justify-center pp:bg-popover pp:py-1">
+            <ChevronDownIcon className="pp:size-4" />
+          </SelectPrimitive.ScrollDownArrow>
+        </SelectPrimitive.Popup>
+      </SelectPrimitive.Positioner>
+    </SelectPrimitive.Portal>
+  )
 }
 
 export const AIProviderSelectIcon = React.forwardRef<
@@ -62,9 +100,8 @@ export const AIProviderSelectIcon = React.forwardRef<
     React.useEffect(() => {
       const rootNode = wrapperRef.current?.getRootNode()
       if (rootNode instanceof ShadowRoot) {
-        setPortalContainer(
-          rootNode.getElementById("pp:root") ?? rootNode,
-        )
+        const body = rootNode.querySelector("body")
+        setPortalContainer(body ?? rootNode)
       }
     }, [])
 
@@ -75,7 +112,7 @@ export const AIProviderSelectIcon = React.forwardRef<
             ref={ref}
             size={size}
             title={value ? selectedName : undefined}
-            className={cn("pp:rounded-md pp:bg-red-500 pp:border-border/70", className)}
+            className={cn("pp:rounded-md pp:border-border/70", className)}
             aria-label={`Select AI Provider${value ? `: ${selectedName}` : ""}`}
           >
             <div className="pp:flex pp:items-center pp:gap-2">
@@ -84,17 +121,13 @@ export const AIProviderSelectIcon = React.forwardRef<
                   provider={value as AIProvider}
                   className="pp:size-4"
                 />
-              ) : (
-                <div className="pp:flex pp:items-center pp:gap-2">
-                  <span className="pp:text-sm pp:py-1 pp:px-2 pp:capitalize">{selectedName}</span>
-                </div>
-              )}
+              ) : null}
             </div>
           </SelectTrigger>
 
-          <SelectContent
-            portalContainer={portalContainer}
-            className={cn("pp:max-h-80 pp:bg-red-900", contentClassName)}
+          <ShadowSelectContent
+            container={portalContainer}
+            className={cn("pp:max-h-80", contentClassName)}
           >
             {groups.length === 0 ? (
               <div className="pp:p-3 pp:text-sm pp:text-muted-foreground">
@@ -120,7 +153,7 @@ export const AIProviderSelectIcon = React.forwardRef<
                 </SelectGroup>
               ))
             )}
-          </SelectContent>
+          </ShadowSelectContent>
         </Select>
       </div>
     )
