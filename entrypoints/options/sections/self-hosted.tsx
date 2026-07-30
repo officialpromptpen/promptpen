@@ -13,11 +13,11 @@ import {
   getTransformersModels,
   addTransformersModel,
   removeTransformersModel,
-  setTransformersModels,
   updateTransformersModelStatus,
   checkSystemRequirements,
 } from "@/features/storage/self-hosted"
 import type { StoredTransformersModel, SystemRequirements } from "@/features/storage/self-hosted"
+import { RECOMMENDED_MODELS } from "@/features/providers/transformers/index"
 
 type OllamaStatus = "idle" | "testing" | "success" | "error"
 interface ModelDownloadState {
@@ -394,6 +394,39 @@ export function SelfHostedSection() {
             </div>
           </div>
         )}
+
+        <div className="pp:mb-4 pp:rounded-lg pp:border pp:bg-muted/50 pp:p-4">
+          <p className="pp:mb-2 pp:text-sm pp:font-medium">Recommended models</p>
+          <p className="pp:mb-3 pp:text-xs pp:text-muted-foreground">
+            Browse <a href="https://huggingface.co/onnx-community" target="_blank" rel="noopener" className="pp:underline">onnx-community</a> on Hugging Face for all pre-converted models.
+            Stick to models under 3B parameters for good in-browser performance.
+          </p>
+          {RECOMMENDED_MODELS.filter((m) => {
+            const dl = downloadStates[m.modelId]
+            return dl?.status !== "ready"
+          }).length === 0 ? (
+            <p className="pp:text-xs pp:text-muted-foreground">All recommended models are already installed.</p>
+          ) : (
+            <div className="pp:grid pp:gap-2 sm:pp:grid-cols-2">
+              {RECOMMENDED_MODELS.filter((m) => {
+                const dl = downloadStates[m.modelId]
+                return dl?.status !== "ready"
+              }).map((model) => (
+                <button
+                  key={model.modelId}
+                  type="button"
+                  onClick={() => {
+                    setNewModelId(model.modelId)
+                  }}
+                  className="pp:flex pp:flex-col pp:items-start pp:gap-0.5 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors hover:pp:bg-accent"
+                >
+                  <span className="pp:font-medium">{model.label}</span>
+                  <span className="pp:text-xs pp:text-muted-foreground">{model.description}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="pp:mb-4 pp:flex pp:items-center pp:gap-2">
           <input
