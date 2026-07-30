@@ -15,9 +15,12 @@ import { createPortal } from "react-dom";
 import { getActionById } from "@/constants/actions";
 import { getProviderDefinition } from "@/features/providers/registry";
 import { createProviderAdapter } from "@/features/providers/sdk";
+import { storage } from "@wxt-dev/storage";
 import {
   getConfiguredProviderDetails,
   getProviderSummary,
+  STORAGE_KEY,
+  setDefaultProvider,
 } from "@/features/providers/storage";
 import { ToolbarActions } from "@/features/toolbar/toolbar-actions";
 import type {
@@ -418,61 +421,74 @@ function useProviderState() {
 		Partial<Record<AIProvider, string>>
 	>({});
 
+	const hydrateProviderChoice = useCallback(async () => {
+		try {
+			const [summary, configuredDetails] = await Promise.all([
+				getProviderSummary(),
+				getConfiguredProviderDetails(),
+			]);
+
+			const availableProviders = configuredDetails.map(
+				(detail) => detail.provider,
+			);
+			const availableProviderModels = configuredDetails.reduce<
+				Partial<Record<AIProvider, string>>
+			>((accumulator, detail) => {
+				accumulator[detail.provider] = detail.model;
+				return accumulator;
+			}, {});
+
+			setConfiguredProviders(availableProviders);
+			setConfiguredProviderModels(availableProviderModels);
+
+			if (availableProviders.length === 0) {
+				setSelectedProvider(summary.defaultProvider);
+				setSelectedModel(
+					summary.defaultModel ||
+						getProviderDefinition(summary.defaultProvider).defaultModel,
+				);
+				return;
+			}
+
+			const resolvedProvider =
+				availableProviders.length === 1
+					? availableProviders[0]
+					: availableProviders.includes(summary.defaultProvider)
+						? summary.defaultProvider
+						: availableProviders[0];
+			const resolvedModel =
+				availableProviderModels[resolvedProvider] ||
+				getProviderDefinition(resolvedProvider).defaultModel;
+
+			setSelectedProvider(resolvedProvider);
+			setSelectedModel(resolvedModel);
+		} catch {
+			// Use defaults if provider summary is not available.
+		}
+	}, []);
+
 	useEffect(() => {
 		let mounted = true;
 
-		async function hydrateProviderChoice() {
-			try {
-				const [summary, configuredDetails] = await Promise.all([
-					getProviderSummary(),
-					getConfiguredProviderDetails(),
-				]);
-				if (!mounted) return;
-
-				const availableProviders = configuredDetails.map(
-					(detail) => detail.provider,
-				);
-				const availableProviderModels = configuredDetails.reduce<
-					Partial<Record<AIProvider, string>>
-				>((accumulator, detail) => {
-					accumulator[detail.provider] = detail.model;
-					return accumulator;
-				}, {});
-
-				setConfiguredProviders(availableProviders);
-				setConfiguredProviderModels(availableProviderModels);
-
-				if (availableProviders.length === 0) {
-					setSelectedProvider(summary.defaultProvider);
-					setSelectedModel(
-						summary.defaultModel ||
-							getProviderDefinition(summary.defaultProvider).defaultModel,
-					);
-					return;
-				}
-
-				const resolvedProvider =
-					availableProviders.length === 1
-						? availableProviders[0]
-						: availableProviders.includes(summary.defaultProvider)
-							? summary.defaultProvider
-							: availableProviders[0];
-				const resolvedModel =
-					availableProviderModels[resolvedProvider] ||
-					getProviderDefinition(resolvedProvider).defaultModel;
-
-				setSelectedProvider(resolvedProvider);
-				setSelectedModel(resolvedModel);
-			} catch {
-				// Use defaults if provider summary is not available.
-			}
+		async function hydrate() {
+			if (!mounted) return;
+			await hydrateProviderChoice();
 		}
 
-		void hydrateProviderChoice();
+		void hydrate();
 		return () => {
 			mounted = false;
 		};
-	}, []);
+	}, [hydrateProviderChoice]);
+
+	useEffect(() => {
+		const unwatch = storage.watch(`local:${STORAGE_KEY}`, async () => {
+			await hydrateProviderChoice();
+		});
+		return () => {
+			unwatch();
+		};
+	}, [hydrateProviderChoice]);
 
 	return {
 		selectedProvider,
@@ -751,6 +767,7 @@ function ContextualToolbarContent() {
 							configuredProviderModels[provider] ||
 								getProviderDefinition(provider).defaultModel,
 						);
+						setDefaultProvider(provider);
 					}}
 					onModelChange={(model) => {
 						setSelectedModel(model);
