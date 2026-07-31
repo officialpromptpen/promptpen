@@ -1,0 +1,148 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Validate store credentials without submitting"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  Version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      version_changed: ${{ steps.check_version.outputs.version_changed }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check for version change
+        id: check_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION_CHANGED=1
+          elif git diff --name-only HEAD~1..HEAD | grep -q '^package\.json$'; then
+            PREV_VERSION=$(git show HEAD~1:package.json | jq -r .version)
+            CURR_VERSION=$(jq -r .version package.json)
+            if [ "$PREV_VERSION" != "$CURR_VERSION" ]; then
+              VERSION_CHANGED=1
+            else
+              VERSION_CHANGED=0
+            fi
+          else
+            VERSION_CHANGED=0
+          fi
+          echo "version_changed=$VERSION_CHANGED" >> "$GITHUB_OUTPUT"
+      - name: Get version
+        if: ${{ steps.check_version.outputs.version_changed == '1' }}
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  Submit:
+    needs: Version
+    if: ${{ needs.Version.outputs.version_changed == '1' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Zip extensions
+        run: |
+          pnpm zip
+          pnpm zip:firefox
+
+      - name: Validate store credentials (dry-run)
+        run: |
+          pnpm wxt submit --dry-run \
+            --chrome-zip .output/*-chrome.zip \
+            --firefox-zip .output/*-firefox.zip \
+            --firefox-sources-zip .output/*-sources.zip
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+
+      - name: Submit to Chrome Web Store
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry-run == true) }}
+        continue-on-error: true
+        id: chrome_submit
+        run: |
+          pnpm wxt submit \
+            --chrome-zip .output/*-chrome.zip
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+      - name: Submit to Firefox Addon Store
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry-run == true) }}
+        continue-on-error: true
+        id: firefox_submit
+        run: |
+          pnpm wxt submit \
+            --firefox-zip .output/*-firefox.zip \
+            --firefox-sources-zip .output/*-sources.zip
+        env:
+          FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+
+      - name: Check submission results
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry-run == true) }}
+        run: |
+          echo "Chrome submission: ${{ steps.chrome_submit.outcome }}"
+          echo "Firefox submission: ${{ steps.firefox_submit.outcome }}"
+          if [ "${{ steps.chrome_submit.outcome }}" == "failure" ] && [ "${{ steps.firefox_submit.outcome }}" == "failure" ]; then
+            echo "::error::Both store submissions failed"
+            exit 1
+          elif [ "${{ steps.chrome_submit.outcome }}" == "failure" ]; then
+            echo "::warning::Chrome submission failed, but Firefox succeeded"
+          elif [ "${{ steps.firefox_submit.outcome }}" == "failure" ]; then
+            echo "::warning::Firefox submission failed, but Chrome succeeded"
+          else
+            echo "::notice::Both submissions succeeded"
+          fi
+
+      - name: Create Release
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry-run == true) && (steps.chrome_submit.outcome == 'success' || steps.firefox_submit.outcome == 'success') }}
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "v${{ needs.Version.outputs.version }}"
+          name: "v${{ needs.Version.outputs.version }}"
+          draft: false
+          prerelease: true
+          files: |
+            .output/*-chrome.zip
+            .output/*-firefox.zip
+            .output/*-sources.zip
