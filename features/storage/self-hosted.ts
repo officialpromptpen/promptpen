@@ -86,12 +86,6 @@ export async function updateTransformersModelStatus(
   }
 }
 
-export async function setTransformersModels(
-  models: StoredTransformersModel[],
-): Promise<void> {
-  await writeState({ transformersModels: models })
-}
-
 export interface SystemRequirements {
   meetsMinimum: boolean
   wasm: boolean

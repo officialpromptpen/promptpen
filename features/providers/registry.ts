@@ -74,16 +74,3 @@ export function getProviderModule(provider: AIProvider): ProviderModule {
 
   throw new Error("Provider registry must define at least one provider.")
 }
-
-export function getProvidersByCategory(): Map<string, ProviderModule[]> {
-  const grouped = new Map<string, ProviderModule[]>()
-  for (const mod of PROVIDER_MODULES) {
-    const existing = grouped.get(mod.category)
-    if (existing) {
-      existing.push(mod)
-    } else {
-      grouped.set(mod.category, [mod])
-    }
-  }
-  return grouped
-}
