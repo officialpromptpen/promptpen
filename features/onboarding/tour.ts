@@ -17,6 +17,8 @@ export async function setTourStep(step: TourStep): Promise<void> {
 }
 
 export async function startPopupTour() {
+  if (import.meta.env.DEV) return
+
   const step = await getTourStep()
   if (step !== "popup") return
 
@@ -75,6 +77,8 @@ export async function startPopupTour() {
 }
 
 export function startDashboardTour(onNavigate: (sectionId: SectionId) => void) {
+  if (import.meta.env.DEV) return
+
   const driverObj = driver({
     showProgress: true,
     animate: true,
