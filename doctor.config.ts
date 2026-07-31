@@ -2,7 +2,8 @@ export default {
   ignore: {
     files: [
       ".output/**",
-      ".wxt/**"
+      ".wxt/**",
+      "public/onnx/**"
     ],
     rules: [
       "react-doctor/require-pnpm-hardening",
