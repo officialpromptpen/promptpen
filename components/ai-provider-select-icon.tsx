@@ -10,6 +10,7 @@ import {
 import { ProviderIcon } from "@/features/providers/provider-icons"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { setDefaultProvider } from "@/features/providers/storage"
 import type { AIProviderOption } from "@/components/ai-provider-constants"
 import type { AIProvider } from "@/types"
 
@@ -107,7 +108,16 @@ export const AIProviderSelectIcon = React.forwardRef<
 
     return (
       <div ref={wrapperRef} className="pp:contents">
-        <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+        <Select
+          value={value}
+          onValueChange={(newValue) => {
+            if (newValue) {
+              setDefaultProvider(newValue as AIProvider)
+            }
+            onValueChange?.(newValue)
+          }}
+          disabled={disabled}
+        >
           <SelectTrigger
             ref={ref}
             size={size}

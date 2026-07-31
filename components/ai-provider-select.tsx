@@ -9,6 +9,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select"
 import { ProviderIcon } from "@/features/providers/provider-icons"
+import { setDefaultProvider } from "@/features/providers/storage"
 import type { AIProviderOption } from "@/components/ai-provider-constants"
 import type { AIProvider } from "@/types"
 
@@ -55,7 +56,16 @@ export const AIProviderSelectDefault = React.forwardRef<
 		const groups = React.useMemo(() => groupProviders(providers), [providers])
 
 		return (
-			<Select value={value} onValueChange={onValueChange} disabled={disabled}>
+			<Select
+				value={value}
+				onValueChange={(newValue) => {
+					if (newValue) {
+						setDefaultProvider(newValue as AIProvider)
+					}
+					onValueChange?.(newValue)
+				}}
+				disabled={disabled}
+			>
 				<SelectTrigger
 					ref={ref}
 					size={size}
