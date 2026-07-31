@@ -380,10 +380,11 @@ export function ToolbarActions({
 						<div className="pp:relative">
 							<Search className="pp:pointer-events-none pp:absolute pp:left-3 pp:top-1/2 pp:size-3.5 pp:-translate-y-1/2 pp:text-muted-foreground" />
 							<input
-								type="text"
+								type="search"
 								value={searchValue}
 								onChange={(event) => setSearchValue(event.target.value)}
 								placeholder="Search actions"
+								aria-label="Search actions"
 								className="pp:w-full pp:rounded-md pp:border pp:border-input pp:bg-background pp:py-2 pp:pr-3 pp:pl-8 pp:text-sm pp:outline-none pp:focus-visible:border-ring pp:focus-visible:ring-2 pp:focus-visible:ring-ring/40"
 							/>
 						</div>
