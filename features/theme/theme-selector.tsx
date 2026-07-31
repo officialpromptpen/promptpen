@@ -24,7 +24,7 @@ export function ThemeSelector() {
             key={option.id}
             variant={selected ? "default" : "outline"}
             className={cn(
-              "pp:h-12 pp:w-full pp:justify-start pp:gap-3 pp:px-4 pp:transition-all pp:duration-200",
+              "pp:h-12 pp:w-full pp:justify-start pp:gap-3 pp:px-4 pp:transition-colors pp:duration-200",
               selected
                 ? "pp:bg-primary pp:text-primary-foreground pp:shadow-sm hover:pp:bg-primary/90"
                 : "pp:bg-background pp:text-muted-foreground hover:pp:bg-accent hover:pp:text-accent-foreground",
@@ -34,7 +34,7 @@ export function ThemeSelector() {
             <Icon className="pp:h-5 pp:w-5 pp:shrink-0" />
             <span className="pp:flex-1 pp:text-left pp:text-sm pp:font-medium">{option.label}</span>
             {selected && (
-              <Check className="pp:h-4 pp:w-4 pp:animate-in pp:fade-in pp:zoom-in-95 pp:duration-100" />
+              <Check className="pp:h-4 pp:w-4 pp:animate-in pp:fade-in pp:zoom-in-95 pp:duration-100 pp:transition-opacity" />
             )}
           </Button>
         )
