@@ -17,7 +17,7 @@ import {
   checkSystemRequirements,
 } from "@/features/storage/self-hosted"
 import type { StoredTransformersModel, SystemRequirements } from "@/features/storage/self-hosted"
-import { RECOMMENDED_MODELS } from "@/features/providers/transformers/index"
+import { RECOMMENDED_MODELS } from "@/features/providers/transformers/recommended-models"
 
 type OllamaStatus = "idle" | "testing" | "success" | "error"
 interface ModelDownloadState {
@@ -27,26 +27,45 @@ interface ModelDownloadState {
 }
 type DownloadState = Record<string, ModelDownloadState>
 
+const STATUS_BADGE_STYLES: Record<string, string> = {
+  idle: "pp:bg-muted pp:text-muted-foreground",
+  validating: "pp:bg-amber-500/10 pp:text-amber-600 pp:border-amber-500/30",
+  downloading: "pp:bg-blue-500/10 pp:text-blue-600 pp:border-blue-500/30",
+  ready: "pp:bg-green-500/10 pp:text-green-600 pp:border-green-500/30",
+  error: "pp:bg-destructive/10 pp:text-destructive pp:border-destructive/40",
+}
+
+const STATUS_BADGE_LABELS: Record<string, string> = {
+  idle: "Not downloaded",
+  validating: "Validating",
+  downloading: "Downloading",
+  ready: "Ready",
+  error: "Error",
+}
+
 export function SelfHostedSection() {
-  // ── Ollama state ──
+  return (
+    <div className="pp:mx-auto pp:max-w-4xl pp:space-y-8 pp:px-8 pp:py-8">
+      <div>
+        <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">Self-Hosted</h1>
+        <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
+          Manage local and in-browser AI models.
+        </p>
+      </div>
+
+      <OllamaCard />
+      <TransformersCard />
+    </div>
+  )
+}
+
+function OllamaCard() {
   const [ollamaBaseUrl, setOllamaBaseUrl] = useState("http://localhost:11434/v1")
   const [ollamaModel, setOllamaModel] = useState("llama3.1")
   const [ollamaApiKey, setOllamaApiKey] = useState("")
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>("idle")
   const [ollamaMessage, setOllamaMessage] = useState("")
   const [ollamaConfigured, setOllamaConfigured] = useState(false)
-
-  // ── Transformers state ──
-  const [transformersModels, setTransformersModelsState] = useState<StoredTransformersModel[]>([])
-  const [newModelId, setNewModelId] = useState("")
-  const [downloadStates, setDownloadStates] = useState<DownloadState>({})
-  const [hfToken, setHfToken] = useState("")
-  const [hfTokenSaved, setHfTokenSaved] = useState(false)
-  const [systemReqs, setSystemReqs] = useState<SystemRequirements | null>(null)
-
-  useEffect(() => {
-    setSystemReqs(checkSystemRequirements())
-  }, [])
 
   useEffect(() => {
     async function init() {
@@ -58,24 +77,6 @@ export function SelfHostedSection() {
       if (storedKey) {
         setOllamaApiKey(storedKey)
       }
-
-      const storedToken = await getDecryptedAccessToken("transformers")
-      if (storedToken) {
-        setHfToken(storedToken)
-        setHfTokenSaved(true)
-      }
-
-      const models = await getTransformersModels()
-      setTransformersModelsState(models)
-
-      const initialDownloadStates: DownloadState = {}
-      for (const model of models) {
-        initialDownloadStates[model.modelId] = {
-          status: model.status === "ready" ? "ready" : "idle",
-          progress: model.downloadProgress,
-        }
-      }
-      setDownloadStates(initialDownloadStates)
     }
     void init()
   }, [])
@@ -124,6 +125,119 @@ export function SelfHostedSection() {
     setOllamaStatus("idle")
     setOllamaMessage("")
   }
+
+  return (
+    <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
+      <div className="pp:mb-4 pp:flex pp:items-center pp:gap-3">
+        <Server className="pp:size-5 pp:text-muted-foreground" />
+        <div>
+          <h2 className="pp:text-lg pp:font-semibold">Ollama</h2>
+          <p className="pp:text-sm pp:text-muted-foreground">
+            Run models locally via Ollama.
+          </p>
+        </div>
+      </div>
+
+      <div className="pp:grid pp:gap-4 sm:pp:grid-cols-2">
+        <label className="pp:space-y-1.5">
+          <span className="pp:text-sm pp:font-medium">Base URL</span>
+          <input
+            value={ollamaBaseUrl}
+            onChange={(e) => setOllamaBaseUrl(e.target.value)}
+            className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
+            placeholder="http://localhost:11434/v1"
+          />
+        </label>
+        <label className="pp:space-y-1.5">
+          <span className="pp:text-sm pp:font-medium">Model</span>
+          <input
+            value={ollamaModel}
+            onChange={(e) => setOllamaModel(e.target.value)}
+            className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
+            placeholder="llama3.1"
+          />
+        </label>
+      </div>
+
+      <label className="pp:mt-4 pp:block pp:space-y-1.5">
+        <span className="pp:text-sm pp:font-medium">
+          API Key <span className="pp:text-muted-foreground">(optional for Ollama)</span>
+        </span>
+        <input
+          type="password"
+          value={ollamaApiKey}
+          onChange={(e) => setOllamaApiKey(e.target.value)}
+          className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
+          placeholder={ollamaConfigured ? "Leave empty to keep existing key" : "Paste your API key"}
+        />
+      </label>
+
+      <div className="pp:mt-4 pp:flex pp:flex-wrap pp:items-center pp:gap-3">
+        <Button onClick={handleOllamaTest} disabled={ollamaStatus === "testing"} variant="outline" className="pp:gap-2">
+          {ollamaStatus === "testing" && <Loader2 className="pp:size-4 pp:animate-spin" />}
+          Test connection
+        </Button>
+        <Button onClick={handleOllamaSave} className="pp:gap-2">
+          Save
+        </Button>
+        {ollamaConfigured && (
+          <Button onClick={handleOllamaDelete} variant="destructive" className="pp:gap-2">
+            <Trash2 className="pp:size-4" />
+            Delete
+          </Button>
+        )}
+      </div>
+
+      {ollamaStatus !== "idle" && ollamaMessage && (
+        <div
+          className={`pp:mt-4 pp:flex pp:items-center pp:gap-2 pp:rounded-md pp:border pp:px-3 pp:py-2 pp:text-sm ${
+            ollamaStatus === "success"
+              ? "pp:border-green-500/30 pp:bg-green-500/10 pp:text-green-700"
+              : "pp:border-destructive/40 pp:bg-destructive/10 pp:text-destructive"
+          }`}
+        >
+          {ollamaStatus === "success" ? (
+            <CheckCircle2 className="pp:size-4 pp:shrink-0" />
+          ) : (
+            <TriangleAlert className="pp:size-4 pp:shrink-0" />
+          )}
+          <span>{ollamaMessage}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TransformersCard() {
+  const [transformersModels, setTransformersModelsState] = useState<StoredTransformersModel[]>([])
+  const [newModelId, setNewModelId] = useState("")
+  const [downloadStates, setDownloadStates] = useState<DownloadState>({})
+  const [hfToken, setHfToken] = useState("")
+  const [hfTokenSaved, setHfTokenSaved] = useState(false)
+  const [systemReqs] = useState<SystemRequirements | null>(() => checkSystemRequirements())
+
+  useEffect(() => {
+    async function init() {
+      const storedToken = await getDecryptedAccessToken("transformers")
+      if (storedToken) {
+        setHfToken(storedToken)
+        setHfTokenSaved(true)
+      }
+
+      const models = await getTransformersModels()
+      setTransformersModelsState(models)
+
+      const initialDownloadStates: DownloadState = {}
+      for (const model of models) {
+        initialDownloadStates[model.modelId] = {
+          status: model.status === "ready" ? "ready" : "idle",
+          progress: model.downloadProgress,
+        }
+      }
+      setDownloadStates(initialDownloadStates)
+    }
+    void init()
+  }, [])
 
   async function handleAddTransformersModel() {
     const trimmed = newModelId.trim()
@@ -266,170 +380,28 @@ export function SelfHostedSection() {
   }
 
   return (
-    <div className="pp:mx-auto pp:max-w-4xl pp:space-y-8 pp:px-8 pp:py-8">
-      <div>
-        <h1 className="pp:text-2xl pp:font-semibold pp:tracking-tight">Self-Hosted</h1>
-        <p className="pp:mt-1 pp:text-sm pp:text-muted-foreground">
-          Manage local and in-browser AI models.
-        </p>
-      </div>
-
-      {/* ── Ollama ── */}
-      <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
-        <div className="pp:mb-4 pp:flex pp:items-center pp:gap-3">
-          <Server className="pp:size-5 pp:text-muted-foreground" />
-          <div>
-            <h2 className="pp:text-lg pp:font-semibold">Ollama</h2>
-            <p className="pp:text-sm pp:text-muted-foreground">
-              Run models locally via Ollama.
-            </p>
-          </div>
-        </div>
-
-        <div className="pp:grid pp:gap-4 sm:pp:grid-cols-2">
-          <label className="pp:space-y-1.5">
-            <span className="pp:text-sm pp:font-medium">Base URL</span>
-            <input
-              value={ollamaBaseUrl}
-              onChange={(e) => setOllamaBaseUrl(e.target.value)}
-              className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
-              placeholder="http://localhost:11434/v1"
-            />
-          </label>
-          <label className="pp:space-y-1.5">
-            <span className="pp:text-sm pp:font-medium">Model</span>
-            <input
-              value={ollamaModel}
-              onChange={(e) => setOllamaModel(e.target.value)}
-              className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
-              placeholder="llama3.1"
-            />
-          </label>
-        </div>
-
-        <label className="pp:mt-4 pp:block pp:space-y-1.5">
-          <span className="pp:text-sm pp:font-medium">
-            API Key <span className="pp:text-muted-foreground">(optional for Ollama)</span>
-          </span>
-          <input
-            type="password"
-            value={ollamaApiKey}
-            onChange={(e) => setOllamaApiKey(e.target.value)}
-            className="pp:h-9 pp:w-full pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
-            placeholder={ollamaConfigured ? "Leave empty to keep existing key" : "Paste your API key"}
-          />
-        </label>
-
-        <div className="pp:mt-4 pp:flex pp:flex-wrap pp:items-center pp:gap-3">
-          <Button onClick={handleOllamaTest} disabled={ollamaStatus === "testing"} variant="outline" className="pp:gap-2">
-            {ollamaStatus === "testing" && <Loader2 className="pp:size-4 pp:animate-spin" />}
-            Test connection
-          </Button>
-          <Button onClick={handleOllamaSave} className="pp:gap-2">
-            Save
-          </Button>
-          {ollamaConfigured && (
-            <Button onClick={handleOllamaDelete} variant="destructive" className="pp:gap-2">
-              <Trash2 className="pp:size-4" />
-              Delete
-            </Button>
-          )}
-        </div>
-
-        {ollamaStatus !== "idle" && ollamaMessage && (
-          <div
-            className={`pp:mt-4 pp:flex pp:items-center pp:gap-2 pp:rounded-md pp:border pp:px-3 pp:py-2 pp:text-sm ${
-              ollamaStatus === "success"
-                ? "pp:border-green-500/30 pp:bg-green-500/10 pp:text-green-700"
-                : "pp:border-destructive/40 pp:bg-destructive/10 pp:text-destructive"
-            }`}
-          >
-            {ollamaStatus === "success" ? (
-              <CheckCircle2 className="pp:size-4 pp:shrink-0" />
-            ) : (
-              <TriangleAlert className="pp:size-4 pp:shrink-0" />
-            )}
-            <span>{ollamaMessage}</span>
-          </div>
-        )}
-      </div>
-
-      {/* ── Transformers.js ── */}
-      <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
-        <div className="pp:mb-4 pp:flex pp:items-center pp:gap-3">
-          <Cpu className="pp:size-5 pp:text-muted-foreground" />
-          <div>
-            <h2 className="pp:text-lg pp:font-semibold">Transformers.js</h2>
-            <p className="pp:text-sm pp:text-muted-foreground">
-              In-browser AI models powered by Transformers.js and ONNX Runtime.
-            </p>
-          </div>
-        </div>
-
-        {systemReqs && !systemReqs.meetsMinimum && (
-          <div className="pp:mb-4 pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-amber-500/30 pp:bg-amber-500/10 pp:px-3 pp:py-2 pp:text-sm">
-            <TriangleAlert className="pp:mt-0.5 pp:size-4 pp:shrink-0 pp:text-amber-600" />
-            <div className="pp:text-amber-800">
-              <span className="pp:font-medium">System requirements not fully met:</span>
-              <ul className="pp:mt-1 pp:list-inside pp:list-disc pp:space-y-0.5">
-                {systemReqs.issues.map((issue, i) => (
-                  <li key={i}>{issue}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {systemReqs && systemReqs.meetsMinimum && (
-          <div className="pp:mb-4 pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-green-500/30 pp:bg-green-500/10 pp:px-3 pp:py-2 pp:text-sm">
-            <CheckCircle2 className="pp:mt-0.5 pp:size-4 pp:shrink-0 pp:text-green-600" />
-            <div className="pp:text-green-700">
-              <span className="pp:font-medium">System ready for local AI.</span>
-              <div className="pp:mt-0.5 pp:text-xs">
-                {systemReqs.cpuCores} core{systemReqs.cpuCores !== 1 ? "s" : ""}
-                {systemReqs.deviceMemory !== null && ` · ${systemReqs.deviceMemory}GB RAM`}
-                {systemReqs.wasmSimd ? " · WASM SIMD" : ""}
-                {systemReqs.webgpu ? " · WebGPU" : ""}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="pp:mb-4 pp:rounded-lg pp:border pp:bg-muted/50 pp:p-4">
-          <p className="pp:mb-2 pp:text-sm pp:font-medium">Recommended models</p>
-          <p className="pp:mb-3 pp:text-xs pp:text-muted-foreground">
-            Browse <a href="https://huggingface.co/onnx-community" target="_blank" rel="noopener" className="pp:underline">onnx-community</a> on Hugging Face for all pre-converted models.
-            Stick to models under 3B parameters for good in-browser performance.
+    <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
+      <div className="pp:mb-4 pp:flex pp:items-center pp:gap-3">
+        <Cpu className="pp:size-5 pp:text-muted-foreground" />
+        <div>
+          <h2 className="pp:text-lg pp:font-semibold">Transformers.js</h2>
+          <p className="pp:text-sm pp:text-muted-foreground">
+            In-browser AI models powered by Transformers.js and ONNX Runtime.
           </p>
-          {RECOMMENDED_MODELS.filter((m) => {
-            const dl = downloadStates[m.modelId]
-            return dl?.status !== "ready"
-          }).length === 0 ? (
-            <p className="pp:text-xs pp:text-muted-foreground">All recommended models are already installed.</p>
-          ) : (
-            <div className="pp:grid pp:gap-2 sm:pp:grid-cols-2">
-              {RECOMMENDED_MODELS.filter((m) => {
-                const dl = downloadStates[m.modelId]
-                return dl?.status !== "ready"
-              }).map((model) => (
-                <button
-                  key={model.modelId}
-                  type="button"
-                  onClick={() => {
-                    setNewModelId(model.modelId)
-                  }}
-                  className="pp:flex pp:flex-col pp:items-start pp:gap-0.5 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors hover:pp:bg-accent"
-                >
-                  <span className="pp:font-medium">{model.label}</span>
-                  <span className="pp:text-xs pp:text-muted-foreground">{model.description}</span>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
+      </div>
 
-        <div className="pp:mb-4 pp:flex pp:items-center pp:gap-2">
+      <SystemRequirementsBanner systemReqs={systemReqs} />
+
+      <RecommendedModels downloadStates={downloadStates} onSelectModel={setNewModelId} />
+
+      <div className="pp:mb-4 pp:space-y-1.5">
+        <label className="pp:text-sm pp:font-medium" htmlFor="transformers-model-id">
+          Model ID
+        </label>
+        <div className="pp:flex pp:items-center pp:gap-2">
           <input
+            id="transformers-model-id"
             value={newModelId}
             onChange={(e) => setNewModelId(e.target.value)}
             className="pp:h-9 pp:flex-1 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
@@ -443,16 +415,22 @@ export function SelfHostedSection() {
             Add
           </Button>
         </div>
+      </div>
 
-        <div className="pp:mb-4 pp:flex pp:items-center pp:gap-2">
+      <div className="pp:mb-4 pp:space-y-1.5">
+        <label className="pp:text-sm pp:font-medium" htmlFor="transformers-hf-token">
+          Hugging Face access token
+        </label>
+        <div className="pp:flex pp:items-center pp:gap-2">
           <input
+            id="transformers-hf-token"
             value={hfToken}
             onChange={(e) => {
               setHfToken(e.target.value)
               setHfTokenSaved(false)
             }}
             className="pp:h-9 pp:flex-1 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
-            placeholder="Hugging Face access token (required for gated models)"
+            placeholder="Required for gated models"
             type="password"
           />
           <Button onClick={handleSaveHfToken} className="pp:shrink-0" variant="outline">
@@ -464,133 +442,217 @@ export function SelfHostedSection() {
             </Button>
           )}
         </div>
+      </div>
 
-        {transformersModels.length === 0 ? (
-          <p className="pp:py-8 pp:text-center pp:text-sm pp:text-muted-foreground">
-            No models added yet. Add a Hugging Face model ID above to get started.
-          </p>
-        ) : (
-          <div className="pp:space-y-2">
-            {transformersModels.map((model) => {
-              const dl = downloadStates[model.modelId] ?? { status: "idle", progress: 0 }
+      {transformersModels.length === 0 ? (
+        <p className="pp:py-8 pp:text-center pp:text-sm pp:text-muted-foreground">
+          No models added yet. Add a Hugging Face model ID above to get started.
+        </p>
+      ) : (
+        <TransformersModelList
+          models={transformersModels}
+          downloadStates={downloadStates}
+          onDownload={handleDownloadModel}
+          onRedownload={handleClearModelCache}
+          onRemove={handleRemoveTransformersModel}
+        />
+      )}
+    </div>
+  )
+}
 
-              return (
-                <div
-                  key={model.modelId}
-                  className="pp:flex pp:items-center pp:justify-between pp:rounded-lg pp:border pp:px-4 pp:py-3"
-                >
-                  <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col pp:gap-1">
-                    <div className="pp:flex pp:items-center pp:gap-2">
-                      <span className="pp:text-sm pp:font-medium">{model.label}</span>
-                      <StatusBadge status={dl.status} />
-                    </div>
-                    <span className="pp:truncate pp:text-xs pp:text-muted-foreground">
-                      {model.modelId}
-                    </span>
-                    {dl.status === "downloading" && dl.progress < 100 && (
-                      <div className="pp:mt-1 pp:h-1.5 pp:w-full pp:overflow-hidden pp:rounded-full pp:bg-muted">
-                        <div
-                          className="pp:h-full pp:rounded-full pp:bg-primary pp:transition-all"
-                          style={{ width: `${dl.progress}%` }}
-                        />
-                      </div>
-                    )}
-                    {dl.status === "downloading" && dl.progress < 100 && (
-                      <span className="pp:text-xs pp:text-muted-foreground">
-                        Downloading... {dl.progress}%
-                      </span>
-                    )}
-                    {dl.status === "downloading" && dl.progress >= 100 && (
-                      <span className="pp:flex pp:items-center pp:gap-1 pp:text-xs pp:text-muted-foreground">
-                        <Loader2 className="pp:size-3 pp:animate-spin" />
-                        Initializing model… this may take 1-2 minutes
-                      </span>
-                    )}
-                    {dl.status === "error" && dl.errorMessage && (
-                      <span className="pp:mt-1 pp:text-xs pp:text-destructive pp:leading-tight">
-                        {dl.errorMessage}
-                      </span>
-                    )}
-                  </div>
+function SystemRequirementsBanner({ systemReqs }: { systemReqs: SystemRequirements | null }) {
+  if (!systemReqs) {
+    return null
+  }
 
-                  <div className="pp:flex pp:items-center pp:gap-1.5 pp:shrink-0 pp:ml-2">
-                    {(dl.status === "idle" || dl.status === "error") && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadModel(model.modelId)}
-                        className="pp:gap-1.5"
-                      >
-                        <Download className="pp:size-3.5" />
-                        Download
-                      </Button>
-                    )}
-                    {dl.status === "validating" && (
-                      <Button variant="outline" size="sm" disabled className="pp:gap-1.5">
-                        <Loader2 className="pp:size-3.5 pp:animate-spin" />
-                        Validating
-                      </Button>
-                    )}
-                    {dl.status === "downloading" && (
-                      <Button variant="outline" size="sm" disabled className="pp:gap-1.5">
-                        <Loader2 className="pp:size-3.5 pp:animate-spin" />
-                        Downloading
-                      </Button>
-                    )}
-                    {dl.status === "ready" && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleClearModelCache(model.modelId)}
-                          className="pp:gap-1.5"
-                        >
-                          <RefreshCw className="pp:size-3.5" />
-                          Redownload
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveTransformersModel(model.modelId)}
-                      aria-label={`Remove ${model.label}`}
-                    >
-                      <Trash2 className="pp:size-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              )
-            })}
+  if (systemReqs.meetsMinimum) {
+    return (
+      <div className="pp:mb-4 pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-green-500/30 pp:bg-green-500/10 pp:px-3 pp:py-2 pp:text-sm">
+        <CheckCircle2 className="pp:mt-0.5 pp:size-4 pp:shrink-0 pp:text-green-600" />
+        <div className="pp:text-green-700">
+          <span className="pp:font-medium">System ready for local AI.</span>
+          <div className="pp:mt-0.5 pp:text-xs">
+            {systemReqs.cpuCores} core{systemReqs.cpuCores !== 1 ? "s" : ""}
+            {systemReqs.deviceMemory !== null && ` · ${systemReqs.deviceMemory}GB RAM`}
+            {systemReqs.wasmSimd ? " · WASM SIMD" : ""}
+            {systemReqs.webgpu ? " · WebGPU" : ""}
           </div>
-        )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="pp:mb-4 pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-amber-500/30 pp:bg-amber-500/10 pp:px-3 pp:py-2 pp:text-sm">
+      <TriangleAlert className="pp:mt-0.5 pp:size-4 pp:shrink-0 pp:text-amber-600" />
+      <div className="pp:text-amber-800">
+        <span className="pp:font-medium">System requirements not fully met:</span>
+        <ul className="pp:mt-1 pp:list-inside pp:list-disc pp:space-y-0.5">
+          {systemReqs.issues.map((issue) => (
+            <li key={issue}>{issue}</li>
+          ))}
+        </ul>
       </div>
     </div>
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    idle: "pp:bg-muted pp:text-muted-foreground",
-    validating: "pp:bg-amber-500/10 pp:text-amber-600 pp:border-amber-500/30",
-    downloading: "pp:bg-blue-500/10 pp:text-blue-600 pp:border-blue-500/30",
-    ready: "pp:bg-green-500/10 pp:text-green-600 pp:border-green-500/30",
-    error: "pp:bg-destructive/10 pp:text-destructive pp:border-destructive/40",
-  }
-
-  const labels: Record<string, string> = {
-    idle: "Not downloaded",
-    validating: "Validating",
-    downloading: "Downloading",
-    ready: "Ready",
-    error: "Error",
-  }
+function RecommendedModels({
+  downloadStates,
+  onSelectModel,
+}: {
+  downloadStates: DownloadState
+  onSelectModel: (modelId: string) => void
+}) {
+  const available = RECOMMENDED_MODELS.filter((m) => downloadStates[m.modelId]?.status !== "ready")
 
   return (
+    <div className="pp:mb-4 pp:rounded-lg pp:border pp:bg-muted/50 pp:p-4">
+      <p className="pp:mb-2 pp:text-sm pp:font-medium">Recommended models</p>
+      <p className="pp:mb-3 pp:text-xs pp:text-muted-foreground">
+        Browse <a href="https://huggingface.co/onnx-community" target="_blank" rel="noopener" className="pp:underline">onnx-community</a> on Hugging Face for all pre-converted models.
+        Stick to models under 3B parameters for good in-browser performance.
+      </p>
+      {available.length === 0 ? (
+        <p className="pp:text-xs pp:text-muted-foreground">All recommended models are already installed.</p>
+      ) : (
+        <div className="pp:grid pp:gap-2 sm:pp:grid-cols-2">
+          {available.map((model) => (
+            <button
+              key={model.modelId}
+              type="button"
+              onClick={() => {
+                onSelectModel(model.modelId)
+              }}
+              className="pp:flex pp:flex-col pp:items-start pp:gap-0.5 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:py-2 pp:text-left pp:text-sm pp:transition-colors hover:pp:bg-accent"
+            >
+              <span className="pp:font-medium">{model.label}</span>
+              <span className="pp:text-xs pp:text-muted-foreground">{model.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TransformersModelList({
+  models,
+  downloadStates,
+  onDownload,
+  onRedownload,
+  onRemove,
+}: {
+  models: StoredTransformersModel[]
+  downloadStates: DownloadState
+  onDownload: (modelId: string) => void
+  onRedownload: (modelId: string) => void
+  onRemove: (modelId: string) => void
+}) {
+  return (
+    <div className="pp:space-y-2">
+      {models.map((model) => {
+        const dl = downloadStates[model.modelId] ?? { status: "idle", progress: 0 }
+
+        return (
+          <div
+            key={model.modelId}
+            className="pp:flex pp:items-center pp:justify-between pp:rounded-lg pp:border pp:px-4 pp:py-3"
+          >
+            <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col pp:gap-1">
+              <div className="pp:flex pp:items-center pp:gap-2">
+                <span className="pp:text-sm pp:font-medium">{model.label}</span>
+                <StatusBadge status={dl.status} />
+              </div>
+              <span className="pp:truncate pp:text-xs pp:text-muted-foreground">
+                {model.modelId}
+              </span>
+              {dl.status === "downloading" && dl.progress < 100 && (
+                <div className="pp:mt-1 pp:h-1.5 pp:w-full pp:overflow-hidden pp:rounded-full pp:bg-muted">
+                  <div
+                    className="pp:h-full pp:rounded-full pp:bg-primary pp:transition-[width]"
+                    style={{ width: `${dl.progress}%` }}
+                  />
+                </div>
+              )}
+              {dl.status === "downloading" && dl.progress < 100 && (
+                <span className="pp:text-xs pp:text-muted-foreground">
+                  Downloading... {dl.progress}%
+                </span>
+              )}
+              {dl.status === "downloading" && dl.progress >= 100 && (
+                <span className="pp:flex pp:items-center pp:gap-1 pp:text-xs pp:text-muted-foreground">
+                  <Loader2 className="pp:size-3 pp:animate-spin" />
+                  Initializing model… this may take 1-2 minutes
+                </span>
+              )}
+              {dl.status === "error" && dl.errorMessage && (
+                <span className="pp:mt-1 pp:text-xs pp:text-destructive pp:leading-tight">
+                  {dl.errorMessage}
+                </span>
+              )}
+            </div>
+
+            <div className="pp:flex pp:items-center pp:gap-1.5 pp:shrink-0 pp:ml-2">
+              {(dl.status === "idle" || dl.status === "error") && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDownload(model.modelId)}
+                  className="pp:gap-1.5"
+                >
+                  <Download className="pp:size-3.5" />
+                  Download
+                </Button>
+              )}
+              {dl.status === "validating" && (
+                <Button variant="outline" size="sm" disabled className="pp:gap-1.5">
+                  <Loader2 className="pp:size-3.5 pp:animate-spin" />
+                  Validating
+                </Button>
+              )}
+              {dl.status === "downloading" && (
+                <Button variant="outline" size="sm" disabled className="pp:gap-1.5">
+                  <Loader2 className="pp:size-3.5 pp:animate-spin" />
+                  Downloading
+                </Button>
+              )}
+              {dl.status === "ready" && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onRedownload(model.modelId)}
+                    className="pp:gap-1.5"
+                  >
+                    <RefreshCw className="pp:size-3.5" />
+                    Redownload
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onRemove(model.modelId)}
+                aria-label={`Remove ${model.label}`}
+              >
+                <Trash2 className="pp:size-3.5" />
+              </Button>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function StatusBadge({ status }: { status: string }) {
+  return (
     <span
-      className={`pp:rounded-full pp:border pp:px-2 pp:py-0.5 pp:text-[10px] pp:font-medium ${styles[status] ?? styles.idle}`}
+      className={`pp:rounded-full pp:border pp:px-2 pp:py-0.5 pp:text-[10px] pp:font-medium ${STATUS_BADGE_STYLES[status] ?? STATUS_BADGE_STYLES.idle}`}
     >
-      {labels[status] ?? status}
+      {STATUS_BADGE_LABELS[status] ?? status}
     </span>
   )
 }

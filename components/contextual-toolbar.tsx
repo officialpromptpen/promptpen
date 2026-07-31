@@ -481,13 +481,14 @@ function useProviderState() {
 		};
 	}, [hydrateProviderChoice]);
 
+	// storage.watch returns `Unwatch` (() => void); returning it directly cleans
+	// up the subscription on unmount. react-doctor only recognizes cleanup-returning
+	// APIs named subscribe/sub/listen, so it cannot verify .watch()'s handle.
+	// oxlint-disable-next-line react-doctor/effect-needs-cleanup
 	useEffect(() => {
-		const unwatch = storage.watch(`local:${STORAGE_KEY}`, async () => {
+		return storage.watch(`local:${STORAGE_KEY}`, async () => {
 			await hydrateProviderChoice();
 		});
-		return () => {
-			unwatch();
-		};
 	}, [hydrateProviderChoice]);
 
 	return {

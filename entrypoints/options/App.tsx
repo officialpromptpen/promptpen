@@ -120,8 +120,8 @@ function IndexOptions() {
 
         <LazyMotion features={domAnimation}>
           <main className="pp:flex pp:flex-1 pp:flex-col pp:overflow-hidden">
-            {state.loaded ? (
-              <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait">
+              {state.loaded && (
                 <m.div
                   key={state.activeSection}
                   initial={{ opacity: 0, y: 8 }}
@@ -132,8 +132,9 @@ function IndexOptions() {
                 >
                   {renderSection()}
                 </m.div>
-              </AnimatePresence>
-            ) : (
+              )}
+            </AnimatePresence>
+            {!state.loaded && (
               <div className="pp:flex pp:flex-1 pp:items-center pp:justify-center">
                 <Loader2 className="pp:h-6 pp:w-6 pp:animate-spin" />
               </div>
