@@ -52,12 +52,12 @@ function ShadowSelectContent({
         side="bottom"
         sideOffset={4}
         alignItemWithTrigger
-        className="pp:z-[2147483647]"
+        className="pp:z-2147483647"
       >
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            "pp:z-[2147483647] pp:max-h-(--available-height) pp:w-(--anchor-width) pp:min-w-36 pp:overflow-x-hidden pp:overflow-y-auto pp:rounded-lg pp:bg-popover pp:text-popover-foreground pp:shadow-md pp:ring-1 pp:ring-foreground/10 pp:data-open:animate-in pp:data-open:fade-in-0 pp:data-open:zoom-in-95 pp:data-closed:animate-out pp:data-closed:fade-out-0 pp:data-closed:zoom-out-95",
+            "pp:z-2147483647 pp:max-h-(--available-height) pp:w-(--anchor-width) pp:min-w-36 pp:overflow-x-hidden pp:overflow-y-auto pp:rounded-lg pp:bg-popover pp:text-popover-foreground pp:shadow-md pp:ring-1 pp:ring-foreground/10 pp:data-open:animate-in pp:data-open:fade-in-0 pp:data-open:zoom-in-95 pp:data-closed:animate-out pp:data-closed:fade-out-0 pp:data-closed:zoom-out-95",
             className,
           )}
         >
