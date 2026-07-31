@@ -16,6 +16,7 @@ import {
   removeProviderConfig,
   saveProviderConfig,
   setDefaultProvider,
+  STORAGE_KEY,
 } from "@/features/providers/storage"
 import type { AIProvider, ConfiguredProviderDetail, CustomPromptDefinition, OptionsState, SectionId, OptionsSettings } from "@/types"
 import {
@@ -101,6 +102,10 @@ export function useOptionsState(): OptionsState {
       setProviderSummary(summary)
       setConfiguredProviderDetails(details)
       setSelectedProvider(summary.defaultProvider)
+      setSettings((previous) => ({
+        ...previous,
+        defaultProvider: summary.defaultProvider,
+      }))
       const editorState = await getProviderEditorState(summary.defaultProvider)
       if (!mounted) return
       setProviderModel(editorState.model)
@@ -109,6 +114,21 @@ export function useOptionsState(): OptionsState {
     void hydrateProviders()
     return () => {
       mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const unwatch = storage.watch(`local:${STORAGE_KEY}`, async () => {
+      const summary = await getProviderSummary()
+      setProviderSummary(summary)
+      setSelectedProvider(summary.defaultProvider)
+      setSettings((previous) => ({
+        ...previous,
+        defaultProvider: summary.defaultProvider,
+      }))
+    })
+    return () => {
+      unwatch()
     }
   }, [])
 
