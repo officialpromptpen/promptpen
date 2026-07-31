@@ -2,6 +2,8 @@
 
 Thank you for your interest! This guide covers everything you need to contribute effectively.
 
+> Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in this project. We expect everyone to follow it in all community spaces.
+
 ## Project Overview
 
 PromptPen is an AI-powered browser extension built with [WXT](https://wxt.dev). It lets users select text on any webpage and apply AI-powered writing actions — rewriting, tone adjustment, transformation, and more — through any OpenAI-compatible provider.

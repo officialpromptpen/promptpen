@@ -145,3 +145,8 @@ pnpm run doctor      # React Doctor lint
 | Build | Vite, WXT module system |
 | Linting | Biome, Ultracite |
 | Runtime | MV3 (Chrome) / MV2 (Firefox) |
+
+## Community
+
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
