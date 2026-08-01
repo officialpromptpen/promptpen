@@ -2,6 +2,9 @@
 
 AI-powered writing assistant for Chrome and Firefox. Select text on any webpage and instantly improve, rewrite, or transform it with your preferred AI provider.
 
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/promptpen/gedjdledelhnidiajafkgpcakhabjmic)
+[![Firefox Add-ons](https://img.shields.io/badge/Firefox%20Add--ons-Install-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/promptpen)
+
 > **Beta notice:** 99% of features are fully operational. Please test it out and report bugs to [contact@frontendweb.agency](mailto:contact@frontendweb.agency) to help us reach stable release.
 
 ## Features
