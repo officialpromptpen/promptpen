@@ -12,13 +12,15 @@ AI-powered writing assistant for Chrome and Firefox. Select text on any webpage 
 - **Modify** — Shorten, expand, summarize, or explain selected text
 - **Custom prompts** — Create and save your own reusable writing prompts
 - **Multi-provider** — Use any provider with OpenAI-compatible APIs
+- **Local AI (Transformers.js)** — Run LLMs fully in-browser with ONNX Runtime, no API key or internet required after download
+- **Local AI (Ollama)** — Connect to models running on your own machine
 - **Website access control** — Enable/disable on specific sites
 - **Dark mode** — System-aware theming with manual override
 - **Context menu** — Right-click selected text to open actions
 
 ## Supported Providers
 
-OpenAI, OpenRouter, Anthropic, Gemini, Groq, Ollama (local), Together AI, Cohere, DeepSeek, Mistral, OpenAI Compatible.
+OpenAI, OpenRouter, Anthropic, Gemini, Groq, Ollama (local), Together AI, Cohere, DeepSeek, Mistral, OpenAI Compatible, **Transformers.js (in-browser, offline)**.
 
 ## Prerequisites
 
@@ -99,23 +101,54 @@ Click on a provider from the list — for example, **OpenRouter**.
 
 Enter your model name (e.g. `openai/gpt-4o-mini`) and your API key from OpenRouter. Click **Test Connection** to verify everything works, then click **Save**.
 
-### 4. Reload the Website
+### 4. Use Local AI (Transformers.js)
+
+Transformers.js runs models entirely in your browser — no API key, no account, and no data leaves your device.
+
+1. Open the extension settings → **Self-Hosted** tab.
+2. In the **Transformers.js** card, pick a recommended model (e.g. `Qwen2.5-0.5B-Instruct`) or type any ONNX model ID from the [onnx-community](https://huggingface.co/onnx-community) organization.
+3. Click **Add**, then **Download**. The model is downloaded from Hugging Face and cached locally with download progress shown.
+4. For gated or private models, paste a **Hugging Face access token** and click **Save Token** first.
+
+**Recommended models**
+
+| Model | Parameters | Best for |
+|---|---|---|
+| [Qwen2.5-0.5B-Instruct](https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct-ONNX-MHA) | 0.5B | Best overall — strong instruction following, grammar, and tone |
+| [Qwen2.5-1.5B-Instruct](https://huggingface.co/onnx-community/Qwen2.5-1.5B-Instruct-ONNX-MHA) | 1.5B | Most capable for complex writing — needs ~4GB RAM, longer download |
+| [SmolLM2-360M-Instruct](https://huggingface.co/onnx-community/SmolLM2-360M-Instruct-ONNX-MHA) | 360M | Lightweight and fast, decent quality for short text |
+| [SmolLM2-135M-Instruct](https://huggingface.co/onnx-community/SmolLM2-135M-Instruct-ONNX-MHA) | 135M | Fastest fallback for simple rewrites |
+
+> **Requirements:** WebAssembly (SIMD recommended), at least 2 CPU cores, and 2GB+ RAM minimum. For **fast results**, use a machine with **8GB+ RAM**. The Options page checks your system and warns you if it can't run local models.
+>
+> **Tips:** Stick to models under 3B parameters for good in-browser speed. Only models with pre-converted ONNX weights work — browse [onnx-community](https://huggingface.co/onnx-community) for compatible ones. Gated models (e.g. Llama 3) need a Hugging Face access token.
+
+### 5. Use Local AI (Ollama)
+
+If you run [Ollama](https://ollama.com) on your machine, connect it directly:
+
+1. Open the extension settings → **Self-Hosted** tab.
+2. In the **Ollama** card, set the **Base URL** (default `http://localhost:11434/v1`) and your **Model** name (e.g. `llama3.1`).
+3. Click **Test connection** to verify Ollama is running, then **Save**.
+4. Pull the model in your terminal first if needed: `ollama pull llama3.1`.
+
+### 6. Reload the Website
 
 Reload the webpage where you want to use PromptPen. The extension is now active on that site.
 
-### 5. Select Text
+### 7. Select Text
 
 Select any text on the page with your mouse. A floating toolbar icon appears near the selection.
 
-### 6. Open Actions
+### 8. Open Actions
 
 Click the toolbar icon to open the full PromptPen action panel. You'll see all available actions grouped by category: Rewrite, Modify, Tone, Transform.
 
-### 7. Choose an Action
+### 9. Choose an Action
 
-Click any action — for example **Improve writing** or **Fix spelling and grammar**. PromptPen processes your selected text using the AI provider.
+Click any action — for example **Improve writing** or **Fix spelling and grammar**. PromptPen processes your selected text using the AI provider (cloud or local).
 
-### 8. Review the Result
+### 10. Review the Result
 
 The result appears in a dialog with two options:
 
@@ -141,6 +174,7 @@ pnpm run doctor      # React Doctor lint
 | Animation | Framer Motion |
 | Icons | Lucide React |
 | AI SDK | Vercel AI SDK (`ai`) |
+| Local AI | Transformers.js (`@huggingface/transformers`), ONNX Runtime Web |
 | State | Zustand |
 | Build | Vite, WXT module system |
 | Linting | Biome, Ultracite |
