@@ -1,3 +1,5 @@
+minimumReleaseAge: "0s"
+
 allowBuilds:
   protobufjs: true
   sharp: true
