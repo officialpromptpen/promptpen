@@ -1,3 +1,4 @@
+import type { SimpleIcon } from "simple-icons";
 import {
   siAnthropic,
   siDeepseek,
@@ -5,96 +6,98 @@ import {
   siMistralai,
   siOllama,
   siOpenrouter,
-} from "simple-icons"
-import type { SimpleIcon } from "simple-icons"
-import type { AIProvider, ProviderIconProps } from "@/types"
+} from "simple-icons";
+import type { AIProvider, ProviderIconProps } from "@/types";
 
-type BrandIcon = SimpleIcon | null
+type BrandIcon = SimpleIcon | null;
 
 function getFallbackIcon(provider: AIProvider): BrandIcon {
   switch (provider) {
     case "groq":
-      return null
+      return null;
     case "together":
-      return null
+      return null;
     case "cohere":
-      return null
+      return null;
     case "openai-compatible":
-      return null
+      return null;
     default:
-      return null
+      return null;
   }
 }
 
 const PROVIDER_ICONS: Record<AIProvider, BrandIcon> = {
-  openai: null,
-  openrouter: siOpenrouter,
   anthropic: siAnthropic,
-  gemini: siGoogle,
-  groq: null,
-  ollama: siOllama,
-  together: null,
   cohere: null,
   deepseek: siDeepseek,
+  gemini: siGoogle,
+  groq: null,
   mistral: siMistralai,
+  ollama: siOllama,
+  openai: null,
   "openai-compatible": null,
+  openrouter: siOpenrouter,
+  together: null,
   transformers: null,
-}
+};
 
 function initialsForProvider(provider: AIProvider): string {
   switch (provider) {
     case "openai-compatible":
-      return "OC"
+      return "OC";
     case "openrouter":
-      return "OR"
+      return "OR";
     case "together":
-      return "TA"
+      return "TA";
     case "deepseek":
-      return "DS"
+      return "DS";
     case "anthropic":
-      return "AN"
+      return "AN";
     case "mistral":
-      return "MI"
+      return "MI";
     case "gemini":
-      return "G"
+      return "G";
     case "groq":
-      return "GR"
+      return "GR";
     case "cohere":
-      return "CO"
+      return "CO";
     case "ollama":
-      return "OL"
+      return "OL";
     case "transformers":
-      return "TF"
+      return "TF";
     case "openai":
     default:
-      return "AI"
+      return "AI";
   }
 }
 
-export function ProviderIcon({ provider, className = "pp:size-4" }: ProviderIconProps) {
-  const icon = PROVIDER_ICONS[provider] ?? getFallbackIcon(provider)
+export function ProviderIcon({
+  provider,
+  className = "pp:size-4",
+}: ProviderIconProps) {
+  const icon = PROVIDER_ICONS[provider] ?? getFallbackIcon(provider);
 
   if (icon) {
     return (
       <svg
-        role="img"
-        viewBox="0 0 24 24"
         aria-label={icon.title}
         className={className}
+        role="img"
         style={{ fill: `#${icon.hex}` }}
+        viewBox="0 0 24 24"
       >
         <path d={icon.path} />
       </svg>
-    )
+    );
   }
 
   return (
     <span
-      className={`${className} pp:inline-flex pp:items-center pp:justify-center pp:rounded-full pp:bg-muted pp:text-[10px] pp:font-semibold pp:text-foreground`}
       aria-label={provider}
+      className={`${className} pp:inline-flex pp:items-center pp:justify-center pp:rounded-full pp:bg-muted pp:font-semibold pp:text-[10px] pp:text-foreground`}
       title={provider}
     >
       {initialsForProvider(provider)}
     </span>
-  )
+  );
 }

@@ -1,26 +1,26 @@
-import type { LanguageModel } from "ai"
-import type { AIProvider, ProviderCategory } from "@/types"
+import type { LanguageModel } from "ai";
+import type { AIProvider, ProviderCategory } from "@/types";
 
 export interface ProviderModuleConfig {
-  apiKey: string
-  model: string
-  baseUrl?: string
-  headers?: Record<string, string>
-  accessToken?: string
+  accessToken?: string;
+  apiKey: string;
+  baseUrl?: string;
+  headers?: Record<string, string>;
+  model: string;
 }
 
 export interface ProviderModule {
-  id: AIProvider
-  label: string
-  defaultModel: string
-  category: ProviderCategory
-  createModel: (config: ProviderModuleConfig) => LanguageModel
+  category: ProviderCategory;
+  createModel: (config: ProviderModuleConfig) => LanguageModel;
+  defaultModel: string;
+  id: AIProvider;
+  label: string;
 }
 
 export const CATEGORY_LABELS: Record<ProviderCategory, string> = {
   cloud: "Cloud Providers",
   "openai-compatible": "OpenAI Compatible",
   "self-hosted": "Self-Hosted",
-}
+};
 
-export type { ProviderCategory }
+export type { ProviderCategory };

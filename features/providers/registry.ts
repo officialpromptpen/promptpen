@@ -1,61 +1,135 @@
-import type { AIProvider, ProviderDefinition } from "@/types"
-import type { ProviderModule } from "./_types"
-export { CATEGORY_LABELS } from "./_types"
-import { RECOMMENDED_MODELS } from "./transformers/recommended-models"
+import type { AIProvider, ProviderDefinition } from "@/types";
+import type { ProviderModule } from "./_types";
+
+export { CATEGORY_LABELS } from "./_types";
+
+import { RECOMMENDED_MODELS } from "./transformers/recommended-models";
 
 // Lightweight provider metadata — no SDK packages imported here.
 const PROVIDER_META: ProviderDefinition[] = [
-  { id: "openai", label: "OpenAI", defaultModel: "gpt-4o-mini", category: "cloud" },
-  { id: "anthropic", label: "Anthropic", defaultModel: "claude-3-5-haiku-latest", category: "cloud" },
-  { id: "gemini", label: "Gemini", defaultModel: "gemini-1.5-flash", category: "cloud" },
-  { id: "groq", label: "Groq", defaultModel: "llama-3.1-8b-instant", category: "cloud" },
-  { id: "deepseek", label: "DeepSeek", defaultModel: "deepseek-chat", category: "cloud" },
-  { id: "mistral", label: "Mistral", defaultModel: "mistral-small-latest", category: "cloud" },
-  { id: "cohere", label: "Cohere", defaultModel: "command-r-plus", category: "cloud" },
-  { id: "openrouter", label: "OpenRouter", defaultModel: "openai/gpt-4o-mini", category: "openai-compatible" },
-  { id: "together", label: "Together AI", defaultModel: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", category: "openai-compatible" },
-  { id: "openai-compatible", label: "OpenAI Compatible", defaultModel: "gpt-4o-mini", category: "openai-compatible" },
-  { id: "ollama", label: "Ollama", defaultModel: "llama3.1", category: "self-hosted" },
-  { id: "transformers", label: "Transformers.js", defaultModel: RECOMMENDED_MODELS[0].modelId, category: "self-hosted" },
-]
+  {
+    category: "cloud",
+    defaultModel: "gpt-4o-mini",
+    id: "openai",
+    label: "OpenAI",
+  },
+  {
+    category: "cloud",
+    defaultModel: "claude-3-5-haiku-latest",
+    id: "anthropic",
+    label: "Anthropic",
+  },
+  {
+    category: "cloud",
+    defaultModel: "gemini-1.5-flash",
+    id: "gemini",
+    label: "Gemini",
+  },
+  {
+    category: "cloud",
+    defaultModel: "llama-3.1-8b-instant",
+    id: "groq",
+    label: "Groq",
+  },
+  {
+    category: "cloud",
+    defaultModel: "deepseek-chat",
+    id: "deepseek",
+    label: "DeepSeek",
+  },
+  {
+    category: "cloud",
+    defaultModel: "mistral-small-latest",
+    id: "mistral",
+    label: "Mistral",
+  },
+  {
+    category: "cloud",
+    defaultModel: "command-r-plus",
+    id: "cohere",
+    label: "Cohere",
+  },
+  {
+    category: "openai-compatible",
+    defaultModel: "openai/gpt-4o-mini",
+    id: "openrouter",
+    label: "OpenRouter",
+  },
+  {
+    category: "openai-compatible",
+    defaultModel: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    id: "together",
+    label: "Together AI",
+  },
+  {
+    category: "openai-compatible",
+    defaultModel: "gpt-4o-mini",
+    id: "openai-compatible",
+    label: "OpenAI Compatible",
+  },
+  {
+    category: "self-hosted",
+    defaultModel: "llama3.1",
+    id: "ollama",
+    label: "Ollama",
+  },
+  {
+    category: "self-hosted",
+    defaultModel: RECOMMENDED_MODELS[0].modelId,
+    id: "transformers",
+    label: "Transformers.js",
+  },
+];
 
-export const PROVIDER_DEFINITIONS: ProviderDefinition[] = PROVIDER_META
+export const PROVIDER_DEFINITIONS: ProviderDefinition[] = PROVIDER_META;
 
-export const DEFAULT_PROVIDER: AIProvider = "openai"
+export const DEFAULT_PROVIDER: AIProvider = "openai";
 
-const moduleCache = new Map<string, ProviderModule>()
+const moduleCache = new Map<string, ProviderModule>();
 
 // Lazy-loaded provider modules — heavy SDK packages are only imported when
 // the user actually runs an action, keeping the content script bundle small.
-const PROVIDER_IMPORTS: Record<string, () => Promise<{ provider: ProviderModule }>> = {
-  openai: () => import("./openai"),
+const PROVIDER_IMPORTS: Record<
+  string,
+  () => Promise<{ provider: ProviderModule }>
+> = {
   anthropic: () => import("./anthropic"),
+  cohere: () => import("./cohere"),
+  deepseek: () => import("./deepseek"),
   gemini: () => import("./gemini"),
   groq: () => import("./groq"),
-  deepseek: () => import("./deepseek"),
   mistral: () => import("./mistral"),
-  cohere: () => import("./cohere"),
+  ollama: () => import("./ollama"),
+  openai: () => import("./openai"),
+  "openai-compatible": () => import("./openai-compatible"),
   openrouter: () => import("./openrouter"),
   together: () => import("./together"),
-  "openai-compatible": () => import("./openai-compatible"),
-  ollama: () => import("./ollama"),
   transformers: () => import("./transformers"),
+};
+
+export function getProviderDefinition(
+  provider: AIProvider
+): ProviderDefinition {
+  return (
+    PROVIDER_DEFINITIONS.find((def) => def.id === provider) ??
+    PROVIDER_DEFINITIONS[0]
+  );
 }
 
-export function getProviderDefinition(provider: AIProvider): ProviderDefinition {
-  return PROVIDER_DEFINITIONS.find((def) => def.id === provider) ?? PROVIDER_DEFINITIONS[0]
-}
-
-export async function getProviderModule(provider: AIProvider): Promise<ProviderModule> {
-  const cached = moduleCache.get(provider)
-  if (cached) return cached
-
-  const importFn = PROVIDER_IMPORTS[provider]
-  if (!importFn) {
-    throw new Error(`Unknown provider: ${provider}`)
+export async function getProviderModule(
+  provider: AIProvider
+): Promise<ProviderModule> {
+  const cached = moduleCache.get(provider);
+  if (cached) {
+    return cached;
   }
 
-  const { provider: mod } = await importFn()
-  moduleCache.set(provider, mod)
-  return mod
+  const importFn = PROVIDER_IMPORTS[provider];
+  if (!importFn) {
+    throw new Error(`Unknown provider: ${provider}`);
+  }
+
+  const { provider: mod } = await importFn();
+  moduleCache.set(provider, mod);
+  return mod;
 }

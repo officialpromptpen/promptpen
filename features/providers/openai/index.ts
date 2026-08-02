@@ -1,13 +1,16 @@
-import { createOpenAI } from "@ai-sdk/openai"
-import type { ProviderModule } from "../_types"
+import { createOpenAI } from "@ai-sdk/openai";
+import type { ProviderModule } from "../_types";
 
 export const provider: ProviderModule = {
-  id: "openai",
-  label: "OpenAI",
-  defaultModel: "gpt-4o-mini",
   category: "cloud",
   createModel: (config) => {
-    const client = createOpenAI({ apiKey: config.apiKey, baseURL: config.baseUrl })
-    return client(config.model)
+    const client = createOpenAI({
+      apiKey: config.apiKey,
+      baseURL: config.baseUrl,
+    });
+    return client(config.model);
   },
-}
+  defaultModel: "gpt-4o-mini",
+  id: "openai",
+  label: "OpenAI",
+};

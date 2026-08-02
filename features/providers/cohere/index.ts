@@ -1,13 +1,13 @@
-import { createCohere } from "@ai-sdk/cohere"
-import type { ProviderModule } from "../_types"
+import { createCohere } from "@ai-sdk/cohere";
+import type { ProviderModule } from "../_types";
 
 export const provider: ProviderModule = {
-  id: "cohere",
-  label: "Cohere",
-  defaultModel: "command-r-plus",
   category: "cloud",
   createModel: (config) => {
-    const client = createCohere({ apiKey: config.apiKey })
-    return client(config.model)
+    const client = createCohere({ apiKey: config.apiKey });
+    return client(config.model);
   },
-}
+  defaultModel: "command-r-plus",
+  id: "cohere",
+  label: "Cohere",
+};

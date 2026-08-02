@@ -1,10 +1,7 @@
-import { createOpenAI } from "@ai-sdk/openai"
-import type { ProviderModule } from "../_types"
+import { createOpenAI } from "@ai-sdk/openai";
+import type { ProviderModule } from "../_types";
 
 export const provider: ProviderModule = {
-  id: "openrouter",
-  label: "OpenRouter",
-  defaultModel: "openai/gpt-4o-mini",
   category: "openai-compatible",
   createModel: (config) => {
     const client = createOpenAI({
@@ -14,7 +11,10 @@ export const provider: ProviderModule = {
         "HTTP-Referer": "chrome-extension://promptpen",
         "X-OpenRouter-Title": "PromptPen",
       },
-    })
-    return client.chat(config.model)
+    });
+    return client.chat(config.model);
   },
-}
+  defaultModel: "openai/gpt-4o-mini",
+  id: "openrouter",
+  label: "OpenRouter",
+};
