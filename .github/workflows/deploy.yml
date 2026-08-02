@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: ["main"]
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
       dry-run:
@@ -18,43 +18,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  Version:
+  Submit:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
-      version_changed: ${{ steps.check_version.outputs.version_changed }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Check for version change
-        id: check_version
+
+      - name: Get version from tag
+        id: version
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            VERSION_CHANGED=1
+            VERSION=$(jq -r .version package.json)
           else
-            CURR_VERSION=$(jq -r .version package.json)
-            REMOTE_VERSION=$(git show origin/main:package.json 2>/dev/null | jq -r .version || echo "")
-            if [ "$CURR_VERSION" != "$REMOTE_VERSION" ]; then
-              VERSION_CHANGED=1
-            else
-              VERSION_CHANGED=0
-            fi
+            VERSION=${GITHUB_REF_NAME#v}
           fi
-          echo "version_changed=$VERSION_CHANGED" >> "$GITHUB_OUTPUT"
-      - name: Get version
-        if: ${{ steps.check_version.outputs.version_changed == '1' }}
-        id: get_version
-        run: |
-          VERSION=$(jq -r .version package.json)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-  Submit:
-    needs: Version
-    if: ${{ needs.Version.outputs.version_changed == '1' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
         with:
@@ -136,8 +113,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "v${{ needs.Version.outputs.version }}"
-          name: "v${{ needs.Version.outputs.version }}"
+          tag_name: "v${{ steps.version.outputs.version }}"
+          name: "v${{ steps.version.outputs.version }}"
           draft: false
           prerelease: true
           files: |
