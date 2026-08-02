@@ -1,48 +1,47 @@
-import { storage } from "@wxt-dev/storage"
-import type { WebsiteRule, WebsiteAccessState } from "@/types"
+import { storage } from "@wxt-dev/storage";
+import type { WebsiteAccessState, WebsiteRule } from "@/types";
 
-const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1"
-const WWW_PREFIX_RE = /^www\./
+const WEBSITE_ACCESS_STORAGE_KEY = "promptpen.website-access.v1";
+const WWW_PREFIX_RE = /^www\./;
 
 const DEFAULT_STATE: WebsiteAccessState = {
   enableEverywhere: false,
-  websiteRules: [],
   excludedHostnames: [],
-}
+  websiteRules: [],
+};
 
 function normalizeHostname(hostname: string): string {
-  return hostname
-    .trim()
-    .toLowerCase()
-    .replace(WWW_PREFIX_RE, "")
+  return hostname.trim().toLowerCase().replace(WWW_PREFIX_RE, "");
 }
 
 export function getHostnameFromUrl(url: string): string {
   if (!url) {
-    return ""
+    return "";
   }
 
   try {
-    return normalizeHostname(new URL(url).hostname)
+    return normalizeHostname(new URL(url).hostname);
   } catch {
-    return ""
+    return "";
   }
 }
 
 export function getHostnameFromInput(value: string): string {
-  const trimmed = value.trim()
+  const trimmed = value.trim();
   if (!trimmed) {
-    return ""
+    return "";
   }
 
-  const withProtocol = trimmed.includes("://") ? trimmed : `https://${trimmed}`
-  return getHostnameFromUrl(withProtocol)
+  const withProtocol = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
+  return getHostnameFromUrl(withProtocol);
 }
 
 export async function getWebsiteAccessState(): Promise<WebsiteAccessState> {
-  const state = await storage.getItem<WebsiteAccessState>(`local:${WEBSITE_ACCESS_STORAGE_KEY}`)
+  const state = await storage.getItem<WebsiteAccessState>(
+    `local:${WEBSITE_ACCESS_STORAGE_KEY}`
+  );
   if (!state) {
-    return DEFAULT_STATE
+    return DEFAULT_STATE;
   }
 
   return {
@@ -50,78 +49,102 @@ export async function getWebsiteAccessState(): Promise<WebsiteAccessState> {
       typeof state.enableEverywhere === "boolean"
         ? state.enableEverywhere
         : DEFAULT_STATE.enableEverywhere,
+    excludedHostnames: Array.isArray(state.excludedHostnames)
+      ? state.excludedHostnames
+      : [],
     websiteRules: Array.isArray(state.websiteRules) ? state.websiteRules : [],
-    excludedHostnames: Array.isArray(state.excludedHostnames) ? state.excludedHostnames : [],
-  }
+  };
 }
 
-async function writeWebsiteAccessState(state: WebsiteAccessState): Promise<void> {
-  await storage.setItem(`local:${WEBSITE_ACCESS_STORAGE_KEY}`, state)
+async function writeWebsiteAccessState(
+  state: WebsiteAccessState
+): Promise<void> {
+  await storage.setItem(`local:${WEBSITE_ACCESS_STORAGE_KEY}`, state);
 }
 
 export async function isWebsiteEnabled(hostname: string): Promise<boolean> {
-  const normalizedHostname = normalizeHostname(hostname)
+  const normalizedHostname = normalizeHostname(hostname);
   if (!normalizedHostname) {
-    return false
+    return false;
   }
 
-  const state = await getWebsiteAccessState()
+  const state = await getWebsiteAccessState();
   if (state.excludedHostnames.includes(normalizedHostname)) {
-    return false
+    return false;
   }
 
-  const match = state.websiteRules.find((rule) => rule.hostname === normalizedHostname)
+  const match = state.websiteRules.find(
+    (rule) => rule.hostname === normalizedHostname
+  );
   if (match?.enabled) {
-    return true
+    return true;
   }
 
-  return state.enableEverywhere
+  return state.enableEverywhere;
 }
 
-export async function setWebsiteExcluded(hostname: string, excluded: boolean): Promise<void> {
-  const normalizedHostname = normalizeHostname(hostname)
-  if (!normalizedHostname) return
+export async function setWebsiteExcluded(
+  hostname: string,
+  excluded: boolean
+): Promise<void> {
+  const normalizedHostname = normalizeHostname(hostname);
+  if (!normalizedHostname) {
+    return;
+  }
 
-  const state = await getWebsiteAccessState()
+  const state = await getWebsiteAccessState();
   if (excluded) {
     if (!state.excludedHostnames.includes(normalizedHostname)) {
-      state.excludedHostnames.push(normalizedHostname)
+      state.excludedHostnames.push(normalizedHostname);
     }
-    const existingIndex = state.websiteRules.findIndex((rule) => rule.hostname === normalizedHostname)
+    const existingIndex = state.websiteRules.findIndex(
+      (rule) => rule.hostname === normalizedHostname
+    );
     if (existingIndex >= 0) {
-      state.websiteRules.splice(existingIndex, 1)
+      state.websiteRules.splice(existingIndex, 1);
     }
   } else {
-    state.excludedHostnames = state.excludedHostnames.filter((h) => h !== normalizedHostname)
+    state.excludedHostnames = state.excludedHostnames.filter(
+      (h) => h !== normalizedHostname
+    );
   }
 
-  await writeWebsiteAccessState(state)
+  await writeWebsiteAccessState(state);
 }
 
-export async function setWebsiteEnabled(hostname: string, enabled: boolean): Promise<void> {
-  const normalizedHostname = normalizeHostname(hostname)
+export async function setWebsiteEnabled(
+  hostname: string,
+  enabled: boolean
+): Promise<void> {
+  const normalizedHostname = normalizeHostname(hostname);
   if (!normalizedHostname) {
-    return
+    return;
   }
 
-  const state = await getWebsiteAccessState()
+  const state = await getWebsiteAccessState();
 
   if (enabled) {
-    const existingIndex = state.websiteRules.findIndex((rule) => rule.hostname === normalizedHostname)
+    const existingIndex = state.websiteRules.findIndex(
+      (rule) => rule.hostname === normalizedHostname
+    );
     const rule: WebsiteRule = {
-      id: normalizedHostname,
-      hostname: normalizedHostname,
       enabled: true,
-    }
+      hostname: normalizedHostname,
+      id: normalizedHostname,
+    };
     if (existingIndex >= 0) {
-      state.websiteRules[existingIndex] = rule
+      state.websiteRules[existingIndex] = rule;
     } else {
-      state.websiteRules.push(rule)
+      state.websiteRules.push(rule);
     }
   } else {
-    state.websiteRules = state.websiteRules.filter((rule) => rule.hostname !== normalizedHostname)
-    state.excludedHostnames = state.excludedHostnames.filter((h) => h !== normalizedHostname)
+    state.websiteRules = state.websiteRules.filter(
+      (rule) => rule.hostname !== normalizedHostname
+    );
+    state.excludedHostnames = state.excludedHostnames.filter(
+      (h) => h !== normalizedHostname
+    );
   }
 
-  await writeWebsiteAccessState(state)
+  await writeWebsiteAccessState(state);
 }
