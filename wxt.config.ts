@@ -11,7 +11,7 @@ export default defineConfig({
         id: "promptpen@frontendweb.agency",
       },
     },
-    description: "AI-powered writing assistant",
+    description: "AI-powered writing assistant (Beta)",
     host_permissions: ["<all_urls>"],
     name: "PromptPen",
     permissions: ["storage", "activeTab"],
