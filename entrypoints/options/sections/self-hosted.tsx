@@ -9,7 +9,7 @@ import {
 	Trash2,
 	TriangleAlert,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { testProviderConnectionWithValues } from "@/features/providers/sdk"
 import {
@@ -260,7 +260,7 @@ function TransformersCard() {
 	const [newModelId, setNewModelId] = useState("")
 	const [downloadStates, setDownloadStates] = useState<DownloadState>({})
 	const [hfToken, setHfToken] = useState("")
-	const [hfTokenSaved, setHfTokenSaved] = useState(false)
+	const hfTokenSaved = useRef(false)
 	const [systemReqs] = useState<SystemRequirements | null>(() =>
 		checkSystemRequirements(),
 	)
@@ -270,7 +270,7 @@ function TransformersCard() {
 			const storedToken = await getDecryptedAccessToken("transformers")
 			if (storedToken) {
 				setHfToken(storedToken)
-				setHfTokenSaved(true)
+				hfTokenSaved.current = true
 			}
 
 			const models = await getTransformersModels()
