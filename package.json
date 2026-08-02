@@ -1,6 +1,6 @@
 {
   "name": "promptpen",
-  "version": "0.1.1-beta",
+  "version": "0.2.0",
   "private": true,
   "description": "AI-powered writing assistant for any text field",
   "type": "module",
