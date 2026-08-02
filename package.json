@@ -69,5 +69,14 @@
       "entrypoints/options/main.tsx",
       "entrypoints/popup/main.tsx"
     ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "protobufjs",
+      "sharp",
+      "onnxruntime-node",
+      "spawn-sync",
+      "esbuild"
+    ]
   }
 }
