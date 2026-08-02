@@ -8,3 +8,4 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - '@browser-ai/transformers-js@3.0.0'
+  - ultracite@7.10.0

@@ -1,4 +1,3 @@
-import { generateText } from "ai"
 import type { AIProvider, ProviderAdapter, ProviderTestResult } from "@/types"
 import { getProviderModule } from "./registry"
 import { getRuntimeConfig } from "./storage"
@@ -13,8 +12,10 @@ export async function createProviderAdapter(
   }
 
   const resolvedModel = modelOverride?.trim() || config.model
-  const mod = getProviderModule(config.provider)
+  const mod = await getProviderModule(config.provider)
   const model = mod.createModel({ apiKey: config.apiKey, model: resolvedModel, accessToken: config.accessToken })
+
+  const { generateText } = await import("ai")
 
   return {
     provider: config.provider,
@@ -37,7 +38,8 @@ export async function testProviderConnectionWithValues(
   baseUrl?: string,
 ): Promise<ProviderTestResult> {
   try {
-    const mod = getProviderModule(provider)
+    const { generateText } = await import("ai")
+    const mod = await getProviderModule(provider)
     const client = mod.createModel({ apiKey, model, baseUrl })
 
     await generateText({

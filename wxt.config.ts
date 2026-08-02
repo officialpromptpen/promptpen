@@ -4,7 +4,7 @@ import type { FirefoxDataCollectionPermissions } from "wxt"
 export default defineConfig({
   manifest: {
     name: "PromptPen",
-    description: "PromptPen — AI-powered writing assistant",
+    description: "AI-powered writing assistant",
     permissions: ["storage", "activeTab"],
     host_permissions: ["<all_urls>"],
     web_accessible_resources: [

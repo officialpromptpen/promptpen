@@ -1,21 +1,9 @@
 {
   "name": "promptpen",
-  "description": "PromptPen Beta — AI-powered writing assistant for any text field",
-  "private": true,
-  "version": "0.1.0-beta",
   "type": "module",
-  "scripts": {
-    "dev": "wxt",
-    "dev:firefox": "wxt -b firefox",
-    "build": "wxt build",
-    "build:firefox": "wxt build -b firefox",
-    "zip": "wxt zip",
-    "zip:firefox": "wxt zip -b firefox",
-    "compile": "tsc --noEmit",
-    "postinstall": "wxt prepare",
-    "doctor": "npx react-doctor@latest",
-    "clean": "rm -rf .output .wxt"
-  },
+  "version": "0.1.1-beta",
+  "description": "AI-powered writing assistant for any text field",
+  "private": true,
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.23",
     "@ai-sdk/cohere": "^4.0.14",
@@ -52,7 +40,25 @@
     "@types/react-dom": "^19.2.3",
     "@wxt-dev/module-react": "^1.2.2",
     "typescript": "^7.0.2",
-    "wxt": "^0.20.27"
+    "wxt": "^0.20.27",
+    "ultracite": "7.10.0",
+    "@biomejs/biome": "2.5.6"
+  },
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "zip:all": "wxt zip -b firefox -b chrome",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare",
+    "doctor": "npx react-doctor@latest",
+    "clean": "rm -rf .output .wxt",
+    "publish": "wxt publish",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
   },
   "knip": {
     "entry": [
