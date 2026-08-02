@@ -1,7 +1,5 @@
 export interface AIProviderOption {
-  id: string
-  name: string
-  group: string
+  group: string;
+  id: string;
+  name: string;
 }
-
-
