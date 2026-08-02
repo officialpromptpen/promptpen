@@ -1,11 +1,6 @@
-packages:
-  - "."
-
 allowBuilds:
-  esbuild: true
+  protobufjs: true
+  sharp: true
   onnxruntime-node: true
   spawn-sync: true
-
-minimumReleaseAgeExclude:
-  - '@browser-ai/transformers-js@3.0.0'
-  - ultracite@7.10.0
+  esbuild: true
