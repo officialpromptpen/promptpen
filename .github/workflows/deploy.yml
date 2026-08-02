@@ -1,8 +1,8 @@
 name: Deploy
 
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       dry-run:
@@ -23,13 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Get version from tag
+      - name: Get version from release tag
         id: version
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             VERSION=$(jq -r .version package.json)
           else
-            VERSION=${GITHUB_REF_NAME#v}
+            VERSION=${{ github.event.release.tag_name }}
+            VERSION=${VERSION#v}
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
