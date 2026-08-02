@@ -18,7 +18,8 @@
     "publish": "wxt publish",
     "zip": "wxt zip",
     "zip:all": "wxt zip -b firefox -b chrome",
-    "zip:firefox": "wxt zip -b firefox"
+    "zip:firefox": "wxt zip -b firefox",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.23",
