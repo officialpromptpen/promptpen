@@ -11,6 +11,7 @@ export interface StoredTransformersModel {
 }
 
 interface StoredSelfHostedState {
+  selectedTransformersModelIds?: string[];
   transformersModels: StoredTransformersModel[];
 }
 
@@ -29,9 +30,18 @@ async function readState(): Promise<StoredSelfHostedState> {
     `local:${STORAGE_KEY}`
   );
   if (state?.transformersModels) {
+    if (!state.selectedTransformersModelIds?.length) {
+      return {
+        ...state,
+        selectedTransformersModelIds: [DEFAULT_TRANSFORMERS_MODELS[0].modelId],
+      };
+    }
     return state;
   }
-  return { transformersModels: DEFAULT_TRANSFORMERS_MODELS };
+  return {
+    selectedTransformersModelIds: [DEFAULT_TRANSFORMERS_MODELS[0].modelId],
+    transformersModels: DEFAULT_TRANSFORMERS_MODELS,
+  };
 }
 
 async function writeState(state: StoredSelfHostedState): Promise<void> {
@@ -43,6 +53,13 @@ export async function getTransformersModels(): Promise<
 > {
   const state = await readState();
   return state.transformersModels;
+}
+
+export async function getSelectedTransformersModelIds(): Promise<string[]> {
+  const state = await readState();
+  return state.selectedTransformersModelIds?.length
+    ? state.selectedTransformersModelIds
+    : [DEFAULT_TRANSFORMERS_MODELS[0].modelId];
 }
 
 export async function addTransformersModel(
@@ -74,8 +91,22 @@ export async function removeTransformersModel(
   state.transformersModels = state.transformersModels.filter(
     (m) => m.modelId !== modelId
   );
+  if (state.selectedTransformersModelIds?.length) {
+    state.selectedTransformersModelIds =
+      state.selectedTransformersModelIds.filter(
+        (selectedModelId) => selectedModelId !== modelId
+      );
+  }
   await writeState(state);
   return state.transformersModels;
+}
+
+export async function setSelectedTransformersModelIds(
+  modelIds: string[]
+): Promise<void> {
+  const state = await readState();
+  state.selectedTransformersModelIds = modelIds;
+  await writeState(state);
 }
 
 export async function updateTransformersModelStatus(
