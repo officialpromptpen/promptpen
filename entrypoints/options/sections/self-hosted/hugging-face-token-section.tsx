@@ -1,82 +1,77 @@
-import { Save } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import {
-	getDecryptedAccessToken,
-	saveProviderConfig,
-} from "@/features/providers/storage"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { saveProviderConfig } from "@/features/providers/storage";
+
+const TRANSFORMERS_FALLBACK_MODEL =
+  "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA";
 
 interface HuggingFaceTokenSectionProps {
-	initialToken: string
+  initialToken: string;
 }
 
 export function HuggingFaceTokenSection({
-	initialToken,
+  initialToken,
 }: HuggingFaceTokenSectionProps) {
-	const [hfToken, setHfToken] = useState(initialToken)
-	const [hfTokenSaved, setHfTokenSaved] = useState(initialToken.length > 0)
+  const [hfToken, setHfToken] = useState(initialToken);
+  const [hfTokenSaved, setHfTokenSaved] = useState(initialToken.length > 0);
 
-	async function handleSaveHfToken() {
-		await saveProviderConfig(
-			"transformers",
-			"onnx-community/Qwen2-0.5B-Instruct-ONNX",
-			undefined,
-			undefined,
-			hfToken || undefined,
-		)
-		setHfTokenSaved(true)
-	}
+  async function handleSaveHfToken() {
+    await saveProviderConfig(
+      "transformers",
+      TRANSFORMERS_FALLBACK_MODEL,
+      undefined,
+      undefined,
+      hfToken || undefined
+    );
+    setHfTokenSaved(true);
+  }
 
-	async function handleClearHfToken() {
-		await saveProviderConfig(
-			"transformers",
-			"onnx-community/Qwen2-0.5B-Instruct-ONNX",
-			undefined,
-			undefined,
-			"",
-		)
-		setHfToken("")
-		setHfTokenSaved(false)
-	}
+  async function handleClearHfToken() {
+    await saveProviderConfig(
+      "transformers",
+      TRANSFORMERS_FALLBACK_MODEL,
+      undefined,
+      undefined,
+      ""
+    );
+    setHfToken("");
+    setHfTokenSaved(false);
+  }
 
-	return (
-		<div className="pp:mb-4 pp:space-y-1.5">
-			<label
-				className="pp:font-medium pp:text-sm"
-				htmlFor="transformers-hf-token"
-			>
-				Hugging Face access token
-			</label>
-			<div className="pp:flex pp:items-center pp:gap-2">
-				<input
-					className="pp:h-9 pp:flex-1 pp:rounded-md pp:border pp:bg-background pp:px-3 pp:text-sm"
-					id="transformers-hf-token"
-					onChange={(e) => {
-						setHfToken(e.target.value)
-						setHfTokenSaved(false)
-					}}
-					placeholder="Required for gated models"
-					type="password"
-					value={hfToken}
-				/>
-				<Button
-					className="pp:shrink-0"
-					onClick={handleSaveHfToken}
-					variant="outline"
-				>
-					{hfTokenSaved ? "Saved" : "Save Token"}
-				</Button>
-				{hfTokenSaved && (
-					<Button
-						className="pp:shrink-0"
-						onClick={handleClearHfToken}
-						size="sm"
-						variant="ghost"
-					>
-						Clear
-					</Button>
-				)}
-			</div>
-		</div>
-	)
+  return (
+    <div className="pp:mb-4 pp:space-y-1.5">
+      <Label htmlFor="transformers-hf-token">Hugging Face access token</Label>
+      <div className="pp:flex pp:items-center pp:gap-2">
+        <Input
+          id="transformers-hf-token"
+          onChange={(e) => {
+            setHfToken(e.target.value);
+            setHfTokenSaved(false);
+          }}
+          placeholder="Required for gated models"
+          type="password"
+          value={hfToken}
+        />
+        <Button
+          className="pp:shrink-0"
+          onClick={handleSaveHfToken}
+          variant="outline"
+        >
+          {hfTokenSaved ? "Saved" : "Save Token"}
+        </Button>
+        {hfTokenSaved && (
+          <Button
+            className="pp:shrink-0"
+            onClick={handleClearHfToken}
+            size="sm"
+            variant="ghost"
+          >
+            Clear
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }

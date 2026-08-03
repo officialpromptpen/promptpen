@@ -1,27 +1,61 @@
-import type { OptionsState } from "@/types"
-import { ProviderSetupForm } from "./ai-providers/provider-setup-form"
-import { ConfiguredProvidersList } from "./ai-providers/configured-providers-list"
+import { useState } from "react";
+import type { PopularModel } from "@/constants/ai-providers/popular-models";
+import { testProviderConnectionWithValues } from "@/features/providers/sdk";
+import {
+  getDecryptedApiKey,
+  getProviderEditorState,
+  recordProviderConnectionTest,
+} from "@/features/providers/storage";
+import type { AIProvider, OptionsState } from "@/types";
+import { ConfiguredProvidersList } from "./ai-providers/configured-providers-list";
+import { ProviderSetupForm } from "./ai-providers/provider-setup-form";
+import { QuickAddPopularModels } from "./ai-providers/quick-add-models";
+import { SettingsSectionLayout } from "./shared/section-shell";
 
 export function AIProvidersSection(state: OptionsState) {
-	return (
-		<div className="pp:mx-auto pp:max-w-4xl pp:space-y-8 pp:px-8 pp:py-8">
-			<div>
-				<h1 className="pp:font-semibold pp:text-2xl pp:tracking-tight">
-					AI Providers
-				</h1>
-				<p className="pp:mt-1 pp:text-muted-foreground pp:text-sm">
-					Manage your AI provider API keys and configuration.
-				</p>
-			</div>
+  const [pendingQuickAdd, setPendingQuickAdd] = useState<PopularModel | null>(
+    null
+  );
 
-			<ProviderSetupForm state={state} />
+  async function handleRetryConnection(provider: AIProvider) {
+    const editorState = await getProviderEditorState(provider);
+    const apiKey = (await getDecryptedApiKey(provider)) ?? "";
+    const result = await testProviderConnectionWithValues(
+      provider,
+      editorState.model,
+      apiKey
+    );
+    await recordProviderConnectionTest(provider, result.ok);
+    await state.refreshProviderData();
+  }
 
-			<ConfiguredProvidersList
-				configuredProviderDetails={state.configuredProviderDetails}
-				handleDeleteProvider={state.handleDeleteProvider}
-				handleEditProvider={state.handleEditProvider}
-				selectedProvider={state.selectedProvider}
-			/>
-		</div>
-	)
+  return (
+    <SettingsSectionLayout
+      description="Manage API keys, model presets, and default routing across cloud providers."
+      title="AI Providers Setup"
+    >
+      <div className="pp:space-y-6">
+        <ProviderSetupForm
+          onQuickAddHandled={() => setPendingQuickAdd(null)}
+          pendingQuickAdd={pendingQuickAdd}
+          state={state}
+        />
+
+        <QuickAddPopularModels
+          onSelect={(popularModel) => {
+            setPendingQuickAdd(popularModel);
+            state.setSelectedProvider(popularModel.provider);
+          }}
+        />
+
+        <ConfiguredProvidersList
+          configuredProviderDetails={state.configuredProviderDetails}
+          handleDeleteProvider={state.handleDeleteProvider}
+          handleEditProvider={state.handleEditProvider}
+          onRetryConnection={handleRetryConnection}
+          selectedProvider={state.selectedProvider}
+        />
+      </div>
+    </SettingsSectionLayout>
+  );
 }
