@@ -119,9 +119,9 @@ Transformers.js runs models entirely in your browser — no API key, no account,
 
 | Model | Parameters | Best for |
 |---|---|---|
-| [Qwen2.5-0.5B-Instruct](https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct-ONNX-MHA) | 0.5B | Best overall — strong instruction following, grammar, and tone |
-| [Qwen2.5-1.5B-Instruct](https://huggingface.co/onnx-community/Qwen2.5-1.5B-Instruct-ONNX-MHA) | 1.5B | Most capable for complex writing — needs ~4GB RAM, longer download |
-| [SmolLM2-360M-Instruct](https://huggingface.co/onnx-community/SmolLM2-360M-Instruct-ONNX-MHA) | 360M | Lightweight and fast, decent quality for short text |
+| [Qwen2.5-0.5B-Instruct](https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct) | 0.5B | Best overall — strong instruction following, grammar, and tone |
+| [Qwen2.5-1.5B-Instruct](https://huggingface.co/onnx-community/Qwen2.5-1.5B-Instruct) | 1.5B | Most capable for complex writing — needs ~4GB RAM, longer download |
+| [SmolLM2-360M-Instruct](https://huggingface.co/onnx-community/SmolLM2-360M-Instruct-ONNX) | 360M | Lightweight and fast, decent quality for short text |
 | [SmolLM2-135M-Instruct](https://huggingface.co/onnx-community/SmolLM2-135M-Instruct-ONNX-MHA) | 135M | Fastest fallback for simple rewrites |
 
 > **Requirements:** WebAssembly (SIMD recommended), at least 2 CPU cores, and 2GB+ RAM minimum. For **fast results**, use a machine with **8GB+ RAM**. The Options page checks your system and warns you if it can't run local models.
