@@ -7,10 +7,13 @@ export interface ProviderAdapter {
 	runPrompt: (input: string, systemPrompt?: string) => Promise<string>
 }
 
+export type ConnectionStatus = "connected" | "error" | "inactive"
+
 export interface ConfiguredProviderDetail {
 	label: string
 	model: string
 	provider: AIProvider
+	status: ConnectionStatus
 	updatedAt: number
 }
 

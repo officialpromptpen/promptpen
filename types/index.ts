@@ -28,6 +28,7 @@ export type {
 // ──────────────────────────── Provider Types ────────────────────────────
 export type {
 	ConfiguredProviderDetail,
+	ConnectionStatus,
 	ProviderAdapter,
 	ProviderDefinition,
 	ProviderEditorState,
