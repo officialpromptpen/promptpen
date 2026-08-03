@@ -25,6 +25,7 @@ interface StoredProviderConfig {
   baseUrl?: string;
   encryptedAccessToken?: EncryptedPayload;
   encryptedApiKey?: EncryptedPayload;
+  lastTestStatus?: "error" | "success";
   model: string;
   updatedAt: number;
 }
@@ -291,6 +292,19 @@ export async function removeProviderConfig(
   await writeState(state);
 }
 
+export async function recordProviderConnectionTest(
+  provider: AIProvider,
+  ok: boolean
+): Promise<void> {
+  const state = await readState();
+  const config = state.providers[provider];
+  if (!config) {
+    return;
+  }
+  config.lastTestStatus = ok ? "success" : "error";
+  await writeState(state);
+}
+
 export async function getConfiguredProviderDetails(): Promise<
   ConfiguredProviderDetail[]
 > {
@@ -307,10 +321,19 @@ export async function getConfiguredProviderDetails(): Promise<
     if (!isConfigured) {
       continue;
     }
+
+    const status: ConfiguredProviderDetail["status"] =
+      config.lastTestStatus === "error"
+        ? "error"
+        : provider.id === state.defaultProvider
+          ? "connected"
+          : "inactive";
+
     details.push({
       label: provider.label,
       model: config.model ?? provider.defaultModel,
       provider: provider.id,
+      status,
       updatedAt: config.updatedAt,
     });
   }
