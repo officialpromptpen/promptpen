@@ -35,11 +35,7 @@ import {
   updateTransformersModelStatus,
 } from "@/features/storage/self-hosted";
 import { HuggingFaceTokenSection } from "./self-hosted/hugging-face-token-section";
-import {
-  AsideSignalCard,
-  SettingsImageCard,
-  SettingsSectionLayout,
-} from "./shared/section-shell";
+import { SettingsSectionLayout } from "./shared/section-shell";
 
 type OllamaStatus = "error" | "idle" | "success" | "testing";
 interface ModelDownloadState {
@@ -71,22 +67,9 @@ export function SelfHostedSection() {
       description="Manage local Ollama and in-browser Transformers.js model routing."
       title="Self-Hosted Configuration"
     >
-      <div className="pp:grid pp:gap-6 xl:pp:grid-cols-[1.35fr_0.65fr]">
-        <div className="pp:space-y-6">
-          <OllamaCard />
-          <TransformersCard />
-        </div>
-        <aside className="pp:space-y-4">
-          <SettingsImageCard
-            alt="Self-hosted design reference"
-            caption="Reference visual from self-hosted.png used for hierarchy, spacing, and model management grouping."
-            src="/self-hosted.png"
-          />
-          <AsideSignalCard
-            description="Your local inference stack is configured and ready to route self-hosted requests."
-            title="Inference Engine Active"
-          />
-        </aside>
+      <div className="pp:space-y-6">
+        <OllamaCard />
+        <TransformersCard />
       </div>
     </SettingsSectionLayout>
   );
