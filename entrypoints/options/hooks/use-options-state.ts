@@ -6,17 +6,11 @@ import {
   OPTIONS_PAGE_TITLE,
   SETTINGS_KEY,
 } from "@/constants/options";
-import { getProviderDefinition } from "@/features/providers/registry";
-import { testProviderConnectionWithValues } from "@/features/providers/sdk";
 import {
   getConfiguredProviderDetails,
-  getDecryptedApiKey,
-  getProviderEditorState,
   getProviderSummary,
   removeProviderConfig,
   STORAGE_KEY,
-  saveProviderConfig,
-  setDefaultProvider,
 } from "@/features/providers/storage";
 import {
   getCustomPrompts,
@@ -49,19 +43,6 @@ export function useOptionsState(): OptionsState {
   );
   const [selectedProvider, setSelectedProvider] =
     useState<AIProvider>("openai");
-  const [providerModel, setProviderModel] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [hasStoredApiKey, setHasStoredApiKey] = useState(false);
-  const [isSavingProvider, setIsSavingProvider] = useState(false);
-  const [isTestingProvider, setIsTestingProvider] = useState(false);
-  const [verifiedFormKey, setVerifiedFormKey] = useState("");
-  const connectionVerified =
-    verifiedFormKey === `${selectedProvider}::${providerModel}::${apiKey}` &&
-    verifiedFormKey !== "";
-  const [providerStatusMessage, setProviderStatusMessage] = useState("");
-  const [providerStatusType, setProviderStatusType] = useState<
-    "idle" | "success" | "error"
-  >("idle");
 
   useEffect(() => {
     document.title = OPTIONS_PAGE_TITLE;
@@ -132,12 +113,6 @@ export function useOptionsState(): OptionsState {
         ...previous,
         defaultProvider: summary.defaultProvider,
       }));
-      const editorState = await getProviderEditorState(summary.defaultProvider);
-      if (!mounted) {
-        return;
-      }
-      setProviderModel(editorState.model);
-      setHasStoredApiKey(editorState.hasApiKey);
     }
     void hydrateProviders();
     return () => {
@@ -153,8 +128,12 @@ export function useOptionsState(): OptionsState {
   useEffect(
     () =>
       storage.watch(`local:${STORAGE_KEY}`, async () => {
-        const summary = await getProviderSummary();
+        const [summary, details] = await Promise.all([
+          getProviderSummary(),
+          getConfiguredProviderDetails(),
+        ]);
         setProviderSummary(summary);
+        setConfiguredProviderDetails(details);
         setSelectedProvider(summary.defaultProvider);
         setSettings((previous) => ({
           ...previous,
@@ -181,133 +160,25 @@ export function useOptionsState(): OptionsState {
     };
   }, []);
 
-  const selectedProviderDefinition = getProviderDefinition(selectedProvider);
   const unconfiguredProviders =
     providerSummary?.unconfiguredProviders.length ?? 0;
 
-  async function refreshProviderSummary() {
-    const summary = await getProviderSummary();
+  async function refreshProviderData() {
+    const [summary, details] = await Promise.all([
+      getProviderSummary(),
+      getConfiguredProviderDetails(),
+    ]);
     setProviderSummary(summary);
-  }
-
-  async function handleSaveProvider() {
-    if (!connectionVerified) {
-      setProviderStatusType("error");
-      setProviderStatusMessage("Test the connection before saving.");
-      return;
-    }
-
-    const normalizedModel = providerModel.trim();
-    if (!normalizedModel) {
-      setProviderStatusType("error");
-      setProviderStatusMessage("Enter a model name before saving.");
-      return;
-    }
-
-    if (!(hasStoredApiKey || apiKey.trim())) {
-      setProviderStatusType("error");
-      setProviderStatusMessage("Enter an API key to configure this provider.");
-      return;
-    }
-
-    setIsSavingProvider(true);
-
-    try {
-      await saveProviderConfig(selectedProvider, normalizedModel, apiKey);
-      await setDefaultProvider(selectedProvider);
-      await refreshProviderSummary();
-      setHasStoredApiKey(true);
-      setApiKey("");
-      setProviderStatusType("success");
-      setProviderStatusMessage(
-        "Provider settings saved. Reload the website after saving for the AI provider to work."
-      );
-
-      setSettings((previous) => ({
-        ...previous,
-        defaultModel: normalizedModel,
-        defaultProvider: selectedProvider,
-      }));
-    } catch {
-      setProviderStatusType("error");
-      setProviderStatusMessage("Failed to save provider settings.");
-    } finally {
-      setIsSavingProvider(false);
-    }
-  }
-
-  async function handleTestProvider() {
-    const normalizedModel = providerModel.trim();
-    if (!normalizedModel) {
-      setProviderStatusType("error");
-      setProviderStatusMessage("Enter a model name before testing.");
-      return;
-    }
-
-    let resolvedApiKey = apiKey.trim();
-    if (!resolvedApiKey && hasStoredApiKey) {
-      const storedKey = await getDecryptedApiKey(selectedProvider);
-      if (storedKey) {
-        resolvedApiKey = storedKey;
-      }
-    }
-
-    if (!resolvedApiKey) {
-      setProviderStatusType("error");
-      setProviderStatusMessage("Enter an API key to test the connection.");
-      return;
-    }
-
-    setIsTestingProvider(true);
-    setVerifiedFormKey("");
-    setProviderStatusType("idle");
-    setProviderStatusMessage("");
-
-    try {
-      const result = await testProviderConnectionWithValues(
-        selectedProvider,
-        normalizedModel,
-        resolvedApiKey
-      );
-      if (result.ok) {
-        setVerifiedFormKey(
-          `${selectedProvider}::${normalizedModel}::${resolvedApiKey}`
-        );
-        setProviderStatusType("success");
-        setProviderStatusMessage("Connection successful. You can now save.");
-      } else {
-        setProviderStatusType("error");
-        setProviderStatusMessage(
-          `Connection failed. ${result.message ?? "Unknown provider error."}`
-        );
-      }
-    } catch {
-      setProviderStatusType("error");
-      setProviderStatusMessage("Connection test failed unexpectedly.");
-    } finally {
-      setIsTestingProvider(false);
-    }
-  }
-
-  async function hydrateProviderEditor(provider: AIProvider) {
-    const editorState = await getProviderEditorState(provider);
-    setProviderModel(editorState.model);
-    setHasStoredApiKey(editorState.hasApiKey);
-    setApiKey("");
-    setProviderStatusType("idle");
-    setProviderStatusMessage("");
-  }
-
-  function selectProvider(provider: AIProvider) {
-    // react-doctor-disable-next-line react-doctor/no-impure-state-updater
-    setSelectedProvider(provider);
-    // react-doctor-disable-next-line react-doctor/no-impure-state-updater
-    void hydrateProviderEditor(provider);
+    setConfiguredProviderDetails(details);
+    setSelectedProvider(summary.defaultProvider);
+    setSettings((previous) => ({
+      ...previous,
+      defaultProvider: summary.defaultProvider,
+    }));
   }
 
   function handleEditProvider(provider: AIProvider) {
-    // react-doctor-disable-next-line react-doctor/no-impure-state-updater
-    selectProvider(provider);
+    setSelectedProvider(provider);
   }
 
   async function handleDeleteProvider(provider: AIProvider) {
@@ -319,7 +190,7 @@ export function useOptionsState(): OptionsState {
     setProviderSummary(summary);
     setConfiguredProviderDetails(details);
     if (provider === selectedProvider) {
-      selectProvider(summary.defaultProvider);
+      setSelectedProvider(summary.defaultProvider);
     }
   }
 
@@ -369,32 +240,19 @@ export function useOptionsState(): OptionsState {
 
   return {
     activeSection,
-    apiKey,
     configuredProviderDetails,
-    connectionVerified,
     customPrompts,
     exportSettings,
     handleDeleteCustomPrompt,
     handleDeleteProvider,
     handleEditProvider,
     handleSaveCustomPrompt,
-    handleSaveProvider,
-    handleTestProvider,
-    hasStoredApiKey,
-    isSavingProvider,
-    isTestingProvider,
     loaded,
-    providerModel,
-    providerStatusMessage,
-    providerStatusType,
     providerSummary,
+    refreshProviderData,
     resetAllData,
     selectedProvider,
-    selectedProviderDefinition,
-    selectProvider,
     setActiveSection,
-    setApiKey,
-    setProviderModel,
     setSelectedProvider,
     setSettings,
     settings,
