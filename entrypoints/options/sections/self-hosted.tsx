@@ -291,7 +291,7 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
           <Label htmlFor="ollama-api-key">
             API Key{" "}
             <span className="pp:text-muted-foreground">
-              (optional for Ollama)
+              (optional for local Ollama, required for Ollama Cloud / remote endpoints)
             </span>
           </Label>
           <Controller

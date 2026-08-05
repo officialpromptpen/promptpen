@@ -37,10 +37,26 @@ export function getFriendlyActionError(error: unknown): string {
   }
 
   if (
-    message.includes("Ollama") &&
-    (message.includes("ECONNREFUSED") || message.includes("fetch failed"))
+    message.includes("Ollama") ||
+    message.includes("ECONNREFUSED") ||
+    message.includes("fetch failed") ||
+    message.includes("Failed to fetch") ||
+    /forbidden/i.test(message) ||
+    /model.*not found/i.test(message)
   ) {
-    return "Ollama is not running. Start Ollama on your machine and make sure the service is accessible.";
+    if (/forbidden/i.test(message)) {
+      return "Ollama access forbidden: Set OLLAMA_ORIGINS=\"*\" in your Ollama environment to allow extension requests.";
+    }
+    if (/model.*not found/i.test(message)) {
+      return "Ollama model not found. Ensure you pulled the model (e.g. `ollama pull <model>`) or check the model name in settings.";
+    }
+    if (
+      message.includes("ECONNREFUSED") ||
+      message.includes("fetch failed") ||
+      message.includes("Failed to fetch")
+    ) {
+      return "Ollama is not accessible. Ensure Ollama is running locally or check your Base URL & connection.";
+    }
   }
 
   if (
