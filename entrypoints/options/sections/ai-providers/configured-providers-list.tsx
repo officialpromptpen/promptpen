@@ -51,6 +51,7 @@ interface ConfiguredProvidersListProps {
   handleEditProvider: OptionsState["handleEditProvider"];
   onRetryConnection: (provider: AIProvider) => void;
   selectedProvider: OptionsState["selectedProvider"];
+  title?: string;
 }
 
 export function ConfiguredProvidersList({
@@ -59,10 +60,15 @@ export function ConfiguredProvidersList({
   handleEditProvider,
   onRetryConnection,
   selectedProvider,
+  title,
 }: ConfiguredProvidersListProps) {
   if (configuredProviderDetails.length === 0) {
     return null;
   }
+
+  const heading = title
+    ? `${title} (${configuredProviderDetails.length})`
+    : `Active Connections (${configuredProviderDetails.length})`;
 
   return (
     <div
@@ -70,7 +76,7 @@ export function ConfiguredProvidersList({
       id="pp-tour-provider-setup"
     >
       <h2 className="pp:mb-4 pp:font-semibold pp:text-muted-foreground pp:text-xs pp:uppercase pp:tracking-wide">
-        Active Connections ({configuredProviderDetails.length})
+        {heading}
       </h2>
 
       <div className="pp:space-y-2">

@@ -68,13 +68,21 @@ const STATUS_BADGE_LABELS: Record<string, string> = {
 };
 
 export function SelfHostedSection(state?: OptionsState) {
-  const selfHostedDetails = useMemo(() => {
+  const ollamaDetails = useMemo(() => {
     if (!state?.configuredProviderDetails) {
       return [];
     }
     return state.configuredProviderDetails.filter(
-      (detail) =>
-        getProviderDefinition(detail.provider).category === "self-hosted"
+      (detail) => detail.provider === "ollama"
+    );
+  }, [state?.configuredProviderDetails]);
+
+  const transformersDetails = useMemo(() => {
+    if (!state?.configuredProviderDetails) {
+      return [];
+    }
+    return state.configuredProviderDetails.filter(
+      (detail) => detail.provider === "transformers"
     );
   }, [state?.configuredProviderDetails]);
 
@@ -109,22 +117,40 @@ export function SelfHostedSection(state?: OptionsState) {
       description="Manage local Ollama and in-browser Transformers.js model routing."
       title="Self-Hosted Configuration"
     >
-      <div className="pp:space-y-6">
-        <OllamaCard onSaved={state?.refreshProviderData} />
-        <TransformersCard onSaved={state?.refreshProviderData} />
+      <div className="pp:space-y-8">
+        <div className="pp:space-y-4">
+          <OllamaCard onSaved={state?.refreshProviderData} />
+          {state && ollamaDetails.length > 0 && (
+            <ConfiguredProvidersList
+              configuredProviderDetails={ollamaDetails}
+              handleDeleteProvider={async (provider, model) => {
+                await state.handleDeleteProvider(provider, model);
+                await state.refreshProviderData();
+              }}
+              handleEditProvider={handleEdit}
+              onRetryConnection={handleRetryConnection}
+              selectedProvider={state.selectedProvider}
+              title="Ollama Active Connections"
+            />
+          )}
+        </div>
 
-        {state && selfHostedDetails.length > 0 && (
-          <ConfiguredProvidersList
-            configuredProviderDetails={selfHostedDetails}
-            handleDeleteProvider={async (provider) => {
-              await state.handleDeleteProvider(provider);
-              await state.refreshProviderData();
-            }}
-            handleEditProvider={handleEdit}
-            onRetryConnection={handleRetryConnection}
-            selectedProvider={state.selectedProvider}
-          />
-        )}
+        <div className="pp:space-y-4">
+          <TransformersCard onSaved={state?.refreshProviderData} />
+          {state && transformersDetails.length > 0 && (
+            <ConfiguredProvidersList
+              configuredProviderDetails={transformersDetails}
+              handleDeleteProvider={async (provider, model) => {
+                await state.handleDeleteProvider(provider, model);
+                await state.refreshProviderData();
+              }}
+              handleEditProvider={handleEdit}
+              onRetryConnection={handleRetryConnection}
+              selectedProvider={state.selectedProvider}
+              title="Transformers.js Active Connections"
+            />
+          )}
+        </div>
       </div>
     </SettingsSectionLayout>
   );
