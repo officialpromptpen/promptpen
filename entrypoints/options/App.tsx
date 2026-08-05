@@ -65,7 +65,7 @@ function IndexOptions() {
   }
 
   return (
-    <div className="pp:flex pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
+    <div className="pp:flex pp:overflow-hidden pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
       <aside
         className="pp:flex pp:w-64 pp:flex-col pp:justify-between pp:border-r pp:bg-card pp:p-4"
         id="pp-tour-sidebar"
@@ -119,8 +119,8 @@ function IndexOptions() {
             onClick={() => setAboutOpen(true)}
             type="button"
           >
-            <div className="pp:flex pp:h-9 pp:w-9 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-full pp:bg-primary/10 pp:font-bold pp:text-primary pp:text-xs">
-              PP
+            <div className="pp:flex pp:h-9 pp:w-9 pp:items-center pp:justify-center pp:rounded-lg">
+              <Logo />
             </div>
             <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col">
               <span className="pp:font-semibold pp:text-sm pp:text-foreground">
@@ -136,7 +136,7 @@ function IndexOptions() {
       </aside>
 
       <LazyMotion features={domAnimation}>
-        <main className="pp:flex pp:flex-1 pp:flex-col pp:overflow-hidden">
+        <main className="pp:flex pp:flex-1 pp:flex-col">
           <AnimatePresence mode="wait">
             {state.loaded && (
               <m.div
@@ -225,7 +225,7 @@ function IndexOptions() {
                     <Bug className="pp:h-4 pp:w-4" />
                     Report an issue
                   </a>
-                    <a
+                  <a
                     className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
                     href="https://github.com/officialpromptpen/promptpen/discussions"
                     rel="noopener noreferrer"
