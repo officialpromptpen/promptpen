@@ -9,16 +9,20 @@ import {
   Trash2,
   TriangleAlert,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  getProviderDefinition,
+} from "@/features/providers/registry";
 import { testProviderConnectionWithValues } from "@/features/providers/sdk";
 import {
   getDecryptedAccessToken,
   getDecryptedApiKey,
   getProviderEditorState,
+  recordProviderConnectionTest,
   removeProviderConfig,
   saveProviderConfig,
 } from "@/features/providers/storage";
@@ -34,6 +38,8 @@ import {
   removeTransformersModel,
   updateTransformersModelStatus,
 } from "@/features/storage/self-hosted";
+import type { AIProvider, OptionsState } from "@/types";
+import { ConfiguredProvidersList } from "./ai-providers/configured-providers-list";
 import { HuggingFaceTokenSection } from "./self-hosted/hugging-face-token-section";
 import { SettingsSectionLayout } from "./shared/section-shell";
 
@@ -61,21 +67,70 @@ const STATUS_BADGE_LABELS: Record<string, string> = {
   validating: "Validating",
 };
 
-export function SelfHostedSection() {
+export function SelfHostedSection(state?: OptionsState) {
+  const selfHostedDetails = useMemo(() => {
+    if (!state?.configuredProviderDetails) {
+      return [];
+    }
+    return state.configuredProviderDetails.filter(
+      (detail) =>
+        getProviderDefinition(detail.provider).category === "self-hosted"
+    );
+  }, [state?.configuredProviderDetails]);
+
+  async function handleRetryConnection(provider: AIProvider) {
+    if (!state) {
+      return;
+    }
+    const editorState = await getProviderEditorState(provider);
+    const apiKey = (await getDecryptedApiKey(provider)) ?? "";
+    const result = await testProviderConnectionWithValues(
+      provider,
+      editorState.model,
+      apiKey
+    );
+    await recordProviderConnectionTest(provider, result.ok);
+    await state.refreshProviderData();
+  }
+
+  function handleEdit(provider: AIProvider) {
+    if (state) {
+      state.handleEditProvider(provider);
+    }
+    const cardId = provider === "ollama" ? "ollama-card" : "transformers-card";
+    const element = document.getElementById(cardId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
   return (
     <SettingsSectionLayout
       description="Manage local Ollama and in-browser Transformers.js model routing."
       title="Self-Hosted Configuration"
     >
       <div className="pp:space-y-6">
-        <OllamaCard />
-        <TransformersCard />
+        <OllamaCard onSaved={state?.refreshProviderData} />
+        <TransformersCard onSaved={state?.refreshProviderData} />
+
+        {state && selfHostedDetails.length > 0 && (
+          <ConfiguredProvidersList
+            configuredProviderDetails={selfHostedDetails}
+            handleDeleteProvider={async (provider) => {
+              await state.handleDeleteProvider(provider);
+              await state.refreshProviderData();
+            }}
+            handleEditProvider={handleEdit}
+            onRetryConnection={handleRetryConnection}
+            selectedProvider={state.selectedProvider}
+          />
+        )}
       </div>
     </SettingsSectionLayout>
   );
 }
 
-function OllamaCard() {
+function OllamaCard({ onSaved }: { onSaved?: () => void }) {
   const form = useForm<{
     apiKey: string;
     baseUrl: string;
@@ -158,6 +213,9 @@ function OllamaCard() {
     setOllamaConfigured(true);
     setOllamaStatus("success");
     setOllamaMessage("Ollama settings saved.");
+    if (onSaved) {
+      await onSaved();
+    }
   }
 
   async function handleOllamaDelete() {
@@ -166,10 +224,16 @@ function OllamaCard() {
     form.setValue("apiKey", "");
     setOllamaStatus("idle");
     setOllamaMessage("");
+    if (onSaved) {
+      await onSaved();
+    }
   }
 
   return (
-    <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
+    <div
+      className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm"
+      id="ollama-card"
+    >
       <div className="pp:mb-4 pp:flex pp:items-center pp:gap-3">
         <Server className="pp:size-5 pp:text-muted-foreground" />
         <div>
@@ -293,7 +357,7 @@ function OllamaCard() {
   );
 }
 
-function TransformersCard() {
+function TransformersCard({ onSaved }: { onSaved?: () => void }) {
   const [transformersModels, setTransformersModelsState] = useState<
     StoredTransformersModel[]
   >([]);
@@ -476,6 +540,9 @@ function TransformersCard() {
         undefined,
         storedToken || undefined
       );
+      if (onSaved) {
+        await onSaved();
+      }
     } catch (error) {
       cancelled = true;
       const message =
@@ -533,6 +600,9 @@ function TransformersCard() {
       delete next[modelId];
       return next;
     });
+    if (onSaved) {
+      await onSaved();
+    }
   }
 
   function handleSelectRecommendedModel(modelId: string) {
@@ -540,7 +610,10 @@ function TransformersCard() {
   }
 
   return (
-    <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
+    <div
+      className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm"
+      id="transformers-card"
+    >
       <div className="pp:mb-4 pp:flex pp:items-center pp:gap-3">
         <Cpu className="pp:size-5 pp:text-muted-foreground" />
         <div>

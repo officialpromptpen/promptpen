@@ -27,6 +27,7 @@ interface StoredProviderConfig {
   encryptedApiKey?: EncryptedPayload;
   lastTestStatus?: "error" | "success";
   model: string;
+  models?: string[];
   updatedAt: number;
 }
 
@@ -156,11 +157,19 @@ export async function saveProviderConfig(
     encryptedAccessToken = undefined;
   }
 
+  const trimmedModel = model.trim() || getProviderModel(provider);
+  const existingModels =
+    existingConfig?.models ??
+    (existingConfig?.model ? [existingConfig.model] : []);
+  const updatedModels = Array.from(new Set([...existingModels, trimmedModel]));
+
   state.providers[provider] = {
     baseUrl: baseUrl?.trim() || existingConfig?.baseUrl,
     encryptedAccessToken,
     encryptedApiKey,
-    model: model.trim() || getProviderModel(provider),
+    lastTestStatus: existingConfig?.lastTestStatus,
+    model: trimmedModel,
+    models: updatedModels,
     updatedAt: Date.now(),
   };
 
@@ -265,6 +274,7 @@ export async function getProviderEditorState(
   return {
     hasApiKey: Boolean(config?.encryptedApiKey),
     model: config?.model ?? getProviderModel(provider),
+    models: config?.models ?? (config?.model ? [config.model] : []),
   };
 }
 
@@ -289,6 +299,38 @@ export async function removeProviderConfig(
     state.defaultProvider =
       remaining.length > 0 ? remaining[0] : DEFAULT_PROVIDER;
   }
+  await writeState(state);
+}
+
+export async function removeProviderModel(
+  provider: AIProvider,
+  modelToRemove: string
+): Promise<void> {
+  const state = await readState();
+  const config = state.providers[provider];
+  if (!config) {
+    return;
+  }
+
+  const currentModels =
+    config.models ?? (config.model ? [config.model] : []);
+  const updatedModels = currentModels.filter((m) => m !== modelToRemove);
+
+  if (updatedModels.length === 0) {
+    delete state.providers[provider];
+    if (state.defaultProvider === provider) {
+      const remaining = Object.keys(state.providers) as AIProvider[];
+      state.defaultProvider =
+        remaining.length > 0 ? remaining[0] : DEFAULT_PROVIDER;
+    }
+  } else {
+    config.models = updatedModels;
+    if (config.model === modelToRemove) {
+      config.model = updatedModels[0];
+    }
+    config.updatedAt = Date.now();
+  }
+
   await writeState(state);
 }
 
@@ -322,20 +364,31 @@ export async function getConfiguredProviderDetails(): Promise<
       continue;
     }
 
-    const status: ConfiguredProviderDetail["status"] =
-      config.lastTestStatus === "error"
-        ? "error"
-        : provider.id === state.defaultProvider
-          ? "connected"
-          : "inactive";
+    const savedModels =
+      config.models && config.models.length > 0
+        ? config.models
+        : [config.model ?? provider.defaultModel];
 
-    details.push({
-      label: provider.label,
-      model: config.model ?? provider.defaultModel,
-      provider: provider.id,
-      status,
-      updatedAt: config.updatedAt,
-    });
+    for (const model of savedModels) {
+      const isDefault =
+        provider.id === state.defaultProvider && config.model === model;
+      const status: ConfiguredProviderDetail["status"] =
+        config.lastTestStatus === "error"
+          ? "error"
+          : isDefault
+            ? "connected"
+            : "inactive";
+
+      details.push({
+        id: `${provider.id}:${model}`,
+        label: provider.label,
+        model,
+        models: savedModels,
+        provider: provider.id,
+        status,
+        updatedAt: config.updatedAt,
+      });
+    }
   }
 
   return details.sort((a, b) => b.updatedAt - a.updatedAt);

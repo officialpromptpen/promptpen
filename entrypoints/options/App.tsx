@@ -52,7 +52,7 @@ function IndexOptions() {
       case "ai-providers":
         return <AIProvidersSection {...state} />;
       case "self-hosted":
-        return <SelfHostedSection />;
+        return <SelfHostedSection {...state} />;
       case "custom-prompts":
         return <CustomPromptsSection {...state} />;
       case "website-access":

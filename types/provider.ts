@@ -10,8 +10,10 @@ export interface ProviderAdapter {
 export type ConnectionStatus = "connected" | "error" | "inactive"
 
 export interface ConfiguredProviderDetail {
+	id: string
 	label: string
 	model: string
+	models?: string[]
 	provider: AIProvider
 	status: ConnectionStatus
 	updatedAt: number
@@ -24,7 +26,11 @@ export interface ProviderDefinition {
 	label: string
 }
 
-export type ProviderEditorState = { hasApiKey: boolean; model: string }
+export type ProviderEditorState = {
+	hasApiKey: boolean
+	model: string
+	models?: string[]
+}
 
 export interface ProviderIconProps {
 	className?: string

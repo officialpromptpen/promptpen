@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { PopularModel } from "@/constants/ai-providers/popular-models";
+import { getProviderDefinition } from "@/features/providers/registry";
 import { testProviderConnectionWithValues } from "@/features/providers/sdk";
 import {
   getDecryptedApiKey,
@@ -15,6 +16,15 @@ import { SettingsSectionLayout } from "./shared/section-shell";
 export function AIProvidersSection(state: OptionsState) {
   const [pendingQuickAdd, setPendingQuickAdd] = useState<PopularModel | null>(
     null
+  );
+
+  const cloudConfiguredDetails = useMemo(
+    () =>
+      state.configuredProviderDetails.filter(
+        (detail) =>
+          getProviderDefinition(detail.provider).category !== "self-hosted"
+      ),
+    [state.configuredProviderDetails]
   );
 
   async function handleRetryConnection(provider: AIProvider) {
@@ -49,7 +59,7 @@ export function AIProvidersSection(state: OptionsState) {
         />
 
         <ConfiguredProvidersList
-          configuredProviderDetails={state.configuredProviderDetails}
+          configuredProviderDetails={cloudConfiguredDetails}
           handleDeleteProvider={state.handleDeleteProvider}
           handleEditProvider={state.handleEditProvider}
           onRetryConnection={handleRetryConnection}

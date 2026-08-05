@@ -10,6 +10,7 @@ import {
   getConfiguredProviderDetails,
   getProviderSummary,
   removeProviderConfig,
+  removeProviderModel,
   STORAGE_KEY,
 } from "@/features/providers/storage";
 import {
@@ -134,7 +135,6 @@ export function useOptionsState(): OptionsState {
         ]);
         setProviderSummary(summary);
         setConfiguredProviderDetails(details);
-        setSelectedProvider(summary.defaultProvider);
         setSettings((previous) => ({
           ...previous,
           defaultProvider: summary.defaultProvider,
@@ -170,26 +170,29 @@ export function useOptionsState(): OptionsState {
     ]);
     setProviderSummary(summary);
     setConfiguredProviderDetails(details);
-    setSelectedProvider(summary.defaultProvider);
     setSettings((previous) => ({
       ...previous,
       defaultProvider: summary.defaultProvider,
     }));
   }
 
-  function handleEditProvider(provider: AIProvider) {
+  function handleEditProvider(provider: AIProvider, _model?: string) {
     setSelectedProvider(provider);
   }
 
-  async function handleDeleteProvider(provider: AIProvider) {
-    await removeProviderConfig(provider);
+  async function handleDeleteProvider(provider: AIProvider, model?: string) {
+    if (model) {
+      await removeProviderModel(provider, model);
+    } else {
+      await removeProviderConfig(provider);
+    }
     const [summary, details] = await Promise.all([
       getProviderSummary(),
       getConfiguredProviderDetails(),
     ]);
     setProviderSummary(summary);
     setConfiguredProviderDetails(details);
-    if (provider === selectedProvider) {
+    if (provider === selectedProvider && details.length === 0) {
       setSelectedProvider(summary.defaultProvider);
     }
   }
