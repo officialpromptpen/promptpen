@@ -1,22 +1,20 @@
-import type * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import { Input as InputPrimitive } from "@base-ui/react/input"
 
-function Input({
-  className,
-  type = "text",
-  ...props
-}: React.ComponentProps<"input">) {
+import { cn } from "@/lib/utils"
+
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
-    <input
+    <InputPrimitive
+      type={type}
+      data-slot="input"
       className={cn(
-        "pp:flex pp:h-9 pp:w-full pp:rounded-lg pp:border pp:border-input pp:bg-background pp:px-3 pp:py-1.5 pp:text-sm pp:shadow-xs pp:outline-none pp:transition-colors pp:focus-visible:border-ring pp:focus-visible:ring-3 pp:focus-visible:ring-ring/50 pp:disabled:cursor-not-allowed pp:disabled:opacity-50",
+        "pp:h-8 pp:w-full pp:min-w-0 pp:rounded-lg pp:border pp:border-input pp:bg-transparent pp:px-2.5 pp:py-1 pp:text-base pp:transition-colors pp:outline-none pp:file:inline-flex pp:file:h-6 pp:file:border-0 pp:file:bg-transparent pp:file:text-sm pp:file:font-medium pp:file:text-foreground pp:placeholder:text-muted-foreground pp:focus-visible:border-ring pp:focus-visible:ring-3 pp:focus-visible:ring-ring/50 pp:disabled:pointer-events-none pp:disabled:cursor-not-allowed pp:disabled:bg-input/50 pp:disabled:opacity-50 pp:aria-invalid:border-destructive pp:aria-invalid:ring-3 pp:aria-invalid:ring-destructive/20 pp:md:text-sm pp:dark:bg-input/30 pp:dark:disabled:bg-input/80 pp:dark:aria-invalid:border-destructive/50 pp:dark:aria-invalid:ring-destructive/40",
         className
       )}
-      data-slot="input"
-      type={type}
       {...props}
     />
-  );
+  )
 }
 
-export { Input };
+export { Input }
