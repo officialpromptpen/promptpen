@@ -1,4 +1,4 @@
-import { Loader2, Save, Wifi } from "lucide-react";
+import { Loader2, PlusCircle, Save, Wifi } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -228,17 +228,15 @@ export function ProviderSetupForm({
 
   return (
     <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
-      <div className="pp:mb-6">
-        <h2 className="pp:flex pp:items-center pp:gap-2 pp:font-semibold pp:text-lg">
-          <span className="pp:flex pp:size-8 pp:items-center pp:justify-center pp:rounded-full pp:bg-primary/10 pp:text-primary">
-            <Save className="pp:size-4" />
-          </span>
+      <div className="pp:mb-6 pp:border-b pp:border-border/60 pp:pb-4">
+        <h2 className="pp:flex pp:items-center pp:gap-2.5 pp:font-semibold pp:text-lg pp:text-foreground">
+          <PlusCircle className="pp:size-5 pp:text-emerald-600 dark:pp:text-emerald-400" />
           Add New Provider
         </h2>
       </div>
 
       <form
-        className="pp:space-y-4"
+        className="pp:space-y-5"
         onSubmit={form.handleSubmit(handleSaveProvider)}
       >
         <div
@@ -247,10 +245,10 @@ export function ProviderSetupForm({
         >
           <div className="pp:space-y-1.5">
             <Label
-              className="pp:text-xs pp:uppercase pp:tracking-wide"
+              className="pp:font-bold pp:text-[11px] pp:uppercase pp:tracking-wider pp:text-muted-foreground"
               htmlFor="provider-service"
             >
-              Provider Service
+              PROVIDER SERVICE
             </Label>
             <Controller
               control={form.control}
@@ -263,7 +261,10 @@ export function ProviderSetupForm({
                   }}
                   value={field.value}
                 >
-                  <SelectTrigger className="pp:w-full" id="provider-service">
+                  <SelectTrigger
+                    className="pp:h-10 pp:w-full pp:rounded-lg pp:border-input pp:bg-background"
+                    id="provider-service"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -285,16 +286,17 @@ export function ProviderSetupForm({
 
           <div className="pp:space-y-1.5" id="pp-tour-model-field">
             <Label
-              className="pp:text-xs pp:uppercase pp:tracking-wide"
+              className="pp:font-bold pp:text-[11px] pp:uppercase pp:tracking-wider pp:text-muted-foreground"
               htmlFor="provider-model"
             >
-              Model ID
+              MODEL ID
             </Label>
             <Controller
               control={form.control}
               name="model"
               render={({ field }) => (
                 <Input
+                  className="pp:h-10 pp:rounded-lg"
                   id="provider-model"
                   onChange={field.onChange}
                   placeholder={
@@ -305,7 +307,7 @@ export function ProviderSetupForm({
               )}
             />
             {modelChoices.length > 0 && (
-              <div className="pp:flex pp:flex-wrap pp:gap-2">
+              <div className="pp:flex pp:flex-wrap pp:gap-2 pp:pt-1">
                 {modelChoices.map((choice) => {
                   const active = selectedModel === choice.value;
                   return (
@@ -335,16 +337,17 @@ export function ProviderSetupForm({
 
         <div className="pp:space-y-1.5" id="pp-tour-api-key-field">
           <Label
-            className="pp:text-xs pp:uppercase pp:tracking-wide"
+            className="pp:font-bold pp:text-[11px] pp:uppercase pp:tracking-wider pp:text-muted-foreground"
             htmlFor="provider-api-key"
           >
-            API Key
+            API KEY
           </Label>
           <Controller
             control={form.control}
             name="apiKey"
             render={({ field }) => (
               <PasswordInput
+                className="pp:h-10 pp:rounded-lg"
                 id="provider-api-key"
                 onChange={field.onChange}
                 placeholder={
@@ -372,9 +375,9 @@ export function ProviderSetupForm({
           />
         )}
 
-        <div className="pp:flex pp:justify-end pp:gap-3">
+        <div className="pp:flex pp:justify-end pp:gap-3 pp:pt-2">
           <Button
-            className="pp:gap-2"
+            className="pp:gap-2 pp:rounded-lg pp:border-border pp:px-4"
             disabled={isTesting}
             id="pp-tour-test-btn"
             onClick={form.handleSubmit(handleTestConnection)}
@@ -389,7 +392,7 @@ export function ProviderSetupForm({
             Test Connection
           </Button>
           <Button
-            className="pp:gap-2"
+            className="pp:gap-2 pp:rounded-lg pp:bg-emerald-600 hover:pp:bg-emerald-700 pp:text-white dark:pp:bg-emerald-600 dark:hover:pp:bg-emerald-700 pp:px-4"
             disabled={isSaving}
             id="pp-tour-save-btn"
             type="submit"

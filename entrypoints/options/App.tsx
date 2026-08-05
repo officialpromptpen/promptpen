@@ -1,17 +1,15 @@
 import { AnimatePresence, domAnimation, LazyMotion, m } from "framer-motion";
 import {
   Bug,
-  ChevronRight,
   Info,
   Lightbulb,
   Loader2,
+  MessagesSquare,
   Star,
-  MessagesSquare
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { browser } from "wxt/browser";
 import { Logo } from "@/components/Logo";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { sections } from "@/constants/options";
 import { getTourStep, startDashboardTour } from "@/features/onboarding/tour";
@@ -69,19 +67,24 @@ function IndexOptions() {
   return (
     <div className="pp:flex pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
       <aside
-        className="pp:flex pp:w-60 pp:flex-col pp:border-r pp:bg-card"
+        className="pp:flex pp:w-64 pp:flex-col pp:justify-between pp:border-r pp:bg-card pp:p-4"
         id="pp-tour-sidebar"
       >
-        <div className="pp:flex pp:h-14 pp:items-center pp:gap-2 pp:px-5">
-          <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg">
-            <Logo />
+        <div className="pp:flex pp:flex-col pp:gap-5">
+          <div className="pp:flex pp:items-center pp:gap-3 pp:px-2 pp:pt-2">
+            <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg">
+              <Logo />
+            </div>
+            <div className="pp:flex pp:flex-col">
+              <span className="pp:font-bold pp:text-base pp:leading-tight pp:text-foreground">
+                PromptPen
+              </span>
+              <span className="pp:font-normal pp:text-muted-foreground pp:text-xs">
+                v{browser.runtime.getManifest().version}
+              </span>
+            </div>
           </div>
-          <span className="pp:font-semibold pp:text-sm">PromptPen</span>
-        </div>
 
-        <Separator />
-
-        <div className="pp:flex-1 pp:overflow-y-auto pp:px-2 pp:py-3">
           <nav className="pp:flex pp:flex-col pp:gap-1">
             {sections.map((section) => {
               const Icon = section.icon;
@@ -89,10 +92,10 @@ function IndexOptions() {
               return (
                 <button
                   className={cn(
-                    "pp:flex pp:items-center pp:gap-3 pp:rounded-lg pp:px-3 pp:py-2 pp:font-medium pp:text-sm pp:transition-colors",
+                    "pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-xl pp:px-3.5 pp:py-2.5 pp:font-medium pp:text-sm pp:transition-colors",
                     selected
-                      ? "pp:bg-accent pp:text-accent-foreground"
-                      : "pp:text-muted-foreground hover:pp:bg-accent/50 hover:pp:text-accent-foreground"
+                      ? "pp:bg-primary/10 pp:text-primary pp:font-semibold"
+                      : "pp:text-muted-foreground hover:pp:bg-muted/60 hover:pp:text-foreground"
                   )}
                   id={`pp-tour-nav-${section.id}`}
                   key={section.id}
@@ -103,39 +106,32 @@ function IndexOptions() {
                   <span className="pp:flex-1 pp:text-left">
                     {section.label}
                   </span>
-                  {selected && (
-                    <ChevronRight className="pp:h-3.5 pp:w-3.5 pp:text-muted-foreground/60" />
-                  )}
                 </button>
               );
             })}
           </nav>
         </div>
 
-        <div className="pp:border-t pp:px-2 pp:py-1">
-          <Button
-            className="pp:h-auto pp:w-full pp:rounded-none pp:px-3 pp:py-3 pp:text-left"
+        <div className="pp:space-y-3 pp:pt-2">
+          <Separator className="pp:bg-border/60" />
+          <button
+            className="pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-xl pp:p-2.5 pp:text-left pp:transition-colors hover:pp:bg-muted/60"
             onClick={() => setAboutOpen(true)}
             type="button"
-            variant="ghost"
           >
-            <div className="pp:flex pp:h-9 pp:w-9 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-full pp:border pp:border-border/70 pp:bg-background/70 pp:shadow-inner">
-              <Info className="pp:h-4 pp:w-4" />
+            <div className="pp:flex pp:h-9 pp:w-9 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-full pp:bg-primary/10 pp:font-bold pp:text-primary pp:text-xs">
+              PP
             </div>
-            <div
-              aria-hidden="true"
-              className="pp:h-8 pp:w-px pp:bg-border/70"
-            />
-            <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col pp:items-start pp:gap-0.5">
-              <span className="pp:font-semibold pp:text-base pp:leading-none">
-                About
+            <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col">
+              <span className="pp:font-semibold pp:text-sm pp:text-foreground">
+                About PromptPen
               </span>
-              <p className="pp:text-muted-foreground pp:text-xs">
-                PromptPen v{browser.runtime.getManifest().version}
-              </p>
+              <span className="pp:truncate pp:text-muted-foreground pp:text-xs">
+                v{browser.runtime.getManifest().version}
+              </span>
             </div>
-            <ChevronRight className="pp:h-5 pp:w-5 pp:text-muted-foreground/80" />
-          </Button>
+            <Info className="pp:h-4 pp:w-4 pp:text-muted-foreground/70" />
+          </button>
         </div>
       </aside>
 
