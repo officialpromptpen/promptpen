@@ -14,6 +14,20 @@ import { Separator } from "@/components/ui/separator";
 import { sections } from "@/constants/options";
 import { getTourStep, startDashboardTour } from "@/features/onboarding/tour";
 import { cn } from "@/lib/utils";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarSeparator,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { useOptionsState } from "./hooks/use-options-state";
 import { AdvancedSection } from "./sections/advanced";
 import { AIProvidersSection } from "./sections/ai-providers";
@@ -65,98 +79,106 @@ function IndexOptions() {
   }
 
   return (
-    <div className="pp:flex pp:overflow-hidden pp:h-dvh pp:w-dvw pp:bg-background pp:text-foreground">
-      <aside
-        className="pp:flex pp:w-64 pp:flex-col pp:justify-between pp:border-r pp:bg-card pp:p-4"
-        id="pp-tour-sidebar"
-      >
-        <div className="pp:flex pp:flex-col pp:gap-5">
-          <div className="pp:flex pp:items-center pp:gap-3 pp:px-2 pp:pt-2">
-            <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg">
-              <Logo />
+    <SidebarProvider>
+      <div className="pp:flex pp:h-dvh pp:w-dvw pp:overflow-hidden pp:bg-background pp:text-foreground">
+        <Sidebar id="pp-tour-sidebar">
+          <SidebarHeader className="pp:p-4">
+            <div className="pp:flex pp:items-center pp:gap-3 pp:px-2 pp:pt-2">
+              <div className="pp:flex pp:h-8 pp:w-8 pp:items-center pp:justify-center pp:rounded-lg">
+                <Logo />
+              </div>
+              <div className="pp:flex pp:flex-col">
+                <span className="pp:font-bold pp:text-base pp:leading-tight pp:text-sidebar-foreground">
+                  PromptPen
+                </span>
+                <span className="pp:font-normal pp:text-muted-foreground pp:text-xs">
+                  v{browser.runtime.getManifest().version}
+                </span>
+              </div>
             </div>
-            <div className="pp:flex pp:flex-col">
-              <span className="pp:font-bold pp:text-base pp:leading-tight pp:text-foreground">
+          </SidebarHeader>
+
+          <SidebarContent className="pp:px-2 pp:pt-4">
+            <SidebarGroup className="pp:p-0">
+              <SidebarGroupContent>
+                <SidebarMenu className="pp:gap-1">
+                  {sections.map((section) => {
+                    const Icon = section.icon;
+                    const selected = state.activeSection === section.id;
+                    return (
+                      <SidebarMenuItem key={section.id}>
+                        <SidebarMenuButton
+                          id={`pp-tour-nav-${section.id}`}
+                          isActive={selected}
+                          onClick={() => state.setActiveSection(section.id)}
+                          tooltip={section.label}
+                        >
+                          <Icon className="pp:h-4 pp:w-4 pp:shrink-0" />
+                          <span>{section.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+
+          <SidebarFooter className="pp:p-4 pp:space-y-3">
+            <SidebarSeparator className="pp:mx-0 pp:w-full" />
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  className="pp:w-full pp:p-2.5"
+                  onClick={() => setAboutOpen(true)}
+                  size="lg"
+                >
+                  <div className="pp:flex pp:h-9 pp:w-9 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-lg">
+                    <Logo />
+                  </div>
+                  <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col">
+                    <span className="pp:font-semibold pp:text-sidebar-foreground pp:text-sm">
+                      About PromptPen
+                    </span>
+                    <span className="pp:truncate pp:text-muted-foreground pp:text-xs">
+                      v{browser.runtime.getManifest().version}
+                    </span>
+                  </div>
+                  <Info className="pp:h-4 pp:w-4 pp:shrink-0 pp:text-muted-foreground/70" />
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        <LazyMotion features={domAnimation}>
+          <main className="pp:flex pp:flex-1 pp:flex-col pp:overflow-hidden">
+            <div className="pp:flex pp:items-center pp:border-b pp:p-2 pp:md:hidden">
+              <SidebarTrigger />
+              <span className="pp:ml-2 pp:font-semibold pp:text-sm">
                 PromptPen
               </span>
-              <span className="pp:font-normal pp:text-muted-foreground pp:text-xs">
-                v{browser.runtime.getManifest().version}
-              </span>
             </div>
-          </div>
-
-          <nav className="pp:flex pp:flex-col pp:gap-1">
-            {sections.map((section) => {
-              const Icon = section.icon;
-              const selected = state.activeSection === section.id;
-              return (
-                <button
-                  className={cn(
-                    "pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-xl pp:px-3.5 pp:py-2.5 pp:font-medium pp:text-sm pp:transition-colors",
-                    selected
-                      ? "pp:bg-primary/10 pp:text-primary pp:font-semibold"
-                      : "pp:text-muted-foreground hover:pp:bg-muted/60 hover:pp:text-foreground"
-                  )}
-                  id={`pp-tour-nav-${section.id}`}
-                  key={section.id}
-                  onClick={() => state.setActiveSection(section.id)}
-                  type="button"
+            <AnimatePresence mode="wait">
+              {state.loaded && (
+                <m.div
+                  animate={{ opacity: 1, y: 0 }}
+                  className="pp:flex-1 pp:overflow-auto"
+                  exit={{ opacity: 0, y: -8 }}
+                  initial={{ opacity: 0, y: 8 }}
+                  key={state.activeSection}
+                  transition={{ duration: 0.15 }}
                 >
-                  <Icon className="pp:h-4 pp:w-4 pp:shrink-0" />
-                  <span className="pp:flex-1 pp:text-left">
-                    {section.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="pp:space-y-3 pp:pt-2">
-          <Separator className="pp:bg-border/60" />
-          <button
-            className="pp:flex pp:w-full pp:items-center pp:gap-3 pp:rounded-xl pp:p-2.5 pp:text-left pp:transition-colors hover:pp:bg-muted/60"
-            onClick={() => setAboutOpen(true)}
-            type="button"
-          >
-            <div className="pp:flex pp:h-9 pp:w-9 pp:items-center pp:justify-center pp:rounded-lg">
-              <Logo />
-            </div>
-            <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col">
-              <span className="pp:font-semibold pp:text-sm pp:text-foreground">
-                About PromptPen
-              </span>
-              <span className="pp:truncate pp:text-muted-foreground pp:text-xs">
-                v{browser.runtime.getManifest().version}
-              </span>
-            </div>
-            <Info className="pp:h-4 pp:w-4 pp:text-muted-foreground/70" />
-          </button>
-        </div>
-      </aside>
-
-      <LazyMotion features={domAnimation}>
-        <main className="pp:flex pp:flex-1 pp:flex-col">
-          <AnimatePresence mode="wait">
-            {state.loaded && (
-              <m.div
-                animate={{ opacity: 1, y: 0 }}
-                className="pp:flex-1 pp:overflow-auto"
-                exit={{ opacity: 0, y: -8 }}
-                initial={{ opacity: 0, y: 8 }}
-                key={state.activeSection}
-                transition={{ duration: 0.15 }}
-              >
-                {renderSection()}
-              </m.div>
+                  {renderSection()}
+                </m.div>
+              )}
+            </AnimatePresence>
+            {!state.loaded && (
+              <div className="pp:flex pp:flex-1 pp:items-center pp:justify-center">
+                <Loader2 className="pp:h-6 pp:w-6 pp:animate-spin" />
+              </div>
             )}
-          </AnimatePresence>
-          {!state.loaded && (
-            <div className="pp:flex pp:flex-1 pp:items-center pp:justify-center">
-              <Loader2 className="pp:h-6 pp:w-6 pp:animate-spin" />
-            </div>
-          )}
-        </main>
+          </main>
 
         <AnimatePresence>
           {aboutOpen && (
@@ -249,6 +271,7 @@ function IndexOptions() {
         </AnimatePresence>
       </LazyMotion>
     </div>
+  </SidebarProvider>
   );
 }
 
