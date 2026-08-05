@@ -13,6 +13,7 @@ AI-powered writing assistant for Chrome and Firefox. Select text on any webpage 
 
 - **Rewrite** — Improve writing, fix grammar, simplify language, or rewrite as a single sentence/paragraph
 - **Tone adjustment** — 15+ tones: professional, casual, friendly, confident, thoughtful, optimistic, and more
+- **Blog titles & SEO meta** — Generate 1 to 10 title ideas, SEO titles, 5 SEO meta descriptions (150-160 chars), SEO title & meta description pairs, catchy headlines, listicles, how-to, or question titles from selected text
 - **Transform** — Convert text into bullet lists, numbered lists, or summaries
 - **Modify** — Shorten, expand, summarize, or explain selected text
 - **Custom prompts** — Create and save your own reusable writing prompts

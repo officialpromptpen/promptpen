@@ -1,12 +1,17 @@
+
 import {
   BookOpen,
   CaseSensitive,
   ChevronRight,
   ClipboardCheck,
   FileText,
+  Heading,
+  HelpCircle,
   Languages,
+  Lightbulb,
   List,
   ListOrdered,
+  ListPlus,
   Maximize2,
   MessageCircleHeart,
   MessageCircleMore,
@@ -17,13 +22,17 @@ import {
   RefreshCw,
   Scale,
   ScanText,
+  SearchCode,
   Sparkles,
   SpellCheck,
   SquarePen,
   StretchHorizontal,
+  Tag,
   Target,
   TrendingUp,
+  Type,
   WandSparkles,
+  Zap,
 } from "lucide-react";
 import type { Action, ActionCategory } from "@/types";
 
@@ -32,9 +41,11 @@ export const ACTION_CATEGORY_ORDER: ActionCategory[] = [
   "modify",
   "tone",
   "transform",
+  "blog",
 ];
 
 export const ACTION_CATEGORY_LABELS: Record<ActionCategory, string> = {
+  "blog": "Blog",
   modify: "Modify",
   rewrite: "Rewrite",
   tone: "Tone",
@@ -246,6 +257,94 @@ export const actions: Action[] = [
     id: "transform-numbered",
     label: "Turn into numbered list",
     prompt: "Transform the text into a numbered list.",
+  },
+  {
+    category: "blog",
+    icon: Type,
+    id: "generate-1-blog-title",
+    label: "Generate 1 Blog Title",
+    prompt:
+      "Generate 1 high-converting, catchy blog title based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: Lightbulb,
+    id: "generate-3-blog-titles",
+    label: "Generate 3 Blog Titles",
+    prompt:
+      "Generate 3 diverse, creative blog title options based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: Sparkles,
+    id: "generate-5-blog-titles",
+    label: "Generate 5 Blog Titles",
+    prompt:
+      "Generate 5 compelling, engaging blog title options based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: ListPlus,
+    id: "generate-10-blog-titles",
+    label: "Generate 10 Blog Titles",
+    prompt:
+      "Generate 10 diverse, high-performing blog title options based on the selected text or heading, numbered 1 to 10.",
+  },
+  {
+    category: "blog",
+    icon: SearchCode,
+    id: "generate-seo-blog-titles",
+    label: "Generate SEO Blog Titles",
+    prompt:
+      "Generate 5 SEO-optimized blog titles with high search intent keywords based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: Zap,
+    id: "generate-clickbait-blog-titles",
+    label: "Generate Catchy / Clickbait Titles",
+    prompt:
+      "Generate 5 high-CTR, curiosity-inducing, catchy blog titles based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: Tag,
+    id: "generate-listicle-blog-titles",
+    label: "Generate Listicle Blog Titles",
+    prompt:
+      "Generate 5 listicle-style blog titles (e.g. '10 Best...', '7 Proven Ways to...') based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: Heading,
+    id: "generate-howto-blog-titles",
+    label: "Generate How-To Blog Titles",
+    prompt:
+      "Generate 5 actionable 'How To' blog titles based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: HelpCircle,
+    id: "generate-question-blog-titles",
+    label: "Generate Question Blog Titles",
+    prompt:
+      "Generate 5 intriguing question-based blog titles that spark reader curiosity based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: SearchCode,
+    id: "generate-5-seo-meta-descriptions",
+    label: "Generate 5 SEO Meta Descriptions",
+    prompt:
+      "Generate 5 optimized SEO meta descriptions (150-160 characters each) based on the selected text or heading.",
+  },
+  {
+    category: "blog",
+    icon: FileText,
+    id: "generate-seo-meta-title-desc",
+    label: "Generate SEO Title & Meta Description Pairs",
+    prompt:
+      "Generate 5 pairs of SEO Title (50-60 characters) and Meta Description (150-160 characters) formatted cleanly based on the selected text or heading.",
   },
 ];
 

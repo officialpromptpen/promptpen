@@ -18,7 +18,7 @@ export type AIProvider =
 
 export type Theme = "dark" | "light" | "system"
 
-export type ActionCategory = "modify" | "rewrite" | "tone" | "transform"
+export type ActionCategory = "modify" | "rewrite" | "tone" | "transform" | "blog"
 
 export interface Action {
 	category: ActionCategory
