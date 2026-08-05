@@ -44,10 +44,10 @@ export function GeneralSection(state: OptionsState) {
 
   const configuredProviders = state.providerSummary?.configuredProviders ?? [];
   const fallbackProvider =
-    state.settings.defaultProvider ??
-    state.providerSummary?.defaultProvider ??
-    configuredProviders[0] ??
-    "openai";
+    (state.settings.defaultProvider &&
+    configuredProviders.includes(state.settings.defaultProvider)
+      ? state.settings.defaultProvider
+      : configuredProviders[0]) ?? null;
 
   const configuredModelByProvider = useMemo(
     () =>
@@ -79,10 +79,9 @@ export function GeneralSection(state: OptionsState) {
   const form = useForm<GeneralFormValues>({
     defaultValues: {
       defaultModel:
-        state.settings.defaultModel ??
-        configuredModelByProvider.get(fallbackProvider as AIProvider) ??
-        getProviderDefinition(fallbackProvider as AIProvider).defaultModel,
-      defaultProvider: fallbackProvider as AIProvider,
+        (fallbackProvider ? configuredModelByProvider.get(fallbackProvider) : "") ??
+        "",
+      defaultProvider: (fallbackProvider ?? "") as AIProvider,
       transformersDefaultModel: "",
     },
     mode: "onChange",
@@ -92,30 +91,37 @@ export function GeneralSection(state: OptionsState) {
 
   const modelOptions = useMemo(() => {
     const provider = selectedProvider as AIProvider;
-    const definition = getProviderDefinition(provider);
-    const configuredModel = configuredModelByProvider.get(provider);
-    const presetOptions = PROVIDER_MODEL_PRESETS[provider] ?? [];
+    if (!provider) {
+      return [];
+    }
 
-    const choices = [
-      ...(configuredModel
-        ? [{ label: `Configured: ${configuredModel}`, value: configuredModel }]
-        : []),
-      ...presetOptions,
-      {
-        label: `Provider default: ${definition.defaultModel}`,
-        value: definition.defaultModel,
-      },
-    ];
+    const providerDetails = state.configuredProviderDetails.filter(
+      (item) => item.provider === provider
+    );
 
-    const uniqueChoices = new Map<string, { label: string; value: string }>();
-    for (const choice of choices) {
-      if (!uniqueChoices.has(choice.value)) {
-        uniqueChoices.set(choice.value, choice);
+    const activeModels = new Set<string>();
+    for (const detail of providerDetails) {
+      if (detail.model) {
+        activeModels.add(detail.model);
+      }
+      if (detail.models) {
+        for (const m of detail.models) {
+          activeModels.add(m);
+        }
       }
     }
 
-    return Array.from(uniqueChoices.values());
-  }, [configuredModelByProvider, selectedProvider]);
+    if (provider === "transformers") {
+      for (const tm of downloadedTransformersModels) {
+        activeModels.add(tm.modelId);
+      }
+    }
+
+    return Array.from(activeModels).map((modelId) => ({
+      label: modelId,
+      value: modelId,
+    }));
+  }, [downloadedTransformersModels, selectedProvider, state.configuredProviderDetails]);
 
   useEffect(() => {
     async function loadTransformersModels() {
@@ -124,43 +130,59 @@ export function GeneralSection(state: OptionsState) {
       setDownloadedTransformersModels(readyModels);
 
       const selectedIds = await getSelectedTransformersModelIds();
-      const defaultTransformersModel = selectedIds[0] ?? readyModels[0]?.modelId ?? "";
+      const defaultTransformersModel =
+        selectedIds[0] ?? readyModels[0]?.modelId ?? "";
       form.setValue("transformersDefaultModel", defaultTransformersModel);
     }
     void loadTransformersModels();
   }, [form]);
 
   useEffect(() => {
-    const nextProvider = fallbackProvider as AIProvider;
-    const nextModel =
-      state.settings.defaultModel ??
-      configuredModelByProvider.get(nextProvider) ??
-      getProviderDefinition(nextProvider).defaultModel;
+    if (!fallbackProvider) {
+      form.reset({
+        defaultModel: "",
+        defaultProvider: "" as AIProvider,
+        transformersDefaultModel: form.getValues("transformersDefaultModel"),
+      });
+      return;
+    }
+
+    const providerDetails = state.configuredProviderDetails.filter(
+      (item) => item.provider === fallbackProvider
+    );
+    const activeModel =
+      state.settings.defaultModel || providerDetails[0]?.model || "";
 
     form.reset({
-      defaultModel: nextModel,
-      defaultProvider: nextProvider,
+      defaultModel: activeModel,
+      defaultProvider: fallbackProvider,
       transformersDefaultModel: form.getValues("transformersDefaultModel"),
     });
   }, [
-    configuredModelByProvider,
+    configuredProviders,
     fallbackProvider,
     form,
+    state.configuredProviderDetails,
     state.settings.defaultModel,
   ]);
 
   async function handleSave(values: GeneralFormValues) {
     setIsSaving(true);
     try {
-      await setDefaultProvider(values.defaultProvider);
-      await saveProviderConfig(values.defaultProvider, values.defaultModel);
+      if (values.defaultProvider && values.defaultModel) {
+        await setDefaultProvider(values.defaultProvider);
+        await saveProviderConfig(values.defaultProvider, values.defaultModel);
+      }
       await state.refreshProviderData();
 
       if (values.transformersDefaultModel) {
         await setSelectedTransformersModelIds([
           values.transformersDefaultModel,
         ]);
-        await saveProviderConfig("transformers", values.transformersDefaultModel);
+        await saveProviderConfig(
+          "transformers",
+          values.transformersDefaultModel
+        );
       }
 
       state.setSettings((previous) => ({
@@ -176,15 +198,24 @@ export function GeneralSection(state: OptionsState) {
   }
 
   function handleDiscard() {
-    const nextProvider = fallbackProvider as AIProvider;
-    const nextModel =
-      state.settings.defaultModel ??
-      configuredModelByProvider.get(nextProvider) ??
-      getProviderDefinition(nextProvider).defaultModel;
+    if (!fallbackProvider) {
+      form.reset({
+        defaultModel: "",
+        defaultProvider: "" as AIProvider,
+        transformersDefaultModel: form.getValues("transformersDefaultModel"),
+      });
+      return;
+    }
+
+    const providerDetails = state.configuredProviderDetails.filter(
+      (item) => item.provider === fallbackProvider
+    );
+    const activeModel =
+      state.settings.defaultModel || providerDetails[0]?.model || "";
 
     form.reset({
-      defaultModel: nextModel,
-      defaultProvider: nextProvider,
+      defaultModel: activeModel,
+      defaultProvider: fallbackProvider,
       transformersDefaultModel: form.getValues("transformersDefaultModel"),
     });
   }
@@ -221,14 +252,16 @@ export function GeneralSection(state: OptionsState) {
                   name="defaultProvider"
                   render={({ field }) => (
                     <Select
+                      disabled={providerOptions.length === 0}
                       onValueChange={(value) => {
                         const nextProvider = value as AIProvider;
                         field.onChange(nextProvider);
 
-                        const nextModel =
-                          configuredModelByProvider.get(nextProvider) ??
-                          PROVIDER_MODEL_PRESETS[nextProvider]?.[0]?.value ??
-                          getProviderDefinition(nextProvider).defaultModel;
+                        const providerDetails =
+                          state.configuredProviderDetails.filter(
+                            (item) => item.provider === nextProvider
+                          );
+                        const nextModel = providerDetails[0]?.model ?? "";
 
                         form.setValue("defaultModel", nextModel, {
                           shouldDirty: true,
@@ -240,17 +273,30 @@ export function GeneralSection(state: OptionsState) {
                         className="pp:w-full"
                         id="general-default-provider"
                       >
-                        <SelectValue />
+                        <SelectValue
+                          placeholder={
+                            providerOptions.length === 0
+                              ? "No active providers configured"
+                              : "Select AI Provider"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {providerOptions.map((option) => (
-                          <SelectGroup key={option.id}>
-                            <SelectLabel>{option.group}</SelectLabel>
-                            <SelectItem value={option.id}>
-                              {option.name}
-                            </SelectItem>
-                          </SelectGroup>
-                        ))}
+                        {providerOptions.length === 0 ? (
+                          <div className="pp:p-3 pp:text-muted-foreground pp:text-xs">
+                            No active providers configured yet. Configure a
+                            provider in AI Providers or Self-Hosted.
+                          </div>
+                        ) : (
+                          providerOptions.map((option) => (
+                            <SelectGroup key={option.id}>
+                              <SelectLabel>{option.group}</SelectLabel>
+                              <SelectItem value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            </SelectGroup>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -271,19 +317,35 @@ export function GeneralSection(state: OptionsState) {
                   control={form.control}
                   name="defaultModel"
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      disabled={modelOptions.length === 0}
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
                       <SelectTrigger
                         className="pp:w-full"
                         id="general-default-model"
                       >
-                        <SelectValue />
+                        <SelectValue
+                          placeholder={
+                            modelOptions.length === 0
+                              ? "No active models configured"
+                              : "Select AI Model"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {modelOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
+                        {modelOptions.length === 0 ? (
+                          <div className="pp:p-3 pp:text-muted-foreground pp:text-xs">
+                            No active models configured for this provider.
+                          </div>
+                        ) : (
+                          modelOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}
