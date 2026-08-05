@@ -189,8 +189,14 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
         setOllamaMessage("Connection successful.");
       } else {
         setOllamaStatus("error");
+        const rawMessage = result.message ?? "Unknown error.";
+        const isForbidden = rawMessage.toLowerCase().includes("forbidden");
         setOllamaMessage(
-          `Connection failed. ${result.message ?? "Unknown error."}`
+          `Connection failed. ${rawMessage}${
+            isForbidden
+              ? " (Ollama blocks cross-origin extension requests by default. Set OLLAMA_ORIGINS=\"*\" in your system/Ollama environment)."
+              : ""
+          }`
         );
       }
     } catch {
