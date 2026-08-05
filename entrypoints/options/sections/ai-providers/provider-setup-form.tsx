@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { PROVIDER_MODEL_PRESETS } from "@/constants/ai-providers/model-options";
 import type { PopularModel } from "@/constants/ai-providers/popular-models";
+import { ProviderIcon } from "@/features/providers/provider-icons";
 import {
   CATEGORY_LABELS,
   getProviderDefinition,
@@ -86,6 +87,8 @@ export function ProviderSetupForm({
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<ProviderStatus>("idle");
 
+  const [savedModels, setSavedModels] = useState<string[]>([]);
+
   const form = useForm<ProviderSetupFormValues>({
     defaultValues: {
       apiKey: "",
@@ -122,6 +125,7 @@ export function ProviderSetupForm({
           : undefined;
 
       setHasStoredApiKey(editorState.hasApiKey);
+      setSavedModels(editorState.models ?? []);
       setStatusType("idle");
       setStatusMessage("");
       form.reset({
@@ -140,12 +144,7 @@ export function ProviderSetupForm({
 
     void syncProviderEditorState();
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    form,
-    selectedProvider,
-    state.providerSummary?.defaultProvider,
-    state.settings.defaultProvider,
-  ]);
+  }, [selectedProvider, pendingQuickAdd]);
 
   async function handleTestConnection(values: ProviderSetupFormValues) {
     setIsTesting(true);
@@ -174,14 +173,22 @@ export function ProviderSetupForm({
 
       if (result.ok) {
         setStatusType("success");
-        setStatusMessage("Connection successful.");
+        setStatusMessage("Connection successful! Provider is ready to use.");
       } else {
         setStatusType("error");
-        setStatusMessage(result.message ?? "Connection test failed.");
+        setStatusMessage(
+          result.message
+            ? `Connection test failed: ${result.message}`
+            : "Connection test failed. Check your API key and model ID."
+        );
       }
-    } catch {
+    } catch (error) {
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Connection test failed unexpectedly.";
       setStatusType("error");
-      setStatusMessage("Connection test failed unexpectedly.");
+      setStatusMessage(`Connection test error: ${msg}`);
     } finally {
       setIsTesting(false);
     }
@@ -196,11 +203,18 @@ export function ProviderSetupForm({
       const trimmedModel = values.model.trim();
       if (!trimmedModel) {
         setStatusType("error");
-        setStatusMessage("Model is required.");
+        setStatusMessage("Model ID is required.");
         return;
       }
 
-      await saveProviderConfig(values.provider, trimmedModel, values.apiKey);
+      const resolvedApiKey = values.apiKey.trim();
+      if (!resolvedApiKey && !hasStoredApiKey) {
+        setStatusType("error");
+        setStatusMessage("API key is required to save provider.");
+        return;
+      }
+
+      await saveProviderConfig(values.provider, trimmedModel, resolvedApiKey);
 
       if (values.makeDefault) {
         await setDefaultProvider(values.provider);
@@ -211,16 +225,22 @@ export function ProviderSetupForm({
         }));
       }
 
+      setHasStoredApiKey(true);
       await state.refreshProviderData();
+
       setStatusType("success");
       setStatusMessage(
         values.makeDefault
-          ? "Provider saved and set as default."
-          : "Provider saved successfully."
+          ? "Provider saved and set as default!"
+          : "Provider saved successfully!"
       );
-    } catch {
+    } catch (error) {
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Unable to save provider settings.";
       setStatusType("error");
-      setStatusMessage("Unable to save provider settings. Please retry.");
+      setStatusMessage(`Save error: ${msg}`);
     } finally {
       setIsSaving(false);
     }
@@ -273,7 +293,13 @@ export function ProviderSetupForm({
                         <SelectLabel>{group.label}</SelectLabel>
                         {group.providers.map((provider) => (
                           <SelectItem key={provider.id} value={provider.id}>
-                            {provider.label}
+                            <div className="pp:flex pp:items-center pp:gap-2">
+                              <ProviderIcon
+                                className="pp:size-4"
+                                provider={provider.id}
+                              />
+                              <span>{provider.label}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -330,6 +356,36 @@ export function ProviderSetupForm({
                     </button>
                   );
                 })}
+              </div>
+            )}
+            {savedModels.length > 0 && (
+              <div className="pp:pt-2">
+                <span className="pp:mb-1 pp:block pp:font-medium pp:text-[11px] pp:text-muted-foreground">
+                  Configured models for{" "}
+                  {getProviderDefinition(selectedProvider).label}:
+                </span>
+                <div className="pp:flex pp:flex-wrap pp:gap-1.5">
+                  {savedModels.map((m) => {
+                    const active = selectedModel === m;
+                    return (
+                      <button
+                        className={cn(
+                          "pp:rounded-md pp:border pp:px-2.5 pp:py-1 pp:text-xs pp:transition-colors",
+                          active
+                            ? "pp:border-primary pp:bg-primary/10 pp:font-semibold pp:text-primary"
+                            : "pp:border-border pp:bg-background pp:text-muted-foreground hover:pp:bg-accent"
+                        )}
+                        key={m}
+                        onClick={() =>
+                          form.setValue("model", m, { shouldDirty: true })
+                        }
+                        type="button"
+                      >
+                        {m}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

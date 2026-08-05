@@ -7,6 +7,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProviderIcon } from "@/features/providers/provider-icons";
 import { cn } from "@/lib/utils";
 import type {
   AIProvider,
@@ -80,18 +81,18 @@ export function ConfiguredProvidersList({
             <ProviderDetailRow
               detail={detail}
               isCurrentlySelected={isCurrentlySelected}
-              key={detail.provider}
+              key={detail.id || `${detail.provider}:${detail.model}`}
               onConfirmDelete={async () => {
                 const accepted = globalThis.confirm(
-                  `Remove ${detail.label} configuration?`
+                  `Remove ${detail.label} (${detail.model}) configuration?`
                 );
                 if (!accepted) {
                   return;
                 }
-                await handleDeleteProvider(detail.provider);
+                await handleDeleteProvider(detail.provider, detail.model);
               }}
               onEdit={() => {
-                handleEditProvider(detail.provider);
+                handleEditProvider(detail.provider, detail.model);
               }}
               onRetry={() => onRetryConnection(detail.provider)}
             />
@@ -131,12 +132,9 @@ function ProviderDetailRow({
     >
       <div className="pp:flex pp:min-w-0 pp:items-center pp:gap-3">
         <div
-          className={cn(
-            "pp:flex pp:size-10 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-full",
-            statusMeta.iconClass
-          )}
+          className="pp:flex pp:size-10 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-full pp:border pp:bg-muted/30"
         >
-          <StatusIcon aria-hidden="true" className="pp:size-5" />
+          <ProviderIcon className="pp:size-5" provider={detail.provider} />
         </div>
         <div className="pp:flex pp:min-w-0 pp:flex-col pp:gap-0.5">
           <span className="pp:font-medium pp:text-foreground pp:text-sm">

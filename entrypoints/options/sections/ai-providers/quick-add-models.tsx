@@ -39,14 +39,10 @@ export function QuickAddPopularModels({
                 "pp:bg-muted pp:text-foreground"
               }`}
             >
-              {popularModel.provider === "openai" ? (
-                <Zap className="pp:size-4" />
-              ) : (
-                <ProviderIcon
-                  className="pp:size-4"
-                  provider={popularModel.provider}
-                />
-              )}
+              <ProviderIcon
+                className="pp:size-4"
+                provider={popularModel.provider}
+              />
             </span>
             <span className="pp:min-w-0">
               <span className="pp:block pp:truncate pp:font-medium pp:text-sm">
