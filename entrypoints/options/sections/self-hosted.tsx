@@ -495,9 +495,10 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       );
       env.useWasmCache = false;
       env.allowLocalModels = false;
-      const base = globalThis.chrome?.runtime?.getURL("onnx/");
+      const base = browser.runtime.getURL("/onnx/" as any);
       if (base && env.backends.onnx?.wasm) {
         env.backends.onnx.wasm.wasmPaths = {
+          mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
           wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
         };
         const execConfig = await getTransformersExecutionConfig();
@@ -559,7 +560,12 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
 
       const timeout = new Promise<never>((_, reject) =>
         setTimeout(
-          () => reject(new Error("Model download timed out after 10 minutes.")),
+          () =>
+            reject(
+              new Error(
+                "Model download timed out (exceeded 10 minutes). Keep this options tab open and ensure a stable internet connection while downloading."
+              )
+            ),
           600_000
         )
       );
@@ -855,8 +861,42 @@ function TransformersModelList({
   onRedownload: (modelId: string) => void;
   onRemove: (modelId: string) => void;
 }) {
+  const isDownloading = useMemo(
+    () =>
+      Object.values(downloadStates).some(
+        (s) => s.status === "downloading" || s.status === "validating"
+      ),
+    [downloadStates]
+  );
+
+  useEffect(() => {
+    if (!isDownloading) {
+      return;
+    }
+
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDownloading]);
+
   return (
-    <div className="pp:space-y-2">
+    <div className="pp:space-y-3">
+      {isDownloading && (
+        <div className="pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-amber-500/30 pp:bg-amber-500/10 pp:px-3 pp:py-2.5 pp:text-xs pp:text-amber-900 dark:pp:text-amber-200">
+          <TriangleAlert className="pp:mt-0.5 pp:size-4 pp:shrink-0 pp:text-amber-600" />
+          <div>
+            <span className="pp:font-semibold">Model download in progress.</span>
+            <p className="pp:mt-0.5">
+              Please do not reload, close, or navigate away from this page until the download completes.
+            </p>
+          </div>
+        </div>
+      )}
+      <div className="pp:space-y-2">
       {models.map((model) => {
         const dl = downloadStates[model.modelId] ?? {
           progress: 0,
@@ -959,6 +999,7 @@ function TransformersModelList({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

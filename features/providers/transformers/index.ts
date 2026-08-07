@@ -4,14 +4,16 @@ import type { LanguageModel } from "ai";
 import type { ProviderModule } from "../_types";
 import { getTransformersExecutionConfig } from "@/features/storage/self-hosted";
 import { RECOMMENDED_MODELS } from "./recommended-models";
+import { browser } from "wxt/browser"
 
 env.useWasmCache = false;
 env.allowLocalModels = false;
 
 async function configureBackend(): Promise<void> {
-  const base = globalThis.chrome?.runtime?.getURL("onnx/");
+  const base = browser.runtime.getURL("/onnx/" as any);
   if (base && env.backends.onnx?.wasm) {
     env.backends.onnx.wasm.wasmPaths = {
+      mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
       wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
     };
     const execConfig = await getTransformersExecutionConfig();
