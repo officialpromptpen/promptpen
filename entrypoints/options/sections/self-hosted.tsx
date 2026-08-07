@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -23,9 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getProviderDefinition,
-} from "@/features/providers/registry";
 import { testProviderConnectionWithValues } from "@/features/providers/sdk";
 import {
   getDecryptedAccessToken,
@@ -231,7 +234,7 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
         setOllamaMessage(
           `Connection failed. ${rawMessage}${
             isForbidden
-              ? " (Ollama blocks cross-origin extension requests by default. Set OLLAMA_ORIGINS=\"*\" in your system/Ollama environment)."
+              ? ' (Ollama blocks cross-origin extension requests by default. Set OLLAMA_ORIGINS="*" in your system/Ollama environment).'
               : ""
           }`
         );
@@ -328,7 +331,8 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
           <Label htmlFor="ollama-api-key">
             API Key{" "}
             <span className="pp:text-muted-foreground">
-              (optional for local Ollama, required for Ollama Cloud / remote endpoints)
+              (optional for local Ollama, required for Ollama Cloud / remote
+              endpoints)
             </span>
           </Label>
           <Controller
@@ -1082,84 +1086,105 @@ function TransformersWasmSettingsSection() {
   }
 
   return (
-    <div className="pp:mb-4 pp:rounded-lg pp:border pp:border-border/70 pp:p-4 pp:space-y-4">
-      <div className="pp:flex pp:items-center pp:gap-2">
-        <Sliders className="pp:size-4 pp:text-muted-foreground" />
-        <h3 className="pp:font-medium pp:text-sm">
-          ONNX WASM Execution Settings
-        </h3>
-      </div>
-
-      <div className="pp:rounded-md pp:border pp:border-amber-500/20 pp:bg-amber-500/10 pp:p-3 pp:text-xs pp:text-amber-900 dark:pp:text-amber-200">
-        <p className="pp:font-semibold pp:mb-1">
-          Defaults: Web Worker Proxy = Disabled (false), CPU Threads = 1
-        </p>
-        <p>
-          Chrome Extension Manifest V3 Service Workers (<code>ServiceWorkerGlobalScope</code>) prohibit dynamic <code>import()</code> and Web Worker sub-threading. Disabling proxy (<code>false</code>) and using <code>1</code> thread prevents background execution crashes.
-        </p>
-      </div>
-
-      <div className="pp:grid pp:grid-cols-1 md:pp:grid-cols-2 pp:gap-4">
-        {/* Feature 1: Web Worker Proxy */}
-        <div className="pp:rounded-lg pp:border pp:p-3.5 pp:bg-muted/30 pp:flex pp:flex-col pp:justify-between pp:space-y-2">
-          <div className="pp:flex pp:items-start pp:gap-2.5">
-            <Checkbox
-              id="transformers-proxy-checkbox"
-              checked={proxy}
-              onChange={(e) => setProxy(e.target.checked)}
-              className="pp:mt-0.5"
-            />
-            <div>
-              <Label
-                htmlFor="transformers-proxy-checkbox"
-                className="pp:cursor-pointer pp:font-medium pp:text-xs"
-              >
-                Web Worker Proxy (<code>proxy</code>)
-              </Label>
-              <p className="pp:text-muted-foreground pp:text-xs pp:mt-1">
-                Default: <strong>false (Disabled)</strong>. Prevents background worker crashes in Chrome Manifest V3.
+    <div className="pp:mb-4 pp:rounded-lg pp:border pp:border-border/70 pp:p-4">
+      <Accordion>
+        <AccordionItem className="pp:border-b-0" value="wasm-settings">
+          <AccordionTrigger className="pp:py-1 hover:pp:no-underline">
+            <div className="pp:flex pp:items-center pp:gap-2">
+              <Sliders className="pp:size-4 pp:text-muted-foreground" />
+              <span className="pp:font-medium pp:text-sm">
+                Advanced ONNX WASM Execution Settings
+              </span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pp:space-y-4 pp:pt-4">
+            <div className="pp:rounded-md pp:border pp:border-amber-500/20 pp:bg-amber-500/10 pp:p-3 pp:text-amber-900 pp:text-xs dark:pp:text-amber-200">
+              <p className="pp:mb-1 pp:font-semibold">
+                Defaults: Web Worker Proxy = Disabled (false), CPU Threads = 1
+              </p>
+              <p>
+                Chrome Extension Manifest V3 Service Workers (
+                <code>ServiceWorkerGlobalScope</code>) prohibit dynamic{" "}
+                <code>import()</code> and Web Worker sub-threading. Disabling
+                proxy (<code>false</code>) and using <code>1</code> thread
+                prevents background execution crashes.
               </p>
             </div>
-          </div>
-        </div>
 
-        {/* Feature 2: WASM CPU Threads */}
-        <div className="pp:rounded-lg pp:border pp:p-3.5 pp:bg-muted/30 pp:flex pp:flex-col pp:justify-between pp:space-y-2">
-          <div className="pp:space-y-1.5">
-            <Label htmlFor="transformers-num-threads" className="pp:text-xs pp:font-medium">
-              WASM CPU Threads (<code>numThreads</code>)
-            </Label>
-            <Select
-              value={String(numThreads)}
-              onValueChange={(val) => setNumThreads(Number(val))}
-            >
-              <SelectTrigger id="transformers-num-threads" className="pp:w-full">
-                <SelectValue placeholder="Select threads" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 Thread (Default - Safe for MV3)</SelectItem>
-                <SelectItem value="2">2 Threads</SelectItem>
-                <SelectItem value="4">4 Threads</SelectItem>
-                <SelectItem value="8">8 Threads</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="pp:text-muted-foreground pp:text-xs">
-              Default: <strong>1</strong>. Avoids multi-threaded background worker crashes in MV3.
-            </p>
-          </div>
-        </div>
-      </div>
+            <div className="pp:grid pp:grid-cols-1 pp:gap-4 sm:pp:grid-cols-2">
+              {/* Feature 1: Web Worker Proxy */}
+              <div className="pp:flex pp:flex-col pp:justify-between pp:space-y-2 pp:rounded-lg pp:border pp:bg-muted/30 pp:p-3.5">
+                <div className="pp:flex pp:items-start pp:gap-2.5">
+                  <Checkbox
+                    checked={proxy}
+                    className="pp:mt-0.5"
+                    id="transformers-proxy-checkbox"
+                    onChange={(e) => setProxy(e.target.checked)}
+                  />
+                  <div>
+                    <Label
+                      className="pp:cursor-pointer pp:font-medium pp:text-xs"
+                      htmlFor="transformers-proxy-checkbox"
+                    >
+                      Web Worker Proxy (<code>proxy</code>)
+                    </Label>
+                    <p className="pp:mt-1 pp:text-muted-foreground pp:text-xs">
+                      Default: <strong>false (Disabled)</strong>. Prevents
+                      background worker crashes in Chrome Manifest V3.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-      <div className="pp:flex pp:items-center pp:justify-between">
-        <Button size="sm" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save WASM Settings"}
-        </Button>
-        {savedStatus ? (
-          <p className="pp:text-xs pp:text-green-600 pp:font-medium">
-            {savedStatus}
-          </p>
-        ) : null}
-      </div>
+              {/* Feature 2: WASM CPU Threads */}
+              <div className="pp:flex pp:flex-col pp:justify-between pp:space-y-2 pp:rounded-lg pp:border pp:bg-muted/30 pp:p-3.5">
+                <div className="pp:space-y-1.5">
+                  <Label
+                    className="pp:font-medium pp:text-xs"
+                    htmlFor="transformers-num-threads"
+                  >
+                    WASM CPU Threads (<code>numThreads</code>)
+                  </Label>
+                  <Select
+                    onValueChange={(val) => setNumThreads(Number(val))}
+                    value={String(numThreads)}
+                  >
+                    <SelectTrigger
+                      className="pp:w-full"
+                      id="transformers-num-threads"
+                    >
+                      <SelectValue placeholder="Select threads" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">
+                        1 Thread (Default - Safe for MV3)
+                      </SelectItem>
+                      <SelectItem value="2">2 Threads</SelectItem>
+                      <SelectItem value="4">4 Threads</SelectItem>
+                      <SelectItem value="8">8 Threads</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="pp:text-muted-foreground pp:text-xs">
+                    Default: <strong>1</strong>. Avoids multi-threaded
+                    background worker crashes in MV3.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pp:flex pp:items-center pp:justify-between pp:pt-2">
+              <Button disabled={isSaving} onClick={handleSave} size="sm">
+                {isSaving ? "Saving..." : "Save WASM Settings"}
+              </Button>
+              {savedStatus ? (
+                <p className="pp:font-medium pp:text-green-600 pp:text-xs">
+                  {savedStatus}
+                </p>
+              ) : null}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
