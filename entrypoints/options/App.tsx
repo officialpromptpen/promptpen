@@ -152,126 +152,128 @@ function IndexOptions() {
         </Sidebar>
 
         <LazyMotion features={domAnimation}>
-          <main className="pp:flex pp:flex-1 pp:flex-col pp:overflow-hidden">
-            <div className="pp:flex pp:items-center pp:border-b pp:p-2 pp:md:hidden">
-              <SidebarTrigger />
-              <span className="pp:ml-2 pp:font-semibold pp:text-sm">
-                PromptPen
-              </span>
-            </div>
-            <AnimatePresence mode="wait">
-              {state.loaded && (
+          <>
+            <main className="pp:flex pp:flex-1 pp:flex-col pp:overflow-hidden">
+              <div className="pp:flex pp:items-center pp:border-b pp:p-2 pp:md:hidden">
+                <SidebarTrigger />
+                <span className="pp:ml-2 pp:font-semibold pp:text-sm">
+                  PromptPen
+                </span>
+              </div>
+              <AnimatePresence mode="wait">
+                {state.loaded && (
+                  <m.div
+                    animate={{ opacity: 1, y: 0 }}
+                    className="pp:flex-1 pp:overflow-auto"
+                    exit={{ opacity: 0, y: -8 }}
+                    initial={{ opacity: 0, y: 8 }}
+                    key={state.activeSection}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {renderSection()}
+                  </m.div>
+                )}
+              </AnimatePresence>
+              {!state.loaded && (
+                <div className="pp:flex pp:flex-1 pp:items-center pp:justify-center">
+                  <Loader2 className="pp:h-6 pp:w-6 pp:animate-spin" />
+                </div>
+              )}
+            </main>
+
+            <AnimatePresence>
+              {aboutOpen && (
                 <m.div
-                  animate={{ opacity: 1, y: 0 }}
-                  className="pp:flex-1 pp:overflow-auto"
-                  exit={{ opacity: 0, y: -8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  key={state.activeSection}
+                  animate={{ opacity: 1 }}
+                  className="pp:fixed pp:inset-0 pp:z-50 pp:flex pp:items-center pp:justify-center"
+                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                 >
-                  {renderSection()}
+                  <m.div
+                    aria-hidden="true"
+                    className="pp:absolute pp:inset-0 pp:bg-black/50"
+                    onClick={() => setAboutOpen(false)}
+                  />
+                  <m.div
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    className="pp:relative pp:flex pp:w-80 pp:flex-col pp:gap-5 pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-xl"
+                    exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                    initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="pp:flex pp:items-center pp:gap-3">
+                      <div className="pp:flex pp:h-9 pp:w-9 pp:items-center pp:justify-center pp:rounded-lg">
+                        <Logo />
+                      </div>
+                      <div>
+                        <h2 className="pp:font-semibold pp:text-sm">PromptPen</h2>
+                        <p className="pp:text-muted-foreground pp:text-xs">
+                          v{browser.runtime.getManifest().version}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="pp:text-muted-foreground pp:text-xs">
+                      AI-powered writing assistant Chrome Extension.
+                    </p>
+
+                    <Separator />
+
+                    <div className="pp:flex pp:flex-col pp:gap-2">
+                      <a
+                        className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
+                        href="https://github.com/officialpromptpen/promptpen"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <Star className="pp:h-4 pp:w-4" />
+                        Give us a star
+                      </a>
+                      <a
+                        className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
+                        href="https://github.com/officialpromptpen/promptpen/issues/new?labels=enhancement&template=feature_request.md"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <Lightbulb className="pp:h-4 pp:w-4" />
+                        Feature request
+                      </a>
+                      <a
+                        className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
+                        href="https://github.com/officialpromptpen/promptpen/issues/new"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <Bug className="pp:h-4 pp:w-4" />
+                        Report an issue
+                      </a>
+                      <a
+                        className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
+                        href="https://github.com/officialpromptpen/promptpen/discussions"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <MessagesSquare className="pp:h-4 pp:w-4" />
+                        Discussions
+                      </a>
+                    </div>
+
+                    <button
+                      className="pp:rounded-lg pp:bg-primary pp:px-4 pp:py-2 pp:font-medium pp:text-primary-foreground pp:text-sm pp:transition-colors hover:pp:bg-primary/90"
+                      onClick={() => setAboutOpen(false)}
+                      type="button"
+                    >
+                      Close
+                    </button>
+                  </m.div>
                 </m.div>
               )}
             </AnimatePresence>
-            {!state.loaded && (
-              <div className="pp:flex pp:flex-1 pp:items-center pp:justify-center">
-                <Loader2 className="pp:h-6 pp:w-6 pp:animate-spin" />
-              </div>
-            )}
-          </main>
-
-        <AnimatePresence>
-          {aboutOpen && (
-            <m.div
-              animate={{ opacity: 1 }}
-              className="pp:fixed pp:inset-0 pp:z-50 pp:flex pp:items-center pp:justify-center"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <m.div
-                aria-hidden="true"
-                className="pp:absolute pp:inset-0 pp:bg-black/50"
-                onClick={() => setAboutOpen(false)}
-              />
-              <m.div
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="pp:relative pp:flex pp:w-80 pp:flex-col pp:gap-5 pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-xl"
-                exit={{ opacity: 0, scale: 0.95, y: 8 }}
-                initial={{ opacity: 0, scale: 0.95, y: 8 }}
-                transition={{ duration: 0.15 }}
-              >
-                <div className="pp:flex pp:items-center pp:gap-3">
-                  <div className="pp:flex pp:h-9 pp:w-9 pp:items-center pp:justify-center pp:rounded-lg">
-                    <Logo />
-                  </div>
-                  <div>
-                    <h2 className="pp:font-semibold pp:text-sm">PromptPen</h2>
-                    <p className="pp:text-muted-foreground pp:text-xs">
-                      v{browser.runtime.getManifest().version}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="pp:text-muted-foreground pp:text-xs">
-                  AI-powered writing assistant Chrome Extension.
-                </p>
-
-                <Separator />
-
-                <div className="pp:flex pp:flex-col pp:gap-2">
-                  <a
-                    className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
-                    href="https://github.com/officialpromptpen/promptpen"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <Star className="pp:h-4 pp:w-4" />
-                    Give us a star
-                  </a>
-                  <a
-                    className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
-                    href="https://github.com/officialpromptpen/promptpen/issues/new?labels=enhancement&template=feature_request.md"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <Lightbulb className="pp:h-4 pp:w-4" />
-                    Feature request
-                  </a>
-                  <a
-                    className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
-                    href="https://github.com/officialpromptpen/promptpen/issues/new"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <Bug className="pp:h-4 pp:w-4" />
-                    Report an issue
-                  </a>
-                  <a
-                    className="pp:flex pp:items-center pp:gap-2 pp:rounded-lg pp:px-3 pp:py-2 pp:text-muted-foreground pp:text-sm pp:transition-colors hover:pp:bg-accent hover:pp:text-accent-foreground"
-                    href="https://github.com/officialpromptpen/promptpen/discussions"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <MessagesSquare className="pp:h-4 pp:w-4" />
-                    Discussions
-                  </a>
-                </div>
-
-                <button
-                  className="pp:rounded-lg pp:bg-primary pp:px-4 pp:py-2 pp:font-medium pp:text-primary-foreground pp:text-sm pp:transition-colors hover:pp:bg-primary/90"
-                  onClick={() => setAboutOpen(false)}
-                  type="button"
-                >
-                  Close
-                </button>
-              </m.div>
-            </m.div>
-          )}
-        </AnimatePresence>
-      </LazyMotion>
-    </div>
-  </SidebarProvider>
+          </>
+        </LazyMotion>
+      </div>
+    </SidebarProvider>
   );
 }
 

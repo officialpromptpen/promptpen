@@ -13,6 +13,18 @@ export const RECOMMENDED_MODELS: RecommendedModel[] = [
   },
   {
     description:
+      "Most capable model for complex writing. Requires ~4GB RAM and longer download.",
+    label: "Qwen2.5-1.5B-Instruct",
+    modelId: "onnx-community/Qwen2.5-1.5B-Instruct",
+  },
+  {
+    description:
+      "Lightweight and fast, decent quality for short text.",
+    label: "SmolLM2-360M-Instruct",
+    modelId: "onnx-community/SmolLM2-360M-Instruct",
+  },
+  {
+    description:
       "Fastest fallback. Best for simple rewrites and short selections.",
     label: "SmolLM2-135M-Instruct-ONNX-MHA",
     modelId: "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA",

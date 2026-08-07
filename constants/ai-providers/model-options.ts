@@ -11,8 +11,16 @@ export const TRANSFORMERS_MODEL_CHOICES: ModelOption[] = [
     value: "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA",
   },
   {
+    label: "SmolLM2-360M-Instruct",
+    value: "onnx-community/SmolLM2-360M-Instruct",
+  },
+  {
     label: "Qwen2.5-0.5B-Instruct-ONNX-MHA",
     value: "onnx-community/Qwen2.5-0.5B-Instruct-ONNX-MHA",
+  },
+  {
+    label: "Qwen2.5-1.5B-Instruct",
+    value: "onnx-community/Qwen2.5-1.5B-Instruct",
   },
 ];
 
