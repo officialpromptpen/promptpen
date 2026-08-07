@@ -20,8 +20,8 @@ export const RECOMMENDED_MODELS: RecommendedModel[] = [
   {
     description:
       "Lightweight and fast, decent quality for short text.",
-    label: "SmolLM2-360M-Instruct",
-    modelId: "onnx-community/SmolLM2-360M-Instruct",
+    label: "SmolLM2-360M-Instruct-ONNX",
+    modelId: "onnx-community/SmolLM2-360M-Instruct-ONNX",
   },
   {
     description:
