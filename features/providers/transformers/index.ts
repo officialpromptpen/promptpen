@@ -9,17 +9,36 @@ import { browser } from "wxt/browser"
 env.useWasmCache = false;
 env.allowLocalModels = false;
 
+let backendConfiguredPromise: Promise<void> | null = null;
+
 async function configureBackend(): Promise<void> {
-  const base = browser.runtime.getURL("/onnx/" as any);
-  if (base && env.backends.onnx?.wasm) {
-    env.backends.onnx.wasm.wasmPaths = {
-      mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
-      wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
-    };
-    const execConfig = await getTransformersExecutionConfig();
-    env.backends.onnx.wasm.proxy = execConfig.proxy;
-    env.backends.onnx.wasm.numThreads = execConfig.numThreads;
+  if (backendConfiguredPromise) {
+    return backendConfiguredPromise;
   }
+
+  backendConfiguredPromise = (async () => {
+    const base = browser.runtime.getURL("/onnx/" as any);
+    if (base && env.backends.onnx?.wasm) {
+      const execConfig = await getTransformersExecutionConfig();
+      env.backends.onnx.wasm.proxy = execConfig.proxy;
+      env.backends.onnx.wasm.numThreads = execConfig.numThreads;
+
+      if (!env.backends.onnx.wasm.wasmBinary) {
+        try {
+          const wasmUrl = `${base}ort-wasm-simd-threaded.asyncify.wasm`;
+          const res = await fetch(wasmUrl);
+          if (res.ok) {
+            const buffer = await res.arrayBuffer();
+            env.backends.onnx.wasm.wasmBinary = new Uint8Array(buffer);
+          }
+        } catch (e) {
+          console.warn("Failed to pre-fetch ONNX WASM binary:", e);
+        }
+      }
+    }
+  })();
+
+  return backendConfiguredPromise;
 }
 
 function configureAuth(accessToken?: string): void {
@@ -43,14 +62,35 @@ export { RECOMMENDED_MODELS } from "./recommended-models";
 export const provider: ProviderModule = {
   category: "self-hosted",
   createModel: (config) => {
-    void configureBackend();
     configureAuth(config.accessToken);
 
-    const model = transformersJS(config.model, {
+    const modelInstance = transformersJS(config.model, {
       device: "wasm",
     });
 
-    return model as unknown as LanguageModel;
+    const model = modelInstance as unknown as LanguageModel & {
+      doGenerate?: (...args: unknown[]) => Promise<unknown>;
+      doStream?: (...args: unknown[]) => Promise<unknown>;
+    };
+
+    const originalDoGenerate = model.doGenerate?.bind(model);
+    const originalDoStream = model.doStream?.bind(model);
+
+    if (originalDoGenerate) {
+      model.doGenerate = async (...args: unknown[]) => {
+        await configureBackend();
+        return originalDoGenerate(...args);
+      };
+    }
+
+    if (originalDoStream) {
+      model.doStream = async (...args: unknown[]) => {
+        await configureBackend();
+        return originalDoStream(...args);
+      };
+    }
+
+    return model as LanguageModel;
   },
   defaultModel: RECOMMENDED_MODELS[0].modelId,
   id: "transformers",

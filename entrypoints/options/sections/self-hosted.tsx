@@ -497,13 +497,22 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       env.allowLocalModels = false;
       const base = browser.runtime.getURL("/onnx/" as any);
       if (base && env.backends.onnx?.wasm) {
-        env.backends.onnx.wasm.wasmPaths = {
-          mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
-          wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
-        };
         const execConfig = await getTransformersExecutionConfig();
         env.backends.onnx.wasm.proxy = execConfig.proxy;
         env.backends.onnx.wasm.numThreads = execConfig.numThreads;
+
+        if (!env.backends.onnx.wasm.wasmBinary) {
+          try {
+            const wasmUrl = `${base}ort-wasm-simd-threaded.asyncify.wasm`;
+            const res = await fetch(wasmUrl);
+            if (res.ok) {
+              const buffer = await res.arrayBuffer();
+              env.backends.onnx.wasm.wasmBinary = new Uint8Array(buffer);
+            }
+          } catch (e) {
+            console.warn("Failed to pre-fetch ONNX WASM binary:", e);
+          }
+        }
       }
 
       if (storedToken) {
