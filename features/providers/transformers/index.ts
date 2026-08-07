@@ -5,11 +5,13 @@ import type { ProviderModule } from "../_types";
 import { getTransformersExecutionConfig } from "@/features/storage/self-hosted";
 import { RECOMMENDED_MODELS } from "./recommended-models";
 
+env.useWasmCache = false;
+env.allowLocalModels = false;
+
 async function configureBackend(): Promise<void> {
   const base = globalThis.chrome?.runtime?.getURL("onnx/");
   if (base && env.backends.onnx?.wasm) {
     env.backends.onnx.wasm.wasmPaths = {
-      mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
       wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
     };
     const execConfig = await getTransformersExecutionConfig();

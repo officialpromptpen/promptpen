@@ -493,10 +493,11 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       const { env, AutoModelForCausalLM, AutoTokenizer } = await import(
         "@huggingface/transformers"
       );
+      env.useWasmCache = false;
+      env.allowLocalModels = false;
       const base = globalThis.chrome?.runtime?.getURL("onnx/");
       if (base && env.backends.onnx?.wasm) {
         env.backends.onnx.wasm.wasmPaths = {
-          mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
           wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
         };
         const execConfig = await getTransformersExecutionConfig();
@@ -1072,6 +1073,7 @@ function TransformersWasmSettingsSection() {
     try {
       await setTransformersExecutionConfig({ numThreads, proxy });
       const { env } = await import("@huggingface/transformers");
+      env.useWasmCache = false;
       if (env.backends.onnx?.wasm) {
         env.backends.onnx.wasm.proxy = proxy;
         env.backends.onnx.wasm.numThreads = numThreads;
