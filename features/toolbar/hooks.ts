@@ -48,7 +48,9 @@ export function useProviderState() {
       const availableProviderModels = configuredDetails.reduce<
         Partial<Record<AIProvider, string>>
       >((accumulator, detail) => {
-        accumulator[detail.provider] = detail.model;
+        if (!accumulator[detail.provider]) {
+          accumulator[detail.provider] = detail.model;
+        }
         return accumulator;
       }, {});
 
