@@ -73,7 +73,7 @@ export function ToolbarActions({
 
   const providerOptions = useMemo(
     () =>
-      (configuredProviders ?? []).map((id) => {
+      Array.from(new Set(configuredProviders ?? [])).map((id) => {
         const def = getProviderDefinition(id);
         return {
           group:

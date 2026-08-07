@@ -26,7 +26,14 @@ export interface AIProviderSelectIconProps {
 
 function groupProviders(providers: AIProviderOption[]) {
   const map = new Map<string, AIProviderOption[]>();
+  const seenIds = new Set<string>();
+
   for (const p of providers) {
+    if (seenIds.has(p.id)) {
+      continue;
+    }
+    seenIds.add(p.id);
+
     const group = map.get(p.group);
     if (group) {
       group.push(p);

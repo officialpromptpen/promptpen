@@ -42,8 +42,8 @@ export function useProviderState() {
         getConfiguredProviderDetails(),
       ]);
 
-      const availableProviders = configuredDetails.map(
-        (detail) => detail.provider
+      const availableProviders = Array.from(
+        new Set(configuredDetails.map((detail) => detail.provider))
       );
       const availableProviderModels = configuredDetails.reduce<
         Partial<Record<AIProvider, string>>
