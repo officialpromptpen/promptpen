@@ -250,17 +250,53 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
     baseUrl: string;
     model: string;
   }) {
-    await saveProviderConfig(
-      "ollama",
-      values.model.trim(),
-      values.apiKey.trim(),
-      values.baseUrl.trim()
-    );
-    setOllamaConfigured(true);
-    setOllamaStatus("success");
-    setOllamaMessage("Ollama settings saved.");
-    if (onSaved) {
-      await onSaved();
+    setOllamaStatus("testing");
+    setOllamaMessage("Testing connection to Ollama...");
+
+    let resolvedApiKey = values.apiKey.trim();
+    if (!resolvedApiKey && ollamaConfigured) {
+      const storedKey = await getDecryptedApiKey("ollama");
+      if (storedKey) {
+        resolvedApiKey = storedKey;
+      }
+    }
+
+    try {
+      const result = await testProviderConnectionWithValues(
+        "ollama",
+        values.model.trim(),
+        resolvedApiKey,
+        values.baseUrl.trim()
+      );
+      if (!result.ok) {
+        setOllamaStatus("error");
+        const rawMessage = result.message ?? "Unknown error.";
+        const isForbidden = rawMessage.toLowerCase().includes("forbidden");
+        setOllamaMessage(
+          `Connection test failed. ${rawMessage}${
+            isForbidden
+              ? ' (Ollama blocks cross-origin extension requests by default. Set OLLAMA_ORIGINS="*" in your system/Ollama environment).'
+              : ""
+          }`
+        );
+        return;
+      }
+
+      await saveProviderConfig(
+        "ollama",
+        values.model.trim(),
+        values.apiKey.trim(),
+        values.baseUrl.trim()
+      );
+      setOllamaConfigured(true);
+      setOllamaStatus("success");
+      setOllamaMessage("Connection test successful! Ollama settings saved.");
+      if (onSaved) {
+        await onSaved();
+      }
+    } catch {
+      setOllamaStatus("error");
+      setOllamaMessage("Connection test failed. Unable to save Ollama settings.");
     }
   }
 
@@ -441,19 +477,42 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
     void init();
   }, []);
 
+  const [isAddingModel, setIsAddingModel] = useState(false);
+  const [addModelError, setAddModelError] = useState("");
+
   async function handleAddTransformersModel() {
     const trimmed = modelForm.getValues("modelId").trim();
     if (!trimmed) {
       return;
     }
 
-    const models = await addTransformersModel(trimmed);
-    setTransformersModelsState(models);
-    setDownloadStates((prev) => ({
-      ...prev,
-      [trimmed]: { progress: 0, status: "idle" },
-    }));
-    modelForm.reset({ modelId: "" });
+    setIsAddingModel(true);
+    setAddModelError("");
+
+    try {
+      const storedToken = await getDecryptedAccessToken("transformers");
+      const validation = await validateTransformersModel(
+        trimmed,
+        storedToken ?? undefined
+      );
+
+      if (!validation.valid) {
+        setAddModelError(validation.message);
+        return;
+      }
+
+      const models = await addTransformersModel(trimmed);
+      setTransformersModelsState(models);
+      setDownloadStates((prev) => ({
+        ...prev,
+        [trimmed]: { progress: 0, status: "idle" },
+      }));
+      modelForm.reset({ modelId: "" });
+    } catch {
+      setAddModelError("Failed to validate model on Hugging Face Hub.");
+    } finally {
+      setIsAddingModel(false);
+    }
   }
 
   async function handleDownloadModel(modelId: string) {
@@ -698,9 +757,14 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       />
 
       <ModelIdInput
+        error={addModelError}
+        isAdding={isAddingModel}
         newModelId={modelForm.watch("modelId")}
         onAddModel={handleAddTransformersModel}
-        onModelIdChange={(value) => modelForm.setValue("modelId", value)}
+        onModelIdChange={(value) => {
+          setAddModelError("");
+          modelForm.setValue("modelId", value);
+        }}
       />
 
       <HuggingFaceTokenSection initialToken={hfToken} />
@@ -725,6 +789,8 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
 }
 
 interface ModelIdInputProps {
+  error?: string;
+  isAdding?: boolean;
   newModelId: string;
   onAddModel: () => void;
   onModelIdChange: (value: string) => void;
@@ -732,6 +798,8 @@ interface ModelIdInputProps {
 
 function ModelIdInput({
   newModelId,
+  isAdding = false,
+  error,
   onAddModel,
   onModelIdChange,
 }: ModelIdInputProps) {
@@ -750,11 +818,22 @@ function ModelIdInput({
           placeholder="e.g., onnx-community/SmolLM2-135M-Instruct-ONNX-MHA"
           value={newModelId}
         />
-        <Button className="pp:shrink-0 pp:gap-2" onClick={onAddModel}>
-          <Plus className="pp:size-4" />
+        <Button
+          className="pp:shrink-0 pp:gap-2"
+          disabled={isAdding}
+          onClick={onAddModel}
+        >
+          {isAdding ? (
+            <Loader2 className="pp:size-4 pp:animate-spin" />
+          ) : (
+            <Plus className="pp:size-4" />
+          )}
           Add
         </Button>
       </div>
+      {error && (
+        <p className="pp:text-xs pp:text-destructive pp:pt-1">{error}</p>
+      )}
     </div>
   );
 }

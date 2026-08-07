@@ -204,6 +204,7 @@ export function ProviderSetupForm({
       if (!trimmedModel) {
         setStatusType("error");
         setStatusMessage("Model ID is required.");
+        setIsSaving(false);
         return;
       }
 
@@ -211,9 +212,35 @@ export function ProviderSetupForm({
       if (!resolvedApiKey && !hasStoredApiKey) {
         setStatusType("error");
         setStatusMessage("API key is required to save provider.");
+        setIsSaving(false);
         return;
       }
 
+      // Perform connection test first before allowing save
+      setIsTesting(true);
+      setStatusMessage("Testing provider connection...");
+      const apiKey =
+        resolvedApiKey || (await getDecryptedApiKey(values.provider)) || "";
+      const testResult = await testProviderConnectionWithValues(
+        values.provider,
+        trimmedModel,
+        apiKey
+      );
+
+      await recordProviderConnectionTest(values.provider, testResult.ok);
+      await state.refreshProviderData();
+
+      if (!testResult.ok) {
+        setStatusType("error");
+        setStatusMessage(
+          testResult.message
+            ? `Connection test failed: ${testResult.message}`
+            : "Connection test failed. Check your API key and model ID."
+        );
+        return;
+      }
+
+      // Connection test passed, proceed to save provider settings
       await saveProviderConfig(values.provider, trimmedModel, resolvedApiKey);
 
       if (values.makeDefault) {
@@ -231,8 +258,8 @@ export function ProviderSetupForm({
       setStatusType("success");
       setStatusMessage(
         values.makeDefault
-          ? "Provider saved and set as default!"
-          : "Provider saved successfully!"
+          ? "Connection test passed! Provider saved and set as default."
+          : "Connection test passed! Provider saved successfully."
       );
     } catch (error) {
       const msg =
@@ -243,6 +270,7 @@ export function ProviderSetupForm({
       setStatusMessage(`Save error: ${msg}`);
     } finally {
       setIsSaving(false);
+      setIsTesting(false);
     }
   }
 
