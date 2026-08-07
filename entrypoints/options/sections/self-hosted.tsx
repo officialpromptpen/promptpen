@@ -6,14 +6,23 @@ import {
   Plus,
   RefreshCw,
   Server,
+  Sliders,
   Trash2,
   TriangleAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   getProviderDefinition,
 } from "@/features/providers/registry";
@@ -34,8 +43,10 @@ import type {
 import {
   addTransformersModel,
   checkSystemRequirements,
+  getTransformersExecutionConfig,
   getTransformersModels,
   removeTransformersModel,
+  setTransformersExecutionConfig,
   updateTransformersModelStatus,
 } from "@/features/storage/self-hosted";
 import type { AIProvider, OptionsState } from "@/types";
@@ -484,6 +495,9 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
           mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
           wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
         };
+        const execConfig = await getTransformersExecutionConfig();
+        env.backends.onnx.wasm.proxy = execConfig.proxy;
+        env.backends.onnx.wasm.numThreads = execConfig.numThreads;
       }
 
       if (storedToken) {
@@ -670,6 +684,8 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       />
 
       <HuggingFaceTokenSection initialToken={hfToken} />
+
+      <TransformersWasmSettingsSection />
 
       {transformersModels.length === 0 ? (
         <p className="pp:py-8 pp:text-center pp:text-muted-foreground pp:text-sm">
@@ -1030,4 +1046,120 @@ async function validateTransformersModel(
   } catch {
     return { message: "", valid: true };
   }
+}
+
+function TransformersWasmSettingsSection() {
+  const [proxy, setProxy] = useState(false);
+  const [numThreads, setNumThreads] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedStatus, setSavedStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadConfig() {
+      const config = await getTransformersExecutionConfig();
+      setProxy(config.proxy);
+      setNumThreads(config.numThreads);
+    }
+    void loadConfig();
+  }, []);
+
+  async function handleSave() {
+    setIsSaving(true);
+    try {
+      await setTransformersExecutionConfig({ numThreads, proxy });
+      const { env } = await import("@huggingface/transformers");
+      if (env.backends.onnx?.wasm) {
+        env.backends.onnx.wasm.proxy = proxy;
+        env.backends.onnx.wasm.numThreads = numThreads;
+      }
+      setSavedStatus("WASM settings saved successfully.");
+      setTimeout(() => setSavedStatus(null), 3000);
+    } catch {
+      setSavedStatus("Failed to save WASM settings.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <div className="pp:mb-4 pp:rounded-lg pp:border pp:border-border/70 pp:p-4 pp:space-y-4">
+      <div className="pp:flex pp:items-center pp:gap-2">
+        <Sliders className="pp:size-4 pp:text-muted-foreground" />
+        <h3 className="pp:font-medium pp:text-sm">
+          ONNX WASM Execution Settings
+        </h3>
+      </div>
+
+      <div className="pp:rounded-md pp:border pp:border-amber-500/20 pp:bg-amber-500/10 pp:p-3 pp:text-xs pp:text-amber-900 dark:pp:text-amber-200">
+        <p className="pp:font-semibold pp:mb-1">
+          Defaults: Web Worker Proxy = Disabled (false), CPU Threads = 1
+        </p>
+        <p>
+          Chrome Extension Manifest V3 Service Workers (<code>ServiceWorkerGlobalScope</code>) prohibit dynamic <code>import()</code> and Web Worker sub-threading. Disabling proxy (<code>false</code>) and using <code>1</code> thread prevents background execution crashes.
+        </p>
+      </div>
+
+      <div className="pp:grid pp:grid-cols-1 md:pp:grid-cols-2 pp:gap-4">
+        {/* Feature 1: Web Worker Proxy */}
+        <div className="pp:rounded-lg pp:border pp:p-3.5 pp:bg-muted/30 pp:flex pp:flex-col pp:justify-between pp:space-y-2">
+          <div className="pp:flex pp:items-start pp:gap-2.5">
+            <Checkbox
+              id="transformers-proxy-checkbox"
+              checked={proxy}
+              onChange={(e) => setProxy(e.target.checked)}
+              className="pp:mt-0.5"
+            />
+            <div>
+              <Label
+                htmlFor="transformers-proxy-checkbox"
+                className="pp:cursor-pointer pp:font-medium pp:text-xs"
+              >
+                Web Worker Proxy (<code>proxy</code>)
+              </Label>
+              <p className="pp:text-muted-foreground pp:text-xs pp:mt-1">
+                Default: <strong>false (Disabled)</strong>. Prevents background worker crashes in Chrome Manifest V3.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature 2: WASM CPU Threads */}
+        <div className="pp:rounded-lg pp:border pp:p-3.5 pp:bg-muted/30 pp:flex pp:flex-col pp:justify-between pp:space-y-2">
+          <div className="pp:space-y-1.5">
+            <Label htmlFor="transformers-num-threads" className="pp:text-xs pp:font-medium">
+              WASM CPU Threads (<code>numThreads</code>)
+            </Label>
+            <Select
+              value={String(numThreads)}
+              onValueChange={(val) => setNumThreads(Number(val))}
+            >
+              <SelectTrigger id="transformers-num-threads" className="pp:w-full">
+                <SelectValue placeholder="Select threads" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Thread (Default - Safe for MV3)</SelectItem>
+                <SelectItem value="2">2 Threads</SelectItem>
+                <SelectItem value="4">4 Threads</SelectItem>
+                <SelectItem value="8">8 Threads</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="pp:text-muted-foreground pp:text-xs">
+              Default: <strong>1</strong>. Avoids multi-threaded background worker crashes in MV3.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="pp:flex pp:items-center pp:justify-between">
+        <Button size="sm" onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save WASM Settings"}
+        </Button>
+        {savedStatus ? (
+          <p className="pp:text-xs pp:text-green-600 pp:font-medium">
+            {savedStatus}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
 }

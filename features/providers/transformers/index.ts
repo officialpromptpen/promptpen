@@ -2,15 +2,19 @@ import { transformersJS } from "@browser-ai/transformers-js";
 import { env } from "@huggingface/transformers";
 import type { LanguageModel } from "ai";
 import type { ProviderModule } from "../_types";
+import { getTransformersExecutionConfig } from "@/features/storage/self-hosted";
 import { RECOMMENDED_MODELS } from "./recommended-models";
 
-function configureBackend(): void {
+async function configureBackend(): Promise<void> {
   const base = globalThis.chrome?.runtime?.getURL("onnx/");
   if (base && env.backends.onnx?.wasm) {
     env.backends.onnx.wasm.wasmPaths = {
       mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
       wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
     };
+    const execConfig = await getTransformersExecutionConfig();
+    env.backends.onnx.wasm.proxy = execConfig.proxy;
+    env.backends.onnx.wasm.numThreads = execConfig.numThreads;
   }
 }
 
@@ -35,7 +39,7 @@ export { RECOMMENDED_MODELS } from "./recommended-models";
 export const provider: ProviderModule = {
   category: "self-hosted",
   createModel: (config) => {
-    configureBackend();
+    void configureBackend();
     configureAuth(config.accessToken);
 
     const model = transformersJS(config.model, {

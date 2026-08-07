@@ -10,9 +10,20 @@ export interface StoredTransformersModel {
   status: "not-downloaded" | "downloading" | "ready" | "error";
 }
 
+export interface TransformersExecutionConfig {
+  numThreads: number;
+  proxy: boolean;
+}
+
+export const DEFAULT_TRANSFORMERS_EXECUTION_CONFIG: TransformersExecutionConfig = {
+  numThreads: 1,
+  proxy: false,
+};
+
 interface StoredSelfHostedState {
   selectedTransformersModelIds?: string[];
   transformersModels: StoredTransformersModel[];
+  transformersExecutionConfig?: TransformersExecutionConfig;
 }
 
 const DEFAULT_TRANSFORMERS_MODELS: StoredTransformersModel[] = [
@@ -42,6 +53,33 @@ async function readState(): Promise<StoredSelfHostedState> {
     selectedTransformersModelIds: [DEFAULT_TRANSFORMERS_MODELS[0].modelId],
     transformersModels: DEFAULT_TRANSFORMERS_MODELS,
   };
+}
+
+export async function getTransformersExecutionConfig(): Promise<TransformersExecutionConfig> {
+  const state = await readState();
+  return {
+    numThreads:
+      state.transformersExecutionConfig?.numThreads ??
+      DEFAULT_TRANSFORMERS_EXECUTION_CONFIG.numThreads,
+    proxy:
+      state.transformersExecutionConfig?.proxy ??
+      DEFAULT_TRANSFORMERS_EXECUTION_CONFIG.proxy,
+  };
+}
+
+export async function setTransformersExecutionConfig(
+  config: Partial<TransformersExecutionConfig>
+): Promise<TransformersExecutionConfig> {
+  const state = await readState();
+  const current =
+    state.transformersExecutionConfig ?? DEFAULT_TRANSFORMERS_EXECUTION_CONFIG;
+  const updated: TransformersExecutionConfig = {
+    numThreads: config.numThreads ?? current.numThreads,
+    proxy: config.proxy ?? current.proxy,
+  };
+  state.transformersExecutionConfig = updated;
+  await writeState(state);
+  return updated;
 }
 
 async function writeState(state: StoredSelfHostedState): Promise<void> {
