@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PROVIDER_MODEL_PRESETS } from "@/constants/ai-providers/model-options";
 import {
   CATEGORY_LABELS,
   getProviderDefinition,
@@ -22,25 +21,16 @@ import {
   saveProviderConfig,
   setDefaultProvider,
 } from "@/features/providers/storage";
-import type { StoredTransformersModel } from "@/features/storage/self-hosted";
-import {
-  getSelectedTransformersModelIds,
-  getTransformersModels,
-  setSelectedTransformersModelIds,
-} from "@/features/storage/self-hosted";
 import type { AIProvider, OptionsState, ProviderCategory } from "@/types";
 import { SettingsSectionLayout } from "./shared/section-shell";
 
 interface GeneralFormValues {
   defaultModel: string;
   defaultProvider: AIProvider;
-  transformersDefaultModel: string;
 }
 
 export function GeneralSection(state: OptionsState) {
   const [isSaving, setIsSaving] = useState(false);
-  const [downloadedTransformersModels, setDownloadedTransformersModels] =
-    useState<StoredTransformersModel[]>([]);
 
   const configuredProviders = state.providerSummary?.configuredProviders ?? [];
   const fallbackProvider =
@@ -82,7 +72,6 @@ export function GeneralSection(state: OptionsState) {
         (fallbackProvider ? configuredModelByProvider.get(fallbackProvider) : "") ??
         "",
       defaultProvider: (fallbackProvider ?? "") as AIProvider,
-      transformersDefaultModel: "",
     },
     mode: "onChange",
   });
@@ -111,38 +100,17 @@ export function GeneralSection(state: OptionsState) {
       }
     }
 
-    if (provider === "transformers") {
-      for (const tm of downloadedTransformersModels) {
-        activeModels.add(tm.modelId);
-      }
-    }
-
     return Array.from(activeModels).map((modelId) => ({
       label: modelId,
       value: modelId,
     }));
-  }, [downloadedTransformersModels, selectedProvider, state.configuredProviderDetails]);
-
-  useEffect(() => {
-    async function loadTransformersModels() {
-      const allModels = await getTransformersModels();
-      const readyModels = allModels.filter((m) => m.status === "ready");
-      setDownloadedTransformersModels(readyModels);
-
-      const selectedIds = await getSelectedTransformersModelIds();
-      const defaultTransformersModel =
-        selectedIds[0] ?? readyModels[0]?.modelId ?? "";
-      form.setValue("transformersDefaultModel", defaultTransformersModel);
-    }
-    void loadTransformersModels();
-  }, [form]);
+  }, [selectedProvider, state.configuredProviderDetails]);
 
   useEffect(() => {
     if (!fallbackProvider) {
       form.reset({
         defaultModel: "",
         defaultProvider: "" as AIProvider,
-        transformersDefaultModel: form.getValues("transformersDefaultModel"),
       });
       return;
     }
@@ -156,7 +124,6 @@ export function GeneralSection(state: OptionsState) {
     form.reset({
       defaultModel: activeModel,
       defaultProvider: fallbackProvider,
-      transformersDefaultModel: form.getValues("transformersDefaultModel"),
     });
   }, [
     configuredProviders,
@@ -175,16 +142,6 @@ export function GeneralSection(state: OptionsState) {
       }
       await state.refreshProviderData();
 
-      if (values.transformersDefaultModel) {
-        await setSelectedTransformersModelIds([
-          values.transformersDefaultModel,
-        ]);
-        await saveProviderConfig(
-          "transformers",
-          values.transformersDefaultModel
-        );
-      }
-
       state.setSettings((previous) => ({
         ...previous,
         defaultModel: values.defaultModel,
@@ -202,7 +159,6 @@ export function GeneralSection(state: OptionsState) {
       form.reset({
         defaultModel: "",
         defaultProvider: "" as AIProvider,
-        transformersDefaultModel: form.getValues("transformersDefaultModel"),
       });
       return;
     }
@@ -216,7 +172,6 @@ export function GeneralSection(state: OptionsState) {
     form.reset({
       defaultModel: activeModel,
       defaultProvider: fallbackProvider,
-      transformersDefaultModel: form.getValues("transformersDefaultModel"),
     });
   }
 
@@ -350,54 +305,6 @@ export function GeneralSection(state: OptionsState) {
                     </Select>
                   )}
                 />
-              </div>
-
-              <div className="pp:space-y-1.5">
-                <Label
-                  className="pp:text-xs pp:uppercase pp:tracking-wide"
-                  htmlFor="transformers-default-model"
-                >
-                  Default Transformers.js Model
-                </Label>
-                <Controller
-                  control={form.control}
-                  name="transformersDefaultModel"
-                  render={({ field }) => (
-                    <Select
-                      disabled={downloadedTransformersModels.length === 0}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <SelectTrigger
-                        className="pp:w-full"
-                        id="transformers-default-model"
-                      >
-                        <SelectValue
-                          placeholder={
-                            downloadedTransformersModels.length === 0
-                              ? "No models downloaded yet"
-                              : "Select a downloaded model"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {downloadedTransformersModels.map((model) => (
-                          <SelectItem
-                            key={model.modelId}
-                            value={model.modelId}
-                          >
-                            {model.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                <p className="pp:text-muted-foreground pp:text-xs">
-                  {downloadedTransformersModels.length === 0
-                    ? "Download models in Self-Hosted section to select a default."
-                    : "Select which downloaded model to use as the default for Transformers.js."}
-                </p>
               </div>
             </form>
           </CardContent>
