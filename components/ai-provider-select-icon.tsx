@@ -56,14 +56,15 @@ function ShadowSelectContent({
   return (
     <SelectPrimitive.Portal container={container}>
       <SelectPrimitive.Positioner
-        alignItemWithTrigger
+        align="end"
+        alignItemWithTrigger={false}
         className="pp:z-2147483647"
         side="bottom"
         sideOffset={4}
       >
         <SelectPrimitive.Popup
           className={cn(
-            "pp:data-open:fade-in-0 pp:data-open:zoom-in-95 pp:data-closed:fade-out-0 pp:data-closed:zoom-out-95 pp:z-2147483647 pp:max-h-(--available-height) pp:w-(--anchor-width) pp:min-w-36 pp:overflow-y-auto pp:overflow-x-hidden pp:rounded-lg pp:bg-popover pp:text-popover-foreground pp:shadow-md pp:ring-1 pp:ring-foreground/10 pp:data-closed:animate-out pp:data-open:animate-in",
+            "pp:data-open:fade-in-0 pp:data-open:zoom-in-95 pp:data-closed:fade-out-0 pp:data-closed:zoom-out-95 pp:z-2147483647 pp:max-h-(--available-height) pp:w-max pp:min-w-48 pp:p-1 pp:overflow-y-auto pp:overflow-x-hidden pp:rounded-lg pp:bg-popover pp:text-popover-foreground pp:shadow-md pp:ring-1 pp:ring-foreground/10 pp:data-closed:animate-out pp:data-open:animate-in",
             className
           )}
           data-slot="select-content"
@@ -158,12 +159,12 @@ export const AIProviderSelectIcon = React.forwardRef<
                   </SelectLabel>
                   {groupProviders.map((provider) => (
                     <SelectItem key={provider.id} value={provider.id}>
-                      <div className="pp:flex pp:items-center pp:gap-2">
+                      <div className="pp:flex pp:items-center pp:gap-2.5">
                         <ProviderIcon
-                          className="pp:size-4"
+                          className="pp:size-4 pp:shrink-0"
                           provider={provider.id as AIProvider}
                         />
-                        <span>{provider.name}</span>
+                        <span className="pp:whitespace-nowrap">{provider.name}</span>
                       </div>
                     </SelectItem>
                   ))}
