@@ -4,7 +4,6 @@ import {
   Loader2,
   RefreshCw,
   Replace,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,6 @@ export function ResultActions({
   onCopy,
   onReplace,
   onRerun,
-  onClose,
 }: ResultActionsProps) {
   const hasCopyableText = Boolean(processedText || errorText);
   const canReplace = Boolean(processedText) && !isRunning && !errorText;
@@ -33,64 +31,69 @@ export function ResultActions({
 
   return (
     <TooltipProvider>
-      <div className="pp:flex pp:gap-3 pp:border-border pp:border-t pp:pt-4">
+      <div className="pp:flex pp:items-center pp:gap-2">
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button disabled={!hasCopyableText || isRunning} onClick={onCopy}>
+              <Button
+                disabled={!canReplace}
+                onClick={onReplace}
+                size="sm"
+                variant="default"
+              >
+                <Replace className="pp:mr-1.5 pp:size-4" />
+                Replace
+              </Button>
+            }
+          />
+          <TooltipContent side="top">
+            <span>Replace selected text</span>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                disabled={!hasCopyableText || isRunning}
+                onClick={onCopy}
+                size="sm"
+                variant="outline"
+              >
                 {copied ? (
-                  <CopyCheck className="pp:h-4 pp:w-4" color="green" />
+                  <CopyCheck className="pp:mr-1.5 pp:size-4 pp:text-emerald-500" />
                 ) : (
-                  <ClipboardCopy className="pp:h-4 pp:w-4" />
+                  <ClipboardCopy className="pp:mr-1.5 pp:size-4" />
                 )}
+                {copied ? "Copied" : "Copy"}
               </Button>
             }
           />
           <TooltipContent side="top">
-            <span>Copy</span>
+            <span>Copy text to clipboard</span>
           </TooltipContent>
         </Tooltip>
 
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button disabled={!canReplace} onClick={onReplace}>
-                <Replace className="pp:mr-2 pp:inline-block pp:h-4 pp:w-4" />
-              </Button>
-            }
-          />
-          <TooltipContent side="top">
-            <span>Replace</span>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button disabled={!canRerun} onClick={onRerun}>
+              <Button
+                disabled={!canRerun}
+                onClick={onRerun}
+                size="sm"
+                variant="outline"
+              >
                 {isRunning ? (
-                  <Loader2 className="pp:h-4 pp:w-4 pp:animate-spin" />
+                  <Loader2 className="pp:mr-1.5 pp:size-4 pp:animate-spin" />
                 ) : (
-                  <RefreshCw className="pp:h-4 pp:w-4" />
+                  <RefreshCw className="pp:mr-1.5 pp:size-4" />
                 )}
+                Re-run
               </Button>
             }
           />
           <TooltipContent side="top">
-            <span>Re-run</span>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button onClick={onClose}>
-                <X className="pp:h-4 pp:w-4" />
-              </Button>
-            }
-          />
-          <TooltipContent side="top">
-            <span>Close</span>
+            <span>Re-run last action</span>
           </TooltipContent>
         </Tooltip>
       </div>

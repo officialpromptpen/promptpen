@@ -38,18 +38,20 @@ export function useActionHandlers(
               providerRef.current,
               modelRef.current
             );
-            if (!adapter) {
+            if (adapter) {
+              const text = await adapter.runPrompt(prompt, systemPrompt);
+              response = { text };
+            } else {
               response = {
                 error:
                   "No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider.",
               };
-            } else {
-              const text = await adapter.runPrompt(prompt, systemPrompt);
-              response = { text };
             }
           } catch (err) {
             const msg =
-              err instanceof Error ? err.message : "TransformersJS generation failed.";
+              err instanceof Error
+                ? err.message
+                : "TransformersJS generation failed.";
             response = { error: msg };
           }
         } else {

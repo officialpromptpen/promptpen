@@ -45,7 +45,7 @@ export function getFriendlyActionError(error: unknown): string {
     /model.*not found/i.test(message)
   ) {
     if (/forbidden/i.test(message)) {
-      return "Ollama access forbidden: Set OLLAMA_ORIGINS=\"*\" in your Ollama environment to allow extension requests.";
+      return 'Ollama access forbidden: Set OLLAMA_ORIGINS="*" in your Ollama environment to allow extension requests.';
     }
     if (/model.*not found/i.test(message)) {
       return "Ollama model not found. Ensure you pulled the model (e.g. `ollama pull <model>`) or check the model name in settings.";

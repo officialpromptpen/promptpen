@@ -1,6 +1,6 @@
 import { domAnimation, LazyMotion } from "framer-motion";
-import { ContextualToolbarContent } from "./content";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ContextualToolbarContent } from "./content";
 
 export function ContextualToolbar() {
   return (
