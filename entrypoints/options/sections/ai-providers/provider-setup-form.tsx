@@ -84,6 +84,7 @@ export function ProviderSetupForm({
   const [hasStoredApiKey, setHasStoredApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isTestPassed, setIsTestPassed] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<ProviderStatus>("idle");
 
@@ -103,11 +104,16 @@ export function ProviderSetupForm({
 
   const selectedProvider = form.watch("provider");
   const selectedModel = form.watch("model");
+  const formApiKey = form.watch("apiKey");
 
   const modelChoices = useMemo(
     () => PROVIDER_MODEL_PRESETS[selectedProvider] ?? [],
     [selectedProvider]
   );
+
+  useEffect(() => {
+    setIsTestPassed(false);
+  }, [selectedProvider, selectedModel, formApiKey]);
 
   useEffect(() => {
     if (state.selectedProvider !== selectedProvider) {
@@ -128,6 +134,7 @@ export function ProviderSetupForm({
       setSavedModels(editorState.models ?? []);
       setStatusType("idle");
       setStatusMessage("");
+      setIsTestPassed(false);
       form.reset({
         apiKey: existingApiKey ?? "",
         makeDefault:
@@ -150,6 +157,7 @@ export function ProviderSetupForm({
     setIsTesting(true);
     setStatusType("idle");
     setStatusMessage("");
+    setIsTestPassed(false);
 
     const resolvedApiKey = values.apiKey.trim();
     if (!(resolvedApiKey || hasStoredApiKey)) {
@@ -172,9 +180,13 @@ export function ProviderSetupForm({
       await state.refreshProviderData();
 
       if (result.ok) {
+        setIsTestPassed(true);
         setStatusType("success");
-        setStatusMessage("Connection successful! Provider is ready to use.");
+        setStatusMessage(
+          "Connection test successful! You can now click Save Provider."
+        );
       } else {
+        setIsTestPassed(false);
         setStatusType("error");
         setStatusMessage(
           result.message
@@ -187,6 +199,7 @@ export function ProviderSetupForm({
         error instanceof Error
           ? error.message
           : "Connection test failed unexpectedly.";
+      setIsTestPassed(false);
       setStatusType("error");
       setStatusMessage(`Connection test error: ${msg}`);
     } finally {
@@ -195,6 +208,12 @@ export function ProviderSetupForm({
   }
 
   async function handleSaveProvider(values: ProviderSetupFormValues) {
+    if (!isTestPassed) {
+      setStatusType("error");
+      setStatusMessage("Please test connection successfully before saving.");
+      return;
+    }
+
     setIsSaving(true);
     setStatusType("idle");
     setStatusMessage("");
@@ -216,32 +235,8 @@ export function ProviderSetupForm({
         return;
       }
 
-      // Perform connection test first before allowing save
-      setIsTesting(true);
-      setStatusMessage("Testing provider connection...");
-      const apiKey =
-        resolvedApiKey || (await getDecryptedApiKey(values.provider)) || "";
-      const testResult = await testProviderConnectionWithValues(
-        values.provider,
-        trimmedModel,
-        apiKey
-      );
-
-      await recordProviderConnectionTest(values.provider, testResult.ok);
-      await state.refreshProviderData();
-
-      if (!testResult.ok) {
-        setStatusType("error");
-        setStatusMessage(
-          testResult.message
-            ? `Connection test failed: ${testResult.message}`
-            : "Connection test failed. Check your API key and model ID."
-        );
-        return;
-      }
-
-      // Connection test passed, proceed to save provider settings
       await saveProviderConfig(values.provider, trimmedModel, resolvedApiKey);
+      await recordProviderConnectionTest(values.provider, true);
 
       if (values.makeDefault) {
         await setDefaultProvider(values.provider);
@@ -258,8 +253,8 @@ export function ProviderSetupForm({
       setStatusType("success");
       setStatusMessage(
         values.makeDefault
-          ? "Connection test passed! Provider saved and set as default."
-          : "Connection test passed! Provider saved successfully."
+          ? "Provider saved and set as default!"
+          : "Provider saved successfully!"
       );
     } catch (error) {
       const msg =
@@ -270,7 +265,6 @@ export function ProviderSetupForm({
       setStatusMessage(`Save error: ${msg}`);
     } finally {
       setIsSaving(false);
-      setIsTesting(false);
     }
   }
 
@@ -476,9 +470,14 @@ export function ProviderSetupForm({
             Test Connection
           </Button>
           <Button
-            className="pp:gap-2 pp:rounded-lg pp:bg-emerald-600 hover:pp:bg-emerald-700 pp:text-white dark:pp:bg-emerald-600 dark:hover:pp:bg-emerald-700 pp:px-4"
-            disabled={isSaving}
+            className="pp:gap-2 pp:rounded-lg pp:bg-emerald-600 hover:pp:bg-emerald-700 pp:text-white dark:pp:bg-emerald-600 dark:hover:pp:bg-emerald-700 pp:px-4 disabled:pp:opacity-50"
+            disabled={!isTestPassed || isSaving}
             id="pp-tour-save-btn"
+            title={
+              isTestPassed
+                ? "Save Provider"
+                : "Test connection successfully first before saving"
+            }
             type="submit"
           >
             {isSaving ? (

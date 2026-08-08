@@ -185,6 +185,15 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>("idle");
   const [ollamaMessage, setOllamaMessage] = useState("");
   const [ollamaConfigured, setOllamaConfigured] = useState(false);
+  const [isOllamaTestPassed, setIsOllamaTestPassed] = useState(false);
+
+  const watchBaseUrl = form.watch("baseUrl");
+  const watchModel = form.watch("model");
+  const watchApiKey = form.watch("apiKey");
+
+  useEffect(() => {
+    setIsOllamaTestPassed(false);
+  }, [watchBaseUrl, watchModel, watchApiKey]);
 
   useEffect(() => {
     async function init() {
@@ -197,6 +206,7 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
         model: editorState.model,
       });
       setOllamaConfigured(editorState.hasApiKey);
+      setIsOllamaTestPassed(false);
     }
     void init();
   }, [form]);
@@ -208,6 +218,7 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
   }) {
     setOllamaStatus("testing");
     setOllamaMessage("");
+    setIsOllamaTestPassed(false);
 
     let resolvedApiKey = values.apiKey.trim();
     if (!resolvedApiKey && ollamaConfigured) {
@@ -225,9 +236,11 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
         values.baseUrl.trim()
       );
       if (result.ok) {
+        setIsOllamaTestPassed(true);
         setOllamaStatus("success");
-        setOllamaMessage("Connection successful.");
+        setOllamaMessage("Connection test successful! You can now click Save.");
       } else {
+        setIsOllamaTestPassed(false);
         setOllamaStatus("error");
         const rawMessage = result.message ?? "Unknown error.";
         const isForbidden = rawMessage.toLowerCase().includes("forbidden");
@@ -240,6 +253,7 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
         );
       }
     } catch {
+      setIsOllamaTestPassed(false);
       setOllamaStatus("error");
       setOllamaMessage("Connection test failed unexpectedly.");
     }
@@ -250,53 +264,24 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
     baseUrl: string;
     model: string;
   }) {
-    setOllamaStatus("testing");
-    setOllamaMessage("Testing connection to Ollama...");
-
-    let resolvedApiKey = values.apiKey.trim();
-    if (!resolvedApiKey && ollamaConfigured) {
-      const storedKey = await getDecryptedApiKey("ollama");
-      if (storedKey) {
-        resolvedApiKey = storedKey;
-      }
+    if (!isOllamaTestPassed) {
+      setOllamaStatus("error");
+      setOllamaMessage("Please test connection successfully before saving.");
+      return;
     }
 
-    try {
-      const result = await testProviderConnectionWithValues(
-        "ollama",
-        values.model.trim(),
-        resolvedApiKey,
-        values.baseUrl.trim()
-      );
-      if (!result.ok) {
-        setOllamaStatus("error");
-        const rawMessage = result.message ?? "Unknown error.";
-        const isForbidden = rawMessage.toLowerCase().includes("forbidden");
-        setOllamaMessage(
-          `Connection test failed. ${rawMessage}${
-            isForbidden
-              ? ' (Ollama blocks cross-origin extension requests by default. Set OLLAMA_ORIGINS="*" in your system/Ollama environment).'
-              : ""
-          }`
-        );
-        return;
-      }
-
-      await saveProviderConfig(
-        "ollama",
-        values.model.trim(),
-        values.apiKey.trim(),
-        values.baseUrl.trim()
-      );
-      setOllamaConfigured(true);
-      setOllamaStatus("success");
-      setOllamaMessage("Connection test successful! Ollama settings saved.");
-      if (onSaved) {
-        await onSaved();
-      }
-    } catch {
-      setOllamaStatus("error");
-      setOllamaMessage("Connection test failed. Unable to save Ollama settings.");
+    await saveProviderConfig(
+      "ollama",
+      values.model.trim(),
+      values.apiKey.trim(),
+      values.baseUrl.trim()
+    );
+    await recordProviderConnectionTest("ollama", true);
+    setOllamaConfigured(true);
+    setOllamaStatus("success");
+    setOllamaMessage("Ollama settings saved.");
+    if (onSaved) {
+      await onSaved();
     }
   }
 
@@ -403,7 +388,16 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
             )}
             Test connection
           </Button>
-          <Button className="pp:gap-2" type="submit">
+          <Button
+            className="pp:gap-2 disabled:pp:opacity-50"
+            disabled={!isOllamaTestPassed || ollamaStatus === "testing"}
+            title={
+              isOllamaTestPassed
+                ? "Save Ollama settings"
+                : "Test connection successfully first before saving"
+            }
+            type="submit"
+          >
             Save
           </Button>
           {ollamaConfigured && (
