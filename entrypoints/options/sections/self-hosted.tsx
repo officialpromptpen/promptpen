@@ -393,7 +393,7 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
             Test Connection
           </Button>
           <Button
-            className="pp:gap-2 disabled:pp:opacity-50"
+            className="pp:gap-2"
             disabled={!isOllamaTestPassed || ollamaStatus === "testing"}
             title={
               isOllamaTestPassed

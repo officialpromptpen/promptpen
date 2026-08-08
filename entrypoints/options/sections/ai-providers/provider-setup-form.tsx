@@ -470,7 +470,7 @@ export function ProviderSetupForm({
             Test Connection
           </Button>
           <Button
-            className="pp:gap-2 pp:rounded-lg pp:px-4 disabled:pp:opacity-50"
+            className="pp:gap-2"
             disabled={!isTestPassed || isSaving}
             id="pp-tour-save-btn"
             title={
