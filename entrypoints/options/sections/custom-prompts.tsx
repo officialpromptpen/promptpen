@@ -1,4 +1,4 @@
-import { PencilLine, Plus, Trash2 } from "lucide-react";
+import { PencilLine, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -90,7 +90,7 @@ export function CustomPromptsSection(state: OptionsState) {
               disabled={!canSave}
               onClick={() => void handleSubmit()}
             >
-              <Plus className="pp:h-4 pp:w-4" />
+              <Save className="pp:size-4" />
               {editingPromptId ? "Update prompt" : "Save prompt"}
             </Button>
             {editingPromptId && (

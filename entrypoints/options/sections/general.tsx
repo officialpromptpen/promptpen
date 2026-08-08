@@ -1,4 +1,4 @@
-import { Save, Sparkles } from "lucide-react";
+import { Loader2, Save, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -69,8 +69,9 @@ export function GeneralSection(state: OptionsState) {
   const form = useForm<GeneralFormValues>({
     defaultValues: {
       defaultModel:
-        (fallbackProvider ? configuredModelByProvider.get(fallbackProvider) : "") ??
-        "",
+        (fallbackProvider
+          ? configuredModelByProvider.get(fallbackProvider)
+          : "") ?? "",
       defaultProvider: (fallbackProvider ?? "") as AIProvider,
     },
     mode: "onChange",
@@ -328,7 +329,7 @@ export function GeneralSection(state: OptionsState) {
               type="button"
             >
               {isSaving ? (
-                <span className="pp:size-4 pp:animate-spin pp:rounded-full pp:border-2 pp:border-current pp:border-t-transparent" />
+                <Loader2 className="pp:size-4 pp:animate-spin" />
               ) : (
                 <Save className="pp:size-4" />
               )}

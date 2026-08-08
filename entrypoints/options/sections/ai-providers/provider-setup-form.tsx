@@ -228,7 +228,7 @@ export function ProviderSetupForm({
       }
 
       const resolvedApiKey = values.apiKey.trim();
-      if (!resolvedApiKey && !hasStoredApiKey) {
+      if (!(resolvedApiKey || hasStoredApiKey)) {
         setStatusType("error");
         setStatusMessage("API key is required to save provider.");
         setIsSaving(false);
@@ -270,8 +270,8 @@ export function ProviderSetupForm({
 
   return (
     <div className="pp:rounded-xl pp:border pp:bg-card pp:p-6 pp:shadow-sm">
-      <div className="pp:mb-6 pp:border-b pp:border-border/60 pp:pb-4">
-        <h2 className="pp:flex pp:items-center pp:gap-2.5 pp:font-semibold pp:text-lg pp:text-foreground">
+      <div className="pp:mb-6 pp:border-border/60 pp:border-b pp:pb-4">
+        <h2 className="pp:flex pp:items-center pp:gap-2.5 pp:font-semibold pp:text-foreground pp:text-lg">
           <PlusCircle className="pp:size-5 pp:text-emerald-600 dark:pp:text-emerald-400" />
           Add New Provider
         </h2>
@@ -287,7 +287,7 @@ export function ProviderSetupForm({
         >
           <div className="pp:space-y-1.5">
             <Label
-              className="pp:font-bold pp:text-[11px] pp:uppercase pp:tracking-wider pp:text-muted-foreground"
+              className="pp:font-bold pp:text-[11px] pp:text-muted-foreground pp:uppercase pp:tracking-wider"
               htmlFor="provider-service"
             >
               PROVIDER SERVICE
@@ -334,7 +334,7 @@ export function ProviderSetupForm({
 
           <div className="pp:space-y-1.5" id="pp-tour-model-field">
             <Label
-              className="pp:font-bold pp:text-[11px] pp:uppercase pp:tracking-wider pp:text-muted-foreground"
+              className="pp:font-bold pp:text-[11px] pp:text-muted-foreground pp:uppercase pp:tracking-wider"
               htmlFor="provider-model"
             >
               MODEL ID
@@ -415,7 +415,7 @@ export function ProviderSetupForm({
 
         <div className="pp:space-y-1.5" id="pp-tour-api-key-field">
           <Label
-            className="pp:font-bold pp:text-[11px] pp:uppercase pp:tracking-wider pp:text-muted-foreground"
+            className="pp:font-bold pp:text-[11px] pp:text-muted-foreground pp:uppercase pp:tracking-wider"
             htmlFor="provider-api-key"
           >
             API KEY
@@ -455,7 +455,7 @@ export function ProviderSetupForm({
 
         <div className="pp:flex pp:justify-end pp:gap-3 pp:pt-2">
           <Button
-            className="pp:gap-2 pp:rounded-lg pp:border-border pp:px-4"
+            className="pp:gap-2 pp:rounded-lg pp:px-4"
             disabled={isTesting}
             id="pp-tour-test-btn"
             onClick={form.handleSubmit(handleTestConnection)}
@@ -463,14 +463,14 @@ export function ProviderSetupForm({
             variant="outline"
           >
             {isTesting ? (
-              <Loader2 className="pp:h-4 pp:w-4 pp:animate-spin" />
+              <Loader2 className="pp:size-4 pp:animate-spin" />
             ) : (
-              <Wifi className="pp:h-4 pp:w-4" />
+              <Wifi className="pp:size-4" />
             )}
             Test Connection
           </Button>
           <Button
-            className="pp:gap-2 pp:rounded-lg pp:bg-emerald-600 hover:pp:bg-emerald-700 pp:text-white dark:pp:bg-emerald-600 dark:hover:pp:bg-emerald-700 pp:px-4 disabled:pp:opacity-50"
+            className="pp:gap-2 pp:rounded-lg pp:px-4 disabled:pp:opacity-50"
             disabled={!isTestPassed || isSaving}
             id="pp-tour-save-btn"
             title={
@@ -481,9 +481,9 @@ export function ProviderSetupForm({
             type="submit"
           >
             {isSaving ? (
-              <Loader2 className="pp:h-4 pp:w-4 pp:animate-spin" />
+              <Loader2 className="pp:size-4 pp:animate-spin" />
             ) : (
-              <Save className="pp:h-4 pp:w-4" />
+              <Save className="pp:size-4" />
             )}
             Save Provider
           </Button>

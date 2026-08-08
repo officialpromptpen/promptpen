@@ -1,3 +1,4 @@
+import { Check, Save } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,11 +55,12 @@ export function HuggingFaceTokenSection({
           type="password"
           value={hfToken}
         />
-        <Button
-          className="pp:shrink-0"
-          onClick={handleSaveHfToken}
-          variant="outline"
-        >
+        <Button className="pp:shrink-0 pp:gap-2" onClick={handleSaveHfToken}>
+          {hfTokenSaved ? (
+            <Check className="pp:size-4" />
+          ) : (
+            <Save className="pp:size-4" />
+          )}
           {hfTokenSaved ? "Saved" : "Save Token"}
         </Button>
         {hfTokenSaved && (

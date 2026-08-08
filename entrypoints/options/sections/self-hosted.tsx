@@ -5,10 +5,12 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  Save,
   Server,
   Sliders,
   Trash2,
   TriangleAlert,
+  Wifi,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -383,10 +385,12 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
             type="button"
             variant="outline"
           >
-            {ollamaStatus === "testing" && (
+            {ollamaStatus === "testing" ? (
               <Loader2 className="pp:size-4 pp:animate-spin" />
+            ) : (
+              <Wifi className="pp:size-4" />
             )}
-            Test connection
+            Test Connection
           </Button>
           <Button
             className="pp:gap-2 disabled:pp:opacity-50"
@@ -398,7 +402,8 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
             }
             type="submit"
           >
-            Save
+            <Save className="pp:size-4" />
+            Save Provider
           </Button>
           {ollamaConfigured && (
             <Button
@@ -826,7 +831,7 @@ function ModelIdInput({
         </Button>
       </div>
       {error && (
-        <p className="pp:text-xs pp:text-destructive pp:pt-1">{error}</p>
+        <p className="pp:pt-1 pp:text-destructive pp:text-xs">{error}</p>
       )}
     </div>
   );
@@ -968,119 +973,124 @@ function TransformersModelList({
   return (
     <div className="pp:space-y-3">
       {isDownloading && (
-        <div className="pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-amber-500/30 pp:bg-amber-500/10 pp:px-3 pp:py-2.5 pp:text-xs pp:text-amber-900 dark:pp:text-amber-200">
+        <div className="pp:flex pp:items-start pp:gap-2 pp:rounded-md pp:border pp:border-amber-500/30 pp:bg-amber-500/10 pp:px-3 pp:py-2.5 pp:text-amber-900 pp:text-xs dark:pp:text-amber-200">
           <TriangleAlert className="pp:mt-0.5 pp:size-4 pp:shrink-0 pp:text-amber-600" />
           <div>
-            <span className="pp:font-semibold">Model download in progress.</span>
+            <span className="pp:font-semibold">
+              Model download in progress.
+            </span>
             <p className="pp:mt-0.5">
-              Please do not reload, close, or navigate away from this page until the download completes.
+              Please do not reload, close, or navigate away from this page until
+              the download completes.
             </p>
           </div>
         </div>
       )}
       <div className="pp:space-y-2">
-      {models.map((model) => {
-        const dl = downloadStates[model.modelId] ?? {
-          progress: 0,
-          status: "idle",
-        };
+        {models.map((model) => {
+          const dl = downloadStates[model.modelId] ?? {
+            progress: 0,
+            status: "idle",
+          };
 
-        return (
-          <div
-            className="pp:flex pp:items-center pp:justify-between pp:rounded-lg pp:border pp:px-4 pp:py-3"
-            key={model.modelId}
-          >
-            <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col pp:gap-1">
-              <div className="pp:flex pp:items-center pp:gap-2">
-                <span className="pp:font-medium pp:text-sm">{model.label}</span>
-                <StatusBadge status={dl.status} />
-              </div>
-              <span className="pp:truncate pp:text-muted-foreground pp:text-xs">
-                {model.modelId}
-              </span>
-              {dl.status === "downloading" && dl.progress < 100 && (
-                <div className="pp:mt-1 pp:h-1.5 pp:w-full pp:overflow-hidden pp:rounded-full pp:bg-muted">
-                  <div
-                    className="pp:h-full pp:rounded-full pp:bg-primary pp:transition-[width]"
-                    style={{ width: `${dl.progress}%` }}
-                  />
+          return (
+            <div
+              className="pp:flex pp:items-center pp:justify-between pp:rounded-lg pp:border pp:px-4 pp:py-3"
+              key={model.modelId}
+            >
+              <div className="pp:flex pp:min-w-0 pp:flex-1 pp:flex-col pp:gap-1">
+                <div className="pp:flex pp:items-center pp:gap-2">
+                  <span className="pp:font-medium pp:text-sm">
+                    {model.label}
+                  </span>
+                  <StatusBadge status={dl.status} />
                 </div>
-              )}
-              {dl.status === "downloading" && dl.progress < 100 && (
-                <span className="pp:text-muted-foreground pp:text-xs">
-                  Downloading... {dl.progress}%
+                <span className="pp:truncate pp:text-muted-foreground pp:text-xs">
+                  {model.modelId}
                 </span>
-              )}
-              {dl.status === "downloading" && dl.progress >= 100 && (
-                <span className="pp:flex pp:items-center pp:gap-1 pp:text-muted-foreground pp:text-xs">
-                  <Loader2 className="pp:size-3 pp:animate-spin" />
-                  Initializing model… this may take 1-2 minutes
-                </span>
-              )}
-              {dl.status === "error" && dl.errorMessage && (
-                <span className="pp:mt-1 pp:text-destructive pp:text-xs pp:leading-tight">
-                  {dl.errorMessage}
-                </span>
-              )}
-            </div>
+                {dl.status === "downloading" && dl.progress < 100 && (
+                  <div className="pp:mt-1 pp:h-1.5 pp:w-full pp:overflow-hidden pp:rounded-full pp:bg-muted">
+                    <div
+                      className="pp:h-full pp:rounded-full pp:bg-primary pp:transition-[width]"
+                      style={{ width: `${dl.progress}%` }}
+                    />
+                  </div>
+                )}
+                {dl.status === "downloading" && dl.progress < 100 && (
+                  <span className="pp:text-muted-foreground pp:text-xs">
+                    Downloading... {dl.progress}%
+                  </span>
+                )}
+                {dl.status === "downloading" && dl.progress >= 100 && (
+                  <span className="pp:flex pp:items-center pp:gap-1 pp:text-muted-foreground pp:text-xs">
+                    <Loader2 className="pp:size-3 pp:animate-spin" />
+                    Initializing model… this may take 1-2 minutes
+                  </span>
+                )}
+                {dl.status === "error" && dl.errorMessage && (
+                  <span className="pp:mt-1 pp:text-destructive pp:text-xs pp:leading-tight">
+                    {dl.errorMessage}
+                  </span>
+                )}
+              </div>
 
-            <div className="pp:ml-2 pp:flex pp:shrink-0 pp:items-center pp:gap-1.5">
-              {(dl.status === "idle" || dl.status === "error") && (
+              <div className="pp:ml-2 pp:flex pp:shrink-0 pp:items-center pp:gap-1.5">
+                {(dl.status === "idle" || dl.status === "error") && (
+                  <Button
+                    className="pp:gap-1.5"
+                    onClick={() => onDownload(model.modelId)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Download className="pp:size-3.5" />
+                    Download
+                  </Button>
+                )}
+                {dl.status === "validating" && (
+                  <Button
+                    className="pp:gap-1.5"
+                    disabled
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Loader2 className="pp:size-3.5 pp:animate-spin" />
+                    Validating
+                  </Button>
+                )}
+                {dl.status === "downloading" && (
+                  <Button
+                    className="pp:gap-1.5"
+                    disabled
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Loader2 className="pp:size-3.5 pp:animate-spin" />
+                    Downloading
+                  </Button>
+                )}
+                {dl.status === "ready" && (
+                  <Button
+                    className="pp:gap-1.5"
+                    onClick={() => onRedownload(model.modelId)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <RefreshCw className="pp:size-3.5" />
+                    Redownload
+                  </Button>
+                )}
                 <Button
-                  className="pp:gap-1.5"
-                  onClick={() => onDownload(model.modelId)}
+                  aria-label={`Remove ${model.label}`}
+                  onClick={() => onRemove(model.modelId)}
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                 >
-                  <Download className="pp:size-3.5" />
-                  Download
+                  <Trash2 className="pp:size-3.5" />
                 </Button>
-              )}
-              {dl.status === "validating" && (
-                <Button
-                  className="pp:gap-1.5"
-                  disabled
-                  size="sm"
-                  variant="outline"
-                >
-                  <Loader2 className="pp:size-3.5 pp:animate-spin" />
-                  Validating
-                </Button>
-              )}
-              {dl.status === "downloading" && (
-                <Button
-                  className="pp:gap-1.5"
-                  disabled
-                  size="sm"
-                  variant="outline"
-                >
-                  <Loader2 className="pp:size-3.5 pp:animate-spin" />
-                  Downloading
-                </Button>
-              )}
-              {dl.status === "ready" && (
-                <Button
-                  className="pp:gap-1.5"
-                  onClick={() => onRedownload(model.modelId)}
-                  size="sm"
-                  variant="outline"
-                >
-                  <RefreshCw className="pp:size-3.5" />
-                  Redownload
-                </Button>
-              )}
-              <Button
-                aria-label={`Remove ${model.label}`}
-                onClick={() => onRemove(model.modelId)}
-                size="sm"
-                variant="ghost"
-              >
-                <Trash2 className="pp:size-3.5" />
-              </Button>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
     </div>
   );
@@ -1298,8 +1308,18 @@ function TransformersWasmSettingsSection() {
             </div>
 
             <div className="pp:flex pp:items-center pp:justify-between pp:pt-2">
-              <Button disabled={isSaving} onClick={handleSave} size="sm">
-                {isSaving ? "Saving..." : "Save WASM Settings"}
+              <Button
+                className="pp:gap-2"
+                disabled={isSaving}
+                onClick={handleSave}
+                size="sm"
+              >
+                {isSaving ? (
+                  <Loader2 className="pp:size-4 pp:animate-spin" />
+                ) : (
+                  <Save className="pp:size-4" />
+                )}
+                Save WASM Settings
               </Button>
               {savedStatus ? (
                 <p className="pp:font-medium pp:text-green-600 pp:text-xs">
