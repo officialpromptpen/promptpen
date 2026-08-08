@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { browser } from "wxt/browser";
+import { createProviderAdapter } from "@/features/providers/sdk";
 import type { AIProvider, ToolbarAction, ToolbarState } from "@/types";
 import { createActionPrompt, getFriendlyActionError } from "./utils";
 
@@ -26,14 +27,40 @@ export function useActionHandlers(
           customPrompt
         );
 
-        const response = await browser.runtime.sendMessage({
-          model: modelRef.current,
-          prompt,
-          provider: providerRef.current,
-          systemPrompt:
-            "You are a text transformation tool. Output ONLY the transformed text — no greetings, no explanations, no commentary, no markdown, no quotation marks, no prefixes like 'Here is'. Never wrap the text in quotes or backticks. Never add introductory or concluding sentences. Output the result directly as plain text.",
-          type: "RUN_PROMPT",
-        });
+        const systemPrompt =
+          "You are a text transformation tool. Output ONLY the transformed text — no greetings, no explanations, no commentary, no markdown, no quotation marks, no prefixes like 'Here is'. Never wrap the text in quotes or backticks. Never add introductory or concluding sentences. Output the result directly as plain text.";
+
+        let response: { text?: string; error?: string };
+
+        if (providerRef.current === "transformers") {
+          try {
+            const adapter = await createProviderAdapter(
+              providerRef.current,
+              modelRef.current
+            );
+            if (!adapter) {
+              response = {
+                error:
+                  "No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider.",
+              };
+            } else {
+              const text = await adapter.runPrompt(prompt, systemPrompt);
+              response = { text };
+            }
+          } catch (err) {
+            const msg =
+              err instanceof Error ? err.message : "TransformersJS generation failed.";
+            response = { error: msg };
+          }
+        } else {
+          response = await browser.runtime.sendMessage({
+            model: modelRef.current,
+            prompt,
+            provider: providerRef.current,
+            systemPrompt,
+            type: "RUN_PROMPT",
+          });
+        }
 
         if (response.error) {
           dispatch({

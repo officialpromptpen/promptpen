@@ -22,6 +22,13 @@ export default defineBackground(() => {
       sendResponse
     ) => {
       if (message.type === "RUN_PROMPT") {
+        if (message.provider === "transformers") {
+          sendResponse({
+            error:
+              "TransformersJS local in-browser models must be executed in client window context. Service Workers do not support dynamic WASM import().",
+          });
+          return true;
+        }
         void handleRunPrompt(message, sendResponse);
         return true; // Keep the message channel open for async response
       }

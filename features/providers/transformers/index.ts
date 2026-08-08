@@ -53,6 +53,19 @@ export { RECOMMENDED_MODELS } from "./recommended-models";
 export const provider: ProviderModule = {
   category: "self-hosted",
   createModel: (config) => {
+    const g = globalThis as unknown as {
+      ServiceWorkerGlobalScope?: new () => unknown;
+    };
+    if (
+      typeof g.ServiceWorkerGlobalScope !== "undefined" &&
+      g.ServiceWorkerGlobalScope &&
+      self instanceof g.ServiceWorkerGlobalScope
+    ) {
+      throw new Error(
+        "TransformersJS in-browser models cannot run inside Chrome Extension Service Worker because dynamic WASM import() is disallowed by W3C HTML spec. Run TransformersJS in the window context."
+      );
+    }
+
     configureAuth(config.accessToken);
 
     const modelInstance = transformersJS(config.model, {
