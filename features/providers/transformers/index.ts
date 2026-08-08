@@ -6,7 +6,7 @@ import { getTransformersExecutionConfig } from "@/features/storage/self-hosted";
 import { RECOMMENDED_MODELS } from "./recommended-models";
 import { browser } from "wxt/browser"
 
-env.useWasmCache = false;
+env.useWasmCache = true;
 env.allowLocalModels = false;
 
 let backendConfiguredPromise: Promise<void> | null = null;
@@ -22,19 +22,10 @@ async function configureBackend(): Promise<void> {
       const execConfig = await getTransformersExecutionConfig();
       env.backends.onnx.wasm.proxy = execConfig.proxy;
       env.backends.onnx.wasm.numThreads = execConfig.numThreads;
-
-      if (!env.backends.onnx.wasm.wasmBinary) {
-        try {
-          const wasmUrl = `${base}ort-wasm-simd-threaded.asyncify.wasm`;
-          const res = await fetch(wasmUrl);
-          if (res.ok) {
-            const buffer = await res.arrayBuffer();
-            env.backends.onnx.wasm.wasmBinary = new Uint8Array(buffer);
-          }
-        } catch (e) {
-          console.warn("Failed to pre-fetch ONNX WASM binary:", e);
-        }
-      }
+      env.backends.onnx.wasm.wasmPaths = {
+        mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
+        wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
+      };
     }
   })();
 

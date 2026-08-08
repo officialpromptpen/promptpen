@@ -551,26 +551,17 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       const { env, AutoModelForCausalLM, AutoTokenizer } = await import(
         "@huggingface/transformers"
       );
-      env.useWasmCache = false;
+      env.useWasmCache = true;
       env.allowLocalModels = false;
       const base = browser.runtime.getURL("/onnx/" as any);
       if (base && env.backends.onnx?.wasm) {
         const execConfig = await getTransformersExecutionConfig();
         env.backends.onnx.wasm.proxy = execConfig.proxy;
         env.backends.onnx.wasm.numThreads = execConfig.numThreads;
-
-        if (!env.backends.onnx.wasm.wasmBinary) {
-          try {
-            const wasmUrl = `${base}ort-wasm-simd-threaded.asyncify.wasm`;
-            const res = await fetch(wasmUrl);
-            if (res.ok) {
-              const buffer = await res.arrayBuffer();
-              env.backends.onnx.wasm.wasmBinary = new Uint8Array(buffer);
-            }
-          } catch (e) {
-            console.warn("Failed to pre-fetch ONNX WASM binary:", e);
-          }
-        }
+        env.backends.onnx.wasm.wasmPaths = {
+          mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
+          wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
+        };
       }
 
       if (storedToken) {
@@ -1206,10 +1197,15 @@ function TransformersWasmSettingsSection() {
     try {
       await setTransformersExecutionConfig({ numThreads, proxy });
       const { env } = await import("@huggingface/transformers");
-      env.useWasmCache = false;
-      if (env.backends.onnx?.wasm) {
+      env.useWasmCache = true;
+      const base = browser.runtime.getURL("/onnx/" as any);
+      if (base && env.backends.onnx?.wasm) {
         env.backends.onnx.wasm.proxy = proxy;
         env.backends.onnx.wasm.numThreads = numThreads;
+        env.backends.onnx.wasm.wasmPaths = {
+          mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
+          wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
+        };
       }
       setSavedStatus("WASM settings saved successfully.");
       setTimeout(() => setSavedStatus(null), 3000);
