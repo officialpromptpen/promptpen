@@ -37,6 +37,7 @@ export interface ToolbarActionsProps {
 	configuredProviderModels?: Partial<Record<AIProvider, string>>
 	configuredProviders?: AIProvider[]
 	enabledActionIds?: string[]
+	isDraggingRef?: React.RefObject<boolean>
 	isLoading?: boolean
 	onAction: (actionId: string) => void
 	onModelChange: (model: string) => void
@@ -77,6 +78,7 @@ export interface ActionGroupListProps {
 }
 
 export interface ClosedToolbarStateProps {
+	isDraggingRef?: React.RefObject<boolean>
 	onOpen: () => void
 }
 

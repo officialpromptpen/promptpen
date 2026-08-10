@@ -1,4 +1,6 @@
 import { AnimatePresence, m } from "framer-motion";
+import { useRef } from "react";
+import Draggable from "react-draggable";
 import { createPortal } from "react-dom";
 import type { ToolbarPopoverProps } from "@/types";
 import { ToolbarActions } from "./actions-panel";
@@ -18,6 +20,9 @@ export function ToolbarPopover({
   configuredProviders,
   configuredProviderModels,
 }: ToolbarPopoverProps) {
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+
   if (!portalNode) {
     return null;
   }
@@ -27,7 +32,7 @@ export function ToolbarPopover({
       {visible && (
         <m.div
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="pp:fixed pp:z-2147483647 pp:shadow-2xl"
+          className="pp:fixed pp:z-2147483647"
           exit={{ opacity: 0, scale: 0.9, y: 4 }}
           initial={{ opacity: 0, scale: 0.9, y: 4 }}
           style={{
@@ -38,18 +43,32 @@ export function ToolbarPopover({
           }}
           transition={{ duration: 0.15, ease: "easeOut" }}
         >
-          <ToolbarActions
-            activeActionId={activeActionId}
-            configuredProviderModels={configuredProviderModels}
-            configuredProviders={configuredProviders}
-            isLoading={isRunning}
-            onAction={onAction}
-            onModelChange={onModelChange}
-            onProviderChange={onProviderChange}
-            onRunCustomPrompt={onRunCustomPrompt}
-            selectedModel={selectedModel}
-            selectedProvider={selectedProvider}
-          />
+          <Draggable
+            handle=".pp-drag-handle"
+            nodeRef={nodeRef as React.RefObject<HTMLElement>}
+            onDrag={() => {
+              isDraggingRef.current = true;
+            }}
+            onStart={() => {
+              isDraggingRef.current = false;
+            }}
+          >
+            <div ref={nodeRef}>
+              <ToolbarActions
+                activeActionId={activeActionId}
+                configuredProviderModels={configuredProviderModels}
+                configuredProviders={configuredProviders}
+                isDraggingRef={isDraggingRef}
+                isLoading={isRunning}
+                onAction={onAction}
+                onModelChange={onModelChange}
+                onProviderChange={onProviderChange}
+                onRunCustomPrompt={onRunCustomPrompt}
+                selectedModel={selectedModel}
+                selectedProvider={selectedProvider}
+              />
+            </div>
+          </Draggable>
         </m.div>
       )}
     </AnimatePresence>,

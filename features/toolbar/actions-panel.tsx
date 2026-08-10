@@ -1,5 +1,5 @@
 import { FloatingDelayGroup } from "@floating-ui/react";
-import { Search, X } from "lucide-react";
+import { GripHorizontal, Search, X } from "lucide-react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AIProviderSelectIcon } from "@/components/ai-provider-select-icon";
@@ -48,6 +48,7 @@ export function ToolbarActions({
   isLoading = false,
   activeActionId = null,
   enabledActionIds,
+  isDraggingRef,
 }: ToolbarActionsProps) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -166,7 +167,16 @@ export function ToolbarActions({
   }
 
   if (!isPanelOpen) {
-    return <ClosedToolbarState onOpen={() => setIsPanelOpen(true)} />;
+    return (
+      <ClosedToolbarState
+        isDraggingRef={isDraggingRef}
+        onOpen={() => {
+          if (!isDraggingRef?.current) {
+            setIsPanelOpen(true);
+          }
+        }}
+      />
+    );
   }
 
   return (
@@ -175,8 +185,9 @@ export function ToolbarActions({
         aria-label="PromptPen action panel"
         className="pp:max-h-[80vh] pp:w-[min(64vw,564px)] pp:overflow-hidden pp:rounded-xl pp:border pp:border-border/70 pp:bg-popover pp:text-popover-foreground pp:shadow-2xl"
       >
-        <div className="pp:flex pp:flex-row pp:items-center pp:justify-between pp:gap-3 pp:border-border pp:border-b pp:px-2.5 pp:py-3">
+        <div className="pp-drag-handle pp:flex pp:cursor-grab pp:flex-row pp:items-center pp:justify-between pp:gap-3 pp:border-border pp:border-b pp:px-2.5 pp:py-3 pp:select-none active:pp:cursor-grabbing">
           <div className="pp:flex pp:items-center pp:gap-2">
+            <GripHorizontal className="pp:size-4 pp:text-muted-foreground/70" />
             <div className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-lg">
               <Logo />
             </div>
