@@ -45,13 +45,9 @@ export function ResultDialog({
             handle=".pp-drag-handle"
             nodeRef={nodeRef as React.RefObject<HTMLElement>}
           >
-            <m.div
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+            <div
               className="pp:pointer-events-auto pp:flex pp:max-h-[85vh] pp:w-full pp:max-w-xl pp:flex-col pp:overflow-hidden pp:rounded-xl pp:border pp:border-border/70 pp:bg-card pp:text-card-foreground pp:shadow-2xl"
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
               ref={nodeRef}
-              transition={{ duration: 0.15, ease: "easeOut" }}
             >
               {/* Header with Drag Handle and Close icon button */}
               <div className="pp-drag-handle pp:flex pp:shrink-0 pp:cursor-grab pp:items-center pp:justify-between pp:border-border/70 pp:border-b pp:px-4 pp:py-3 pp:select-none active:pp:cursor-grabbing">
@@ -75,6 +71,9 @@ export function ResultDialog({
                             e.stopPropagation();
                             onClose();
                           }}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                          }}
                           size="icon-sm"
                           variant="ghost"
                         >
@@ -89,38 +88,38 @@ export function ResultDialog({
                 </TooltipProvider>
               </div>
 
-            {/* Scrollable Content Body with Shadcn ScrollArea */}
-            <ScrollArea className="pp:min-h-0 pp:w-full pp:flex-1">
-              <div className="pp:p-4">
-                <ResultBody
-                  activeActionId={activeActionId}
+              {/* Scrollable Content Body with Shadcn ScrollArea */}
+              <ScrollArea className="pp:min-h-0 pp:w-full pp:flex-1">
+                <div className="pp:p-4">
+                  <ResultBody
+                    activeActionId={activeActionId}
+                    errorText={errorText}
+                    isRunning={isRunning}
+                    processedText={processedText}
+                  />
+                </div>
+                <ScrollBar orientation="vertical" />
+              </ScrollArea>
+
+              {/* Fixed Footer for Action Buttons */}
+              <div className="pp:shrink-0 pp:border-border/70 pp:border-t pp:bg-card pp:p-4">
+                <ResultActions
+                  copied={copied}
                   errorText={errorText}
                   isRunning={isRunning}
+                  lastActionId={lastActionId}
+                  onClose={onClose}
+                  onCopy={onCopy}
+                  onReplace={onReplace}
+                  onRerun={onRerun}
                   processedText={processedText}
+                  selectedText={selectedText}
                 />
               </div>
-              <ScrollBar orientation="vertical" />
-            </ScrollArea>
-
-            {/* Fixed Footer for Action Buttons */}
-            <div className="pp:shrink-0 pp:border-border/70 pp:border-t pp:bg-card pp:p-4">
-              <ResultActions
-                copied={copied}
-                errorText={errorText}
-                isRunning={isRunning}
-                lastActionId={lastActionId}
-                onClose={onClose}
-                onCopy={onCopy}
-                onReplace={onReplace}
-                onRerun={onRerun}
-                processedText={processedText}
-                selectedText={selectedText}
-              />
             </div>
-          </m.div>
-        </Draggable>
-      </m.div>
-    )}
-  </AnimatePresence>
+          </Draggable>
+        </m.div>
+      )}
+    </AnimatePresence>
   );
 }
