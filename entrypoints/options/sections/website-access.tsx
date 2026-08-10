@@ -1,4 +1,4 @@
-import { GlobeLock, MinusCircle, Plus, X } from "lucide-react";
+import { Check, GlobeLock, MinusCircle, Plus, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -181,6 +181,62 @@ function WebsiteListSection({
   );
 }
 
+const SUGGESTED_WEBSITES = [
+  { hostname: "medium.com", name: "Medium" },
+  { hostname: "dev.to", name: "DEV Community" },
+  { hostname: "hashnode.com", name: "Hashnode" },
+  { hostname: "substack.com", name: "Substack" },
+  { hostname: "linkedin.com", name: "LinkedIn" },
+  { hostname: "github.com", name: "GitHub" },
+  { hostname: "notion.so", name: "Notion" },
+  { hostname: "wordpress.com", name: "WordPress" },
+  { hostname: "ghost.org", name: "Ghost" },
+  { hostname: "reddit.com", name: "Reddit" },
+  { hostname: "x.com", name: "X as Twitter" },
+];
+
+interface SuggestedWebsitesProps {
+  enabledWebsites: string[];
+  onAdd: (hostname: string) => Promise<void>;
+}
+
+function SuggestedWebsites({ enabledWebsites, onAdd }: SuggestedWebsitesProps) {
+  return (
+    <div className="pp:space-y-2.5">
+      <div className="pp:flex pp:items-center pp:gap-1.5">
+        <Sparkles className="pp:size-3.5 pp:text-primary" />
+        <span className="pp:font-medium pp:text-muted-foreground pp:text-xs">
+          Suggested Websites for Writers
+        </span>
+      </div>
+      <div className="pp:flex pp:flex-wrap pp:gap-2">
+        {SUGGESTED_WEBSITES.map(({ hostname, name }) => {
+          const isAdded = enabledWebsites.includes(hostname);
+          return (
+            <button
+              className={`pp:inline-flex pp:items-center pp:gap-1.5 pp:rounded-full pp:border pp:px-3 pp:py-1 pp:font-medium pp:text-xs pp:transition-colors ${isAdded
+                ? "pp:cursor-default pp:border-primary/30 pp:bg-primary/10 pp:text-primary"
+                : "pp:cursor-pointer pp:border-border pp:bg-background pp:text-foreground hover:pp:bg-accent hover:pp:text-accent-foreground"
+                }`}
+              disabled={isAdded}
+              key={hostname}
+              onClick={() => void onAdd(hostname)}
+              type="button"
+            >
+              {isAdded ? (
+                <Check className="pp:size-3" />
+              ) : (
+                <Plus className="pp:size-3 pp:text-muted-foreground" />
+              )}
+              <span>{name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function WebsiteAccessSection(_state: OptionsState) {
   const [websiteInput, setWebsiteInput] = useState("");
   const [excludeInput, setExcludeInput] = useState("");
@@ -228,6 +284,12 @@ export function WebsiteAccessSection(_state: OptionsState) {
     );
 
     setWebsiteInput("");
+    setDeleteConfirmWebsite(null);
+    await refresh();
+  }
+
+  async function handleQuickAddWebsite(hostname: string) {
+    await setWebsiteEnabled(hostname, true);
     setDeleteConfirmWebsite(null);
     await refresh();
   }
@@ -289,6 +351,11 @@ export function WebsiteAccessSection(_state: OptionsState) {
         placeholder="e.g. medium.com, github.com, docs.google.com"
         preview={parsedPreview}
         value={websiteInput}
+      />
+
+      <SuggestedWebsites
+        enabledWebsites={enabledWebsites}
+        onAdd={handleQuickAddWebsite}
       />
 
       <Separator />
