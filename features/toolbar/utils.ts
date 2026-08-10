@@ -14,7 +14,49 @@ export function createActionPrompt(
       ? customPrompt?.trim() || "Improve this text."
       : (getActionById(actionId)?.prompt ?? "Improve this text.");
 
-  return `${instruction}\n\nText:\n${text}`;
+  return `Instruction: ${instruction}\n\nInput Text:\n${text}\n\nTransformed Output:\n`;
+}
+
+const OUTPUT_HEADER_RE =
+  /(?:^|\n)(?:output|result|transformed text|revised text|rewritten text|final output):\s*/gi;
+const PREAMBLE_PREFIX_RE =
+  /^(?:the final output is|here is the (?:transformed|revised|rewritten)? ?(?:text|output|result)|here's the (?:transformed|revised|rewritten)? ?(?:text|output|result)):\s*/i;
+
+export function normalizeModelOutput(rawText: string): string {
+  let cleaned = rawText.trim();
+  if (!cleaned) return "";
+
+  // If the model echoed "Output:" or "Result:", extract everything after the last "Output:" marker
+  const outputMatches = Array.from(cleaned.matchAll(OUTPUT_HEADER_RE));
+  if (outputMatches.length > 0) {
+    const lastMatch = outputMatches[outputMatches.length - 1];
+    if (lastMatch && lastMatch.index !== undefined) {
+      const extracted = cleaned
+        .slice(lastMatch.index + lastMatch[0].length)
+        .trim();
+      if (extracted.length > 0) {
+        cleaned = extracted;
+      }
+    }
+  }
+
+  // Strip conversational preamble prefixes (e.g. "Here is the revised text:")
+  cleaned = cleaned.replace(PREAMBLE_PREFIX_RE, "").trim();
+
+  // If the text is wrapped in quotes or triple backticks, unwrap them
+  if (
+    (cleaned.startsWith('"') && cleaned.endsWith('"') && cleaned.length >= 2) ||
+    (cleaned.startsWith("'") && cleaned.endsWith("'") && cleaned.length >= 2)
+  ) {
+    cleaned = cleaned.slice(1, -1).trim();
+  } else if (cleaned.startsWith("```") && cleaned.endsWith("```")) {
+    cleaned = cleaned
+      .replace(/^```[a-z]*\n?/i, "")
+      .replace(/\n?```$/, "")
+      .trim();
+  }
+
+  return cleaned;
 }
 
 export function getActionLabel(actionId: string | null): string {
@@ -29,21 +71,41 @@ export function getActionLabel(actionId: string | null): string {
   return getActionById(actionId)?.label ?? actionId;
 }
 
-export function getFriendlyActionError(error: unknown): string {
+export function getFriendlyActionError(
+  error: unknown,
+  provider?: string
+): string {
   const message = error instanceof Error ? error.message : "Unknown AI error";
 
   if (EXTENSION_CONTEXT_INVALIDATED_RE.test(message)) {
     return "Extension was reloaded or updated. Refresh this page, select text again, and retry.";
   }
 
+  // Handle Transformers.js errors specifically
   if (
-    message.includes("Ollama") ||
-    message.includes("ECONNREFUSED") ||
-    message.includes("fetch failed") ||
-    message.includes("Failed to fetch") ||
-    /forbidden/i.test(message) ||
-    /model.*not found/i.test(message)
+    provider === "transformers" ||
+    message.includes("Transformers") ||
+    message.includes("Hugging Face") ||
+    message.includes("onnx")
   ) {
+    if (
+      message.includes("huggingface.co") &&
+      (message.includes("Failed to fetch") || message.includes("fetch failed"))
+    ) {
+      return "Failed to download model from Hugging Face. Check your internet connection or Hugging Face access token.";
+    }
+    if (
+      message.includes("model not found") ||
+      message.includes("not found on Hugging Face") ||
+      message.includes("404")
+    ) {
+      return "Model not found. Check the model ID in Dashboard > Self-Hosted > Transformers.js.";
+    }
+    return `In-browser model error: ${message}`;
+  }
+
+  // Handle Ollama errors specifically
+  if (provider === "ollama" || message.includes("Ollama")) {
     if (/forbidden/i.test(message)) {
       return 'Ollama access forbidden: Set OLLAMA_ORIGINS="*" in your Ollama environment to allow extension requests.';
     }
@@ -60,17 +122,11 @@ export function getFriendlyActionError(error: unknown): string {
   }
 
   if (
-    message.includes("TransformersModelError") ||
-    message.startsWith("Failed to load model")
+    message.includes("ECONNREFUSED") ||
+    message.includes("fetch failed") ||
+    message.includes("Failed to fetch")
   ) {
-    return `In-browser model error: ${message}`;
-  }
-
-  if (
-    message.includes("model not found") ||
-    message.includes("not found on Hugging Face")
-  ) {
-    return "Model not found. Check the model ID in Dashboard > Self-Hosted > Transformers.js.";
+    return "Network error: Failed to connect to AI provider. Check your network or API endpoint.";
   }
 
   if (SETUP_FAILURE_RE.test(message)) {

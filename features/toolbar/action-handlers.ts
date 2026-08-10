@@ -1,8 +1,11 @@
 import { useCallback } from "react";
 import { browser } from "wxt/browser";
-import { createProviderAdapter } from "@/features/providers/sdk";
 import type { AIProvider, ToolbarAction, ToolbarState } from "@/types";
-import { createActionPrompt, getFriendlyActionError } from "./utils";
+import {
+  createActionPrompt,
+  getFriendlyActionError,
+  normalizeModelOutput,
+} from "./utils";
 
 export function useActionHandlers(
   stateRef: React.MutableRefObject<ToolbarState>,
@@ -33,28 +36,40 @@ export function useActionHandlers(
         let response: { text?: string; error?: string };
 
         if (providerRef.current === "transformers") {
+          // Transformers.js runs in the window context via unlisted entrypoint script
+          // to avoid bundling 60MB into content.js while maintaining small bundle size.
           try {
-            const adapter = await createProviderAdapter(
-              providerRef.current,
-              modelRef.current
+            const url = browser.runtime.getURL(
+              "/transformers-adapter.js" as never
             );
-            if (adapter) {
-              const text = await adapter.runPrompt(prompt, systemPrompt);
-              response = { text };
-            } else {
-              response = {
-                error:
-                  "No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider.",
-              };
+            await import(/* @vite-ignore */ url);
+            const createAdapter = (
+              window as unknown as {
+                __promptpen_createTransformersAdapter?: (
+                  model: string
+                ) => Promise<{
+                  runPrompt: (
+                    input: string,
+                    system?: string
+                  ) => Promise<string>;
+                }>;
+              }
+            ).__promptpen_createTransformersAdapter;
+
+            if (typeof createAdapter !== "function") {
+              throw new Error("createTransformersAdapter is not available.");
             }
+
+            const adapter = await createAdapter(modelRef.current);
+            const text = await adapter.runPrompt(prompt, systemPrompt);
+            response = { text };
           } catch (err) {
             const msg =
-              err instanceof Error
-                ? err.message
-                : "TransformersJS generation failed.";
+              err instanceof Error ? err.message : "TransformersJS failed.";
             response = { error: msg };
           }
         } else {
+          // All cloud + Ollama providers are handled in background.ts (service worker)
           response = await browser.runtime.sendMessage({
             model: modelRef.current,
             prompt,
@@ -66,13 +81,16 @@ export function useActionHandlers(
 
         if (response.error) {
           dispatch({
-            error: getFriendlyActionError(new Error(response.error)),
+            error: getFriendlyActionError(
+              new Error(response.error),
+              providerRef.current
+            ),
             type: "ACTION_ERROR",
           });
           return;
         }
 
-        const normalized = response.text?.trim() ?? "";
+        const normalized = normalizeModelOutput(response.text ?? "");
         if (!normalized) {
           dispatch({
             error:
@@ -85,7 +103,7 @@ export function useActionHandlers(
         dispatch({ text: normalized, type: "ACTION_SUCCESS" });
       } catch (error) {
         dispatch({
-          error: getFriendlyActionError(error),
+          error: getFriendlyActionError(error, providerRef.current),
           type: "ACTION_ERROR",
         });
       }

@@ -1,6 +1,42 @@
 import type { AIProvider, ProviderAdapter, ProviderTestResult } from "@/types";
-import { getProviderModule } from "./registry";
+import { getCloudProviderModule, getProviderModule } from "./registry";
 import { getRuntimeConfig } from "./storage";
+
+export async function createCloudProviderAdapter(
+  provider?: AIProvider,
+  modelOverride?: string
+): Promise<ProviderAdapter | null> {
+  if (!provider || provider === "transformers") {
+    return null;
+  }
+  const config = await getRuntimeConfig(provider);
+  if (!config || config.provider === "transformers") {
+    return null;
+  }
+
+  const resolvedModel = modelOverride?.trim() || config.model;
+  const mod = await getCloudProviderModule(config.provider);
+  const model = mod.createModel({
+    accessToken: config.accessToken,
+    apiKey: config.apiKey,
+    model: resolvedModel,
+  });
+
+  const { generateText } = await import("ai");
+
+  return {
+    model: resolvedModel,
+    provider: config.provider,
+    runPrompt: async (input: string, systemPrompt?: string) => {
+      const { text } = await generateText({
+        model,
+        prompt: input,
+        system: systemPrompt,
+      });
+      return text;
+    },
+  };
+}
 
 export async function createProviderAdapter(
   provider?: AIProvider,

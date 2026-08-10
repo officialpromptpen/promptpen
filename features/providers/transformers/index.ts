@@ -1,24 +1,23 @@
-import { transformersJS } from "@browser-ai/transformers-js";
-import { env } from "@huggingface/transformers";
 import type { LanguageModel } from "ai";
 import { browser } from "wxt/browser";
+import type { PublicPath } from "wxt/browser";
 import { getTransformersExecutionConfig } from "@/features/storage/self-hosted";
 import type { ProviderModule } from "../_types";
 import { RECOMMENDED_MODELS } from "./recommended-models";
 
-env.useWasmCache = true;
-env.allowLocalModels = false;
-
-import type { PublicPath } from "wxt/browser";
-
 let backendConfiguredPromise: Promise<void> | null = null;
+let originalEnvFetch: unknown = null;
 
-function configureBackend(): Promise<void> {
+async function configureBackend(): Promise<void> {
   if (backendConfiguredPromise) {
     return backendConfiguredPromise;
   }
 
   backendConfiguredPromise = (async () => {
+    const { env } = await import("@huggingface/transformers");
+    env.useWasmCache = true;
+    env.allowLocalModels = false;
+
     const base = browser.runtime.getURL("/onnx/" as PublicPath);
     if (base && env.backends.onnx?.wasm) {
       const execConfig = await getTransformersExecutionConfig();
@@ -34,18 +33,30 @@ function configureBackend(): Promise<void> {
   return backendConfiguredPromise;
 }
 
-function configureAuth(accessToken?: string): void {
+async function configureAuth(accessToken?: string): Promise<void> {
+  const { env } = await import("@huggingface/transformers");
+
+  if (!originalEnvFetch) {
+    originalEnvFetch = env.fetch;
+  }
+
+  const baseFetch = originalEnvFetch as typeof env.fetch;
+
   if (!accessToken) {
+    env.fetch = baseFetch;
     return;
   }
 
-  const originalFetch = env.fetch;
   env.fetch = (input: string | URL, init?: Record<string, unknown>) => {
-    const headers = new Headers(
-      init?.headers as Record<string, string> | undefined
-    );
-    headers.set("Authorization", `Bearer ${accessToken}`);
-    return originalFetch(input, { ...init, headers });
+    const urlStr = typeof input === "string" ? input : input.toString();
+    if (urlStr.includes("huggingface.co")) {
+      const headers = new Headers(
+        init?.headers as Record<string, string> | undefined
+      );
+      headers.set("Authorization", `Bearer ${accessToken}`);
+      return baseFetch(input, { ...init, headers });
+    }
+    return baseFetch(input, init);
   };
 }
 
@@ -67,37 +78,85 @@ export const provider: ProviderModule = {
       );
     }
 
-    configureAuth(config.accessToken);
+    let modelPromise: Promise<LanguageModel> | null = null;
 
-    const modelInstance = transformersJS(config.model, {
-      device: "wasm",
-    });
+    const getOrInitModel = async (): Promise<LanguageModel> => {
+      if (!modelPromise) {
+        modelPromise = (async () => {
+          await configureAuth(config.accessToken);
 
-    const model = modelInstance as unknown as LanguageModel & {
-      doGenerate?: (...args: unknown[]) => Promise<unknown>;
-      doStream?: (...args: unknown[]) => Promise<unknown>;
+          const { transformersJS } = await import(
+            "@browser-ai/transformers-js"
+          );
+
+          const modelInstance = transformersJS(config.model, {
+            device: "wasm",
+          }) as unknown as LanguageModel & {
+            doGenerate?: (...args: unknown[]) => Promise<unknown>;
+            doStream?: (...args: unknown[]) => Promise<unknown>;
+          };
+
+          const originalDoGenerate = modelInstance.doGenerate?.bind(
+            modelInstance
+          );
+          const originalDoStream = modelInstance.doStream?.bind(
+            modelInstance
+          );
+
+          if (originalDoGenerate) {
+            modelInstance.doGenerate = async (...args: unknown[]) => {
+              await configureBackend();
+              return originalDoGenerate(...args);
+            };
+          }
+
+          if (originalDoStream) {
+            modelInstance.doStream = async (...args: unknown[]) => {
+              await configureBackend();
+              return originalDoStream(...args);
+            };
+          }
+
+          return modelInstance as LanguageModel;
+        })();
+      }
+      return modelPromise;
     };
 
-    const originalDoGenerate = model.doGenerate?.bind(model);
-    const originalDoStream = model.doStream?.bind(model);
-
-    if (originalDoGenerate) {
-      model.doGenerate = async (...args: unknown[]) => {
-        await configureBackend();
-        return originalDoGenerate(...args);
-      };
-    }
-
-    if (originalDoStream) {
-      model.doStream = async (...args: unknown[]) => {
-        await configureBackend();
-        return originalDoStream(...args);
-      };
-    }
-
-    return model as LanguageModel;
+    return new Proxy({} as Record<string, unknown>, {
+      get(_target, prop) {
+        if (prop === "specificationVersion") return "v2";
+        if (prop === "provider") return "transformers";
+        if (prop === "modelId") return config.model;
+        if (prop === "defaultObjectGenerationMode") return "json";
+        if (prop === "doGenerate") {
+          return async (...args: unknown[]) => {
+            const model = await getOrInitModel();
+            const gen = (
+              model as unknown as {
+                doGenerate: (...a: unknown[]) => Promise<unknown>;
+              }
+            ).doGenerate;
+            return gen.call(model, ...args);
+          };
+        }
+        if (prop === "doStream") {
+          return async (...args: unknown[]) => {
+            const model = await getOrInitModel();
+            const strm = (
+              model as unknown as {
+                doStream: (...a: unknown[]) => Promise<unknown>;
+              }
+            ).doStream;
+            return strm.call(model, ...args);
+          };
+        }
+        return undefined;
+      },
+    }) as unknown as LanguageModel;
   },
   defaultModel: RECOMMENDED_MODELS[0]?.modelId ?? "",
   id: "transformers",
   label: "Transformers.js",
 };
+

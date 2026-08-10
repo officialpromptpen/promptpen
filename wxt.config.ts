@@ -18,7 +18,7 @@ export default defineConfig({
     web_accessible_resources: [
       {
         matches: ["<all_urls>"],
-        resources: ["onnx/*"],
+        resources: ["onnx/*", "transformers-adapter.js"],
       },
     ],
   },
@@ -26,6 +26,7 @@ export default defineConfig({
 
   vite: () => ({
     build: {
+      assetsInlineLimit: 0,
       chunkSizeWarningLimit: 7000,
       rolldownOptions: {
         checks: {
@@ -33,9 +34,6 @@ export default defineConfig({
         },
       },
       sourcemap: false,
-    },
-    define: {
-      "import.meta": {},
     },
   }),
 });

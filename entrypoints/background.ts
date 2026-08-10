@@ -1,4 +1,5 @@
-import { createProviderAdapter } from "@/features/providers/sdk";
+import { createCloudProviderAdapter } from "@/features/providers/sdk";
+import { normalizeModelOutput } from "@/features/toolbar/utils";
 import type { AIProvider } from "@/types";
 
 export default defineBackground(() => {
@@ -17,6 +18,7 @@ export default defineBackground(() => {
         actionId?: string;
         selectedText?: string;
         customPrompt?: string;
+        prefix?: string;
       },
       sender,
       sendResponse
@@ -28,9 +30,12 @@ export default defineBackground(() => {
 
       if (message.type === "RUN_PROMPT") {
         if (message.provider === "transformers") {
+          // Transformers.js (WASM) cannot run in a service worker — it must run
+          // directly in the content script window context. This path should never
+          // be hit, but guard it explicitly so the error is clear.
           sendResponse({
             error:
-              "TransformersJS local in-browser models must be executed in client window context. Service Workers do not support dynamic WASM import().",
+              "TransformersJS models run in the browser window context (content script), not the service worker. This is a bug — please reload the extension.",
           });
           return true;
         }
@@ -42,6 +47,8 @@ export default defineBackground(() => {
   );
 });
 
+
+
 async function handleRunPrompt(
   message: {
     provider?: AIProvider;
@@ -52,7 +59,7 @@ async function handleRunPrompt(
   sendResponse: (response: { text?: string; error?: string }) => void
 ) {
   try {
-    const adapter = await createProviderAdapter(
+    const adapter = await createCloudProviderAdapter(
       message.provider,
       message.model
     );
@@ -69,7 +76,7 @@ async function handleRunPrompt(
       message.systemPrompt
     );
 
-    const normalized = result.trim();
+    const normalized = normalizeModelOutput(result);
     if (!normalized) {
       sendResponse({
         error:
@@ -80,7 +87,7 @@ async function handleRunPrompt(
 
     sendResponse({ text: normalized });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown AI error";
-    sendResponse({ error: `Request failed: ${message}` });
+    const msg = error instanceof Error ? error.message : "Unknown AI error";
+    sendResponse({ error: msg });
   }
 }

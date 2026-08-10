@@ -89,7 +89,7 @@ const moduleCache = new Map<string, ProviderModule>();
 
 // Lazy-loaded provider modules — heavy SDK packages are only imported when
 // the user actually runs an action, keeping the content script bundle small.
-const PROVIDER_IMPORTS: Record<
+const CLOUD_PROVIDER_IMPORTS: Record<
   string,
   () => Promise<{ provider: ProviderModule }>
 > = {
@@ -104,7 +104,6 @@ const PROVIDER_IMPORTS: Record<
   "openai-compatible": () => import("./openai-compatible"),
   openrouter: () => import("./openrouter"),
   together: () => import("./together"),
-  transformers: () => import("./transformers"),
 };
 
 export function getProviderDefinition(
@@ -116,7 +115,7 @@ export function getProviderDefinition(
   );
 }
 
-export async function getProviderModule(
+export async function getCloudProviderModule(
   provider: AIProvider
 ): Promise<ProviderModule> {
   const cached = moduleCache.get(provider);
@@ -124,12 +123,23 @@ export async function getProviderModule(
     return cached;
   }
 
-  const importFn = PROVIDER_IMPORTS[provider];
+  const importFn = CLOUD_PROVIDER_IMPORTS[provider];
   if (!importFn) {
-    throw new Error(`Unknown provider: ${provider}`);
+    throw new Error(`Unknown cloud provider: ${provider}`);
   }
 
   const { provider: mod } = await importFn();
   moduleCache.set(provider, mod);
   return mod;
+}
+
+export async function getProviderModule(
+  provider: AIProvider
+): Promise<ProviderModule> {
+  if (provider === "transformers") {
+    const { provider: mod } = await import("./transformers");
+    return mod;
+  }
+
+  return getCloudProviderModule(provider);
 }
