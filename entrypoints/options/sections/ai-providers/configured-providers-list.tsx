@@ -3,6 +3,7 @@ import {
   CloudOff,
   Edit3,
   RefreshCw,
+  Star,
   Trash2,
   TriangleAlert,
 } from "lucide-react";
@@ -50,6 +51,7 @@ interface ConfiguredProvidersListProps {
   handleDeleteProvider: OptionsState["handleDeleteProvider"];
   handleEditProvider: OptionsState["handleEditProvider"];
   onRetryConnection: (provider: AIProvider) => void;
+  onSetDefault?: (provider: AIProvider, model: string) => void;
   selectedProvider: OptionsState["selectedProvider"];
   title?: string;
 }
@@ -59,6 +61,7 @@ export function ConfiguredProvidersList({
   handleDeleteProvider,
   handleEditProvider,
   onRetryConnection,
+  onSetDefault,
   selectedProvider,
   title,
 }: ConfiguredProvidersListProps) {
@@ -101,6 +104,7 @@ export function ConfiguredProvidersList({
                 handleEditProvider(detail.provider, detail.model);
               }}
               onRetry={() => onRetryConnection(detail.provider)}
+              onSetDefault={onSetDefault}
             />
           );
         })}
@@ -115,6 +119,7 @@ interface ProviderDetailRowProps {
   onConfirmDelete: () => void;
   onEdit: () => void;
   onRetry: () => void;
+  onSetDefault?: (provider: AIProvider, model: string) => void;
 }
 
 function ProviderDetailRow({
@@ -123,9 +128,10 @@ function ProviderDetailRow({
   onConfirmDelete,
   onEdit,
   onRetry,
+  onSetDefault,
 }: ProviderDetailRowProps) {
   const statusMeta = STATUS_META[detail.status];
-  const StatusIcon = statusMeta.icon;
+  const isDefault = detail.status === "connected";
 
   return (
     <div
@@ -153,6 +159,27 @@ function ProviderDetailRow({
       </div>
 
       <div className="pp:ml-2 pp:flex pp:shrink-0 pp:items-center pp:gap-2">
+        {isDefault ? (
+          <span className="pp:inline-flex pp:items-center pp:gap-1 pp:rounded-full pp:bg-amber-500/10 pp:px-2.5 pp:py-0.5 pp:font-semibold pp:text-amber-600 pp:text-xs dark:pp:text-amber-400">
+            <Star className="pp:size-3 pp:fill-amber-500 pp:text-amber-500" />
+            DEFAULT
+          </span>
+        ) : (
+          onSetDefault && (
+            <Button
+              aria-label={`Set ${detail.label} (${detail.model}) as default`}
+              className="pp:h-7 pp:gap-1 pp:rounded-md pp:px-2.5 pp:text-xs"
+              onClick={() => onSetDefault(detail.provider, detail.model)}
+              title={`Set ${detail.label} (${detail.model}) as default provider and model`}
+              type="button"
+              variant="outline"
+            >
+              <Star className="pp:size-3.5 pp:text-muted-foreground" />
+              Set Default
+            </Button>
+          )
+        )}
+
         <span
           className={cn(
             "pp:inline-flex pp:items-center pp:gap-1 pp:rounded-full pp:px-2 pp:py-0.5 pp:font-medium pp:text-xs",

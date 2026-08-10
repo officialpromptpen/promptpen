@@ -40,6 +40,7 @@ import {
   removeProviderConfig,
   removeProviderModel,
   saveProviderConfig,
+  setDefaultProvider,
 } from "@/features/providers/storage";
 import { RECOMMENDED_MODELS } from "@/features/providers/transformers/recommended-models";
 import type {
@@ -129,6 +130,20 @@ export function SelfHostedSection(state?: OptionsState) {
     }
   }
 
+  async function handleSetDefault(provider: AIProvider, model: string) {
+    if (!state) {
+      return;
+    }
+    await setDefaultProvider(provider);
+    await saveProviderConfig(provider, model);
+    await state.refreshProviderData();
+    state.setSettings((previous) => ({
+      ...previous,
+      defaultModel: model,
+      defaultProvider: provider,
+    }));
+  }
+
   return (
     <SettingsSectionLayout
       description="Manage local Ollama and in-browser Transformers.js model routing."
@@ -146,6 +161,7 @@ export function SelfHostedSection(state?: OptionsState) {
               }}
               handleEditProvider={handleEdit}
               onRetryConnection={handleRetryConnection}
+              onSetDefault={handleSetDefault}
               selectedProvider={state.selectedProvider}
               title="Ollama Active Connections"
             />
@@ -163,6 +179,7 @@ export function SelfHostedSection(state?: OptionsState) {
               }}
               handleEditProvider={handleEdit}
               onRetryConnection={handleRetryConnection}
+              onSetDefault={handleSetDefault}
               selectedProvider={state.selectedProvider}
               title="Transformers.js Active Connections"
             />

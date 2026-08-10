@@ -6,6 +6,8 @@ import {
   getDecryptedApiKey,
   getProviderEditorState,
   recordProviderConnectionTest,
+  saveProviderConfig,
+  setDefaultProvider,
 } from "@/features/providers/storage";
 import type { AIProvider, OptionsState } from "@/types";
 import { ConfiguredProvidersList } from "./ai-providers/configured-providers-list";
@@ -39,6 +41,17 @@ export function AIProvidersSection(state: OptionsState) {
     await state.refreshProviderData();
   }
 
+  async function handleSetDefault(provider: AIProvider, model: string) {
+    await setDefaultProvider(provider);
+    await saveProviderConfig(provider, model);
+    await state.refreshProviderData();
+    state.setSettings((previous) => ({
+      ...previous,
+      defaultModel: model,
+      defaultProvider: provider,
+    }));
+  }
+
   return (
     <SettingsSectionLayout
       description="Manage API keys, model presets, and default routing across cloud providers."
@@ -63,6 +76,7 @@ export function AIProvidersSection(state: OptionsState) {
           handleDeleteProvider={state.handleDeleteProvider}
           handleEditProvider={state.handleEditProvider}
           onRetryConnection={handleRetryConnection}
+          onSetDefault={handleSetDefault}
           selectedProvider={state.selectedProvider}
         />
       </div>
