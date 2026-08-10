@@ -297,7 +297,7 @@ export async function removeProviderConfig(
   if (state.defaultProvider === provider) {
     const remaining = Object.keys(state.providers) as AIProvider[];
     state.defaultProvider =
-      remaining.length > 0 ? remaining[0] : DEFAULT_PROVIDER;
+      remaining.length > 0 ? remaining[0]! : DEFAULT_PROVIDER;
   }
   await writeState(state);
 }
@@ -312,8 +312,7 @@ export async function removeProviderModel(
     return;
   }
 
-  const currentModels =
-    config.models ?? (config.model ? [config.model] : []);
+  const currentModels = config.models ?? (config.model ? [config.model] : []);
   const updatedModels = currentModels.filter((m) => m !== modelToRemove);
 
   if (updatedModels.length === 0) {
@@ -321,12 +320,12 @@ export async function removeProviderModel(
     if (state.defaultProvider === provider) {
       const remaining = Object.keys(state.providers) as AIProvider[];
       state.defaultProvider =
-        remaining.length > 0 ? remaining[0] : DEFAULT_PROVIDER;
+        remaining.length > 0 ? remaining[0]! : DEFAULT_PROVIDER;
     }
   } else {
     config.models = updatedModels;
     if (config.model === modelToRemove) {
-      config.model = updatedModels[0];
+      config.model = updatedModels[0]!;
     }
     config.updatedAt = Date.now();
   }

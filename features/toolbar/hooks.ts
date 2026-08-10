@@ -1,6 +1,9 @@
 import { storage } from "@wxt-dev/storage";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getProviderDefinition } from "@/features/providers/registry";
+import {
+  DEFAULT_PROVIDER,
+  getProviderDefinition,
+} from "@/features/providers/registry";
 import {
   getConfiguredProviderDetails,
   getProviderSummary,
@@ -66,12 +69,12 @@ export function useProviderState() {
         return;
       }
 
-      const resolvedProvider =
-        availableProviders.length === 1
+      const resolvedProvider: AIProvider =
+        (availableProviders.length === 1
           ? availableProviders[0]
           : availableProviders.includes(summary.defaultProvider)
             ? summary.defaultProvider
-            : availableProviders[0];
+            : availableProviders[0]) ?? DEFAULT_PROVIDER;
       const resolvedModel =
         availableProviderModels[resolvedProvider] ||
         getProviderDefinition(resolvedProvider).defaultModel;

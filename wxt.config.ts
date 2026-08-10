@@ -11,7 +11,7 @@ export default defineConfig({
         id: "promptpen@frontendweb.agency",
       },
     },
-    description: "AI-powered writing assistant (Beta)",
+    description: "AI-powered writing assistant",
     host_permissions: ["<all_urls>"],
     name: "PromptPen",
     permissions: ["storage", "activeTab"],
@@ -23,9 +23,15 @@ export default defineConfig({
     ],
   },
   modules: ["@wxt-dev/module-react"],
+
   vite: () => ({
     build: {
       chunkSizeWarningLimit: 7000,
+      rolldownOptions: {
+        checks: {
+          pluginTimings: false,
+        },
+      },
       sourcemap: false,
     },
     define: {

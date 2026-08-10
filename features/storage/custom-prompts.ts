@@ -69,7 +69,7 @@ export async function updateCustomPrompt(
   }
 
   prompts[index] = {
-    ...prompts[index],
+    ...prompts[index]!,
     prompt: normalizedPrompt,
     title: normalizedTitle,
     updatedAt: Date.now(),

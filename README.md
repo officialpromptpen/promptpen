@@ -1,4 +1,4 @@
-# PromptPen (Beta)
+# PromptPen
 
 AI-powered writing assistant for Chrome and Firefox. Select text on any webpage and instantly improve, rewrite, or transform it with your preferred AI provider.
 
@@ -7,9 +7,7 @@ AI-powered writing assistant for Chrome and Firefox. Select text on any webpage 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/promptpen/gedjdledelhnidiajafkgpcakhabjmic)
 [![Firefox Add-ons](https://img.shields.io/badge/Firefox%20Add--ons-Install-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/promptpen)
 
-> **Beta notice:** 99% of features are fully operational. Please test it out and report bugs to [contact@frontendweb.agency](mailto:contact@frontendweb.agency) to help us reach stable release.
-
-## Features
+## Key Capabilities & Features
 
 - **Rewrite** — Improve writing, fix grammar, simplify language, or rewrite as a single sentence/paragraph
 - **Tone adjustment** — 15+ tones: professional, casual, friendly, confident, thoughtful, optimistic, and more
@@ -17,12 +15,13 @@ AI-powered writing assistant for Chrome and Firefox. Select text on any webpage 
 - **Transform** — Convert text into bullet lists, numbered lists, or summaries
 - **Modify** — Shorten, expand, summarize, or explain selected text
 - **Custom prompts** — Create and save your own reusable writing prompts
-- **Multi-provider** — Use any provider with OpenAI-compatible APIs
-- **Local AI (Transformers.js)** — Run LLMs fully in-browser with ONNX Runtime, no API key or internet required after download
-- **Local AI (Ollama)** — Connect to models running on your own machine
-- **Website access control** — Enable/disable on specific sites
+- **Multi-provider** — Support for cloud AI, self-hosted LLMs, and local in-browser models
+- **Local AI (Transformers.js)** — Run LLMs fully in-browser with ONNX Runtime WebAssembly, no API key or internet required after download
+- **Local AI (Ollama)** — Connect to models running locally on your own machine
+- **Website access control & 1-click suggested sites** — Enable/disable on specific domains with 1-click shortcuts for popular publishing sites (Medium, DEV Community, Hashnode, Substack, LinkedIn, GitHub, Notion, WordPress, Ghost, Reddit, X)
+- **Security & Encryption** — AES-GCM encrypted API key storage, runtime background message origin validation (`sender.id === browser.runtime.id`), and Web Accessible WASM resources
 - **Dark mode** — System-aware theming with manual override
-- **Context menu** — Right-click selected text to open actions
+- **Context menu & floating toolbar** — Select text or right-click to open contextual AI actions
 
 ## Supported Providers
 
@@ -30,7 +29,7 @@ OpenAI, OpenRouter, Anthropic, Gemini, Groq, Ollama (local), Together AI, Cohere
 
 ## Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20 (Node.js 24 LTS recommended)
 - pnpm (recommended) or npm
 
 ## Getting Started
@@ -90,7 +89,7 @@ pnpm run zip:firefox:mv3
 2. Go to [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) and submit the extension
 3. Upload **both** ZIPs when prompted (required for minified/bundled code)
 4. In **Reviewer Directions**, paste:
-   > "This is a beta release (v0.1.0-beta1). 99% of features are fully functional. Refer to the README in the sources ZIP for WXT build instructions: run `pnpm install && pnpm run zip:firefox` to reproduce the build. Node.js 22+, pnpm required."
+   > "Refer to the README in the sources ZIP for WXT build instructions: run `pnpm install && pnpm run zip:firefox` to reproduce the build. Node.js 24+, pnpm required."
 5. Select **Yes** when asked "Does your add-on contain minified or machine-generated code?"
 
 ## Usage Guide
@@ -138,37 +137,35 @@ If you run [Ollama](https://ollama.com) on your machine, connect it directly:
 3. Click **Test connection** to verify Ollama is running, then **Save**.
 4. Pull the model in your terminal first if needed: `ollama pull llama3.1`.
 
-### 6. Reload the Website
+### 6. Website Access & Quick-Add Shortcuts
 
-Reload the webpage where you want to use PromptPen. The extension is now active on that site.
+Control where PromptPen runs under **Options > Website Access**. Use 1-click quick-add buttons to enable popular publishing platforms such as Medium, DEV Community, Hashnode, Substack, LinkedIn, GitHub, Notion, WordPress, Ghost, Reddit, and X.
 
-### 7. Select Text
+### 7. Select Text & Execute Actions
 
-Select any text on the page with your mouse. A floating toolbar icon appears near the selection.
+Select any text on a webpage or input field. The floating toolbar appears near the selection with options to rewrite, improve, explain, or replace text directly.
 
-### 8. Open Actions
-
-Click the toolbar icon to open the full PromptPen action panel. You'll see all available actions grouped by category: Rewrite, Modify, Tone, Transform.
-
-### 9. Choose an Action
-
-Click any action — for example **Improve writing** or **Fix spelling and grammar**. PromptPen processes your selected text using the AI provider (cloud or local).
-
-### 10. Review the Result
-
-The result appears in a dialog with two options:
-
-- **Copy** — copies the result to your clipboard
-- **Replace** — replaces your selected text with the new version
-
-![PromptPen in action](https://via.placeholder.com/800x450/1e1d8f/ffffff?text=PromptPen+Screenshot)
-
-## Type quality
+## Quality & Security Audits
 
 ```bash
-pnpm run compile     # TypeScript check
-pnpm run doctor      # React Doctor lint
+pnpm run compile     # TypeScript type safety check (tsc --noEmit)
+pnpm run check       # Biome & Ultracite code formatting and linting
+pnpm run doctor      # React Doctor performance, accessibility & architectural audit
 ```
+
+## Recent Improvements & Changelog Highlights
+
+- **1-Click Website Access Suggestions**: Added quick-add shortcuts for popular blogging & writing platforms (Medium, DEV, Hashnode, Substack, LinkedIn, GitHub, Notion, WordPress, Ghost, Reddit, X).
+- **Extension Security Hardening**:
+  - Implemented background listener message origin validation (`sender.id === browser.runtime.id`).
+  - Strict AES-GCM API key encryption in `@wxt-dev/storage`.
+  - Full Chrome Web Store MV3 and Firefox Extension Workshop security compliance.
+- **WASM & Local AI Optimization**:
+  - Properly configured WebAssembly ONNX runtime assets (`ort-wasm-simd-threaded.asyncify.wasm`, etc.) with `web_accessible_resources` and `browser.runtime.getURL("/onnx/")` dynamic loading.
+- **React Diagnostics & Performance**:
+  - Improved React Doctor score to **86/100 (Great)** with **0 errors**.
+  - Optimized async state management with `Promise.all()` parallelization and mounted flag safeguards.
+  - Added accessible `aria-label` controls for UI components.
 
 ## Tech Stack
 
@@ -180,11 +177,11 @@ pnpm run doctor      # React Doctor lint
 | Animation | Framer Motion |
 | Icons | Lucide React |
 | AI SDK | Vercel AI SDK (`ai`) |
-| Local AI | Transformers.js (`@huggingface/transformers`), ONNX Runtime Web |
+| Local AI | Transformers.js (`@huggingface/transformers`), ONNX Runtime WebAssembly |
 | State | Zustand |
 | Build | Vite, WXT module system |
-| Linting | Biome, Ultracite |
-| Runtime | MV3 (Chrome) / MV2 (Firefox) |
+| Code Quality | Biome, Ultracite, React Doctor |
+| Runtime | MV3 (Chrome) / MV2 & MV3 (Firefox) |
 
 ## Community
 

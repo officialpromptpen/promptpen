@@ -75,7 +75,7 @@ const PROVIDER_META: ProviderDefinition[] = [
   },
   {
     category: "self-hosted",
-    defaultModel: RECOMMENDED_MODELS[0].modelId,
+    defaultModel: RECOMMENDED_MODELS[0]!.modelId,
     id: "transformers",
     label: "Transformers.js",
   },
@@ -112,7 +112,7 @@ export function getProviderDefinition(
 ): ProviderDefinition {
   return (
     PROVIDER_DEFINITIONS.find((def) => def.id === provider) ??
-    PROVIDER_DEFINITIONS[0]
+    PROVIDER_DEFINITIONS[0]!
   );
 }
 

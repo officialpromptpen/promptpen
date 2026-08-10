@@ -45,13 +45,13 @@ async function readState(): Promise<StoredSelfHostedState> {
     if (!state.selectedTransformersModelIds?.length) {
       return {
         ...state,
-        selectedTransformersModelIds: [DEFAULT_TRANSFORMERS_MODELS[0].modelId],
+        selectedTransformersModelIds: [DEFAULT_TRANSFORMERS_MODELS[0]!.modelId],
       };
     }
     return state;
   }
   return {
-    selectedTransformersModelIds: [DEFAULT_TRANSFORMERS_MODELS[0].modelId],
+    selectedTransformersModelIds: [DEFAULT_TRANSFORMERS_MODELS[0]!.modelId],
     transformersModels: DEFAULT_TRANSFORMERS_MODELS,
   };
 }

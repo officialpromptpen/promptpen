@@ -1,23 +1,25 @@
 import { transformersJS } from "@browser-ai/transformers-js";
 import { env } from "@huggingface/transformers";
 import type { LanguageModel } from "ai";
-import type { ProviderModule } from "../_types";
+import { browser } from "wxt/browser";
 import { getTransformersExecutionConfig } from "@/features/storage/self-hosted";
+import type { ProviderModule } from "../_types";
 import { RECOMMENDED_MODELS } from "./recommended-models";
-import { browser } from "wxt/browser"
 
 env.useWasmCache = true;
 env.allowLocalModels = false;
 
+import type { PublicPath } from "wxt/browser";
+
 let backendConfiguredPromise: Promise<void> | null = null;
 
-async function configureBackend(): Promise<void> {
+function configureBackend(): Promise<void> {
   if (backendConfiguredPromise) {
     return backendConfiguredPromise;
   }
 
   backendConfiguredPromise = (async () => {
-    const base = browser.runtime.getURL("/onnx/" as any);
+    const base = browser.runtime.getURL("/onnx/" as PublicPath);
     if (base && env.backends.onnx?.wasm) {
       const execConfig = await getTransformersExecutionConfig();
       env.backends.onnx.wasm.proxy = execConfig.proxy;
@@ -48,7 +50,6 @@ function configureAuth(accessToken?: string): void {
 }
 
 export type { RecommendedModel } from "./recommended-models";
-export { RECOMMENDED_MODELS } from "./recommended-models";
 
 export const provider: ProviderModule = {
   category: "self-hosted",
@@ -96,7 +97,7 @@ export const provider: ProviderModule = {
 
     return model as LanguageModel;
   },
-  defaultModel: RECOMMENDED_MODELS[0].modelId,
+  defaultModel: RECOMMENDED_MODELS[0]?.modelId ?? "",
   id: "transformers",
   label: "Transformers.js",
 };
