@@ -10,10 +10,12 @@ const TRANSFORMERS_FALLBACK_MODEL =
 
 interface HuggingFaceTokenSectionProps {
   initialToken: string;
+  onSaved?: () => void;
 }
 
 export function HuggingFaceTokenSection({
   initialToken,
+  onSaved,
 }: HuggingFaceTokenSectionProps) {
   const [hfToken, setHfToken] = useState(initialToken);
   const [hfTokenSaved, setHfTokenSaved] = useState(initialToken.length > 0);
@@ -27,6 +29,9 @@ export function HuggingFaceTokenSection({
       hfToken || undefined
     );
     setHfTokenSaved(true);
+    if (onSaved) {
+      await onSaved();
+    }
   }
 
   async function handleClearHfToken() {
@@ -39,6 +44,9 @@ export function HuggingFaceTokenSection({
     );
     setHfToken("");
     setHfTokenSaved(false);
+    if (onSaved) {
+      await onSaved();
+    }
   }
 
   return (

@@ -20,6 +20,10 @@ import {
   saveCustomPrompt,
   updateCustomPrompt,
 } from "@/features/storage/custom-prompts";
+import {
+  getTransformersModels,
+  removeTransformersModel,
+} from "@/features/storage/self-hosted";
 import type {
   AIProvider,
   ConfiguredProviderDetail,
@@ -196,8 +200,17 @@ export function useOptionsState(): OptionsState {
   async function handleDeleteProvider(provider: AIProvider, model?: string) {
     if (model) {
       await removeProviderModel(provider, model);
+      if (provider === "transformers") {
+        await removeTransformersModel(model);
+      }
     } else {
       await removeProviderConfig(provider);
+      if (provider === "transformers") {
+        const tfModels = await getTransformersModels();
+        for (const m of tfModels) {
+          await removeTransformersModel(m.modelId);
+        }
+      }
     }
     const [summary, details] = await Promise.all([
       getProviderSummary(),

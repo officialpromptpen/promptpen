@@ -38,6 +38,7 @@ import {
   getProviderEditorState,
   recordProviderConnectionTest,
   removeProviderConfig,
+  removeProviderModel,
   saveProviderConfig,
 } from "@/features/providers/storage";
 import { RECOMMENDED_MODELS } from "@/features/providers/transformers/recommended-models";
@@ -719,6 +720,7 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
   async function handleRemoveTransformersModel(modelId: string) {
     await handleClearModelCache(modelId);
     const models = await removeTransformersModel(modelId);
+    await removeProviderModel("transformers", modelId);
     setTransformersModelsState(models);
     setDownloadStates((prev) => {
       const next = { ...prev };
@@ -767,7 +769,7 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
         }}
       />
 
-      <HuggingFaceTokenSection initialToken={hfToken} />
+      <HuggingFaceTokenSection initialToken={hfToken} onSaved={onSaved} />
 
       <TransformersWasmSettingsSection />
 
