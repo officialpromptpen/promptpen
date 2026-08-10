@@ -22,9 +22,11 @@ function PasswordInput({
         {...props}
       />
       <button
+        aria-label={showPassword ? "Hide password" : "Show password"}
         className="pp:absolute pp:top-0 pp:right-0 pp:flex pp:h-full pp:w-9 pp:items-center pp:justify-center pp:text-muted-foreground pp:transition-colors hover:pp:text-foreground"
         onClick={() => setShowPassword(!showPassword)}
         tabIndex={-1}
+        title={showPassword ? "Hide password" : "Show password"}
         type="button"
       >
         {showPassword ? (

@@ -1,5 +1,5 @@
 import { storage } from "@wxt-dev/storage";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { createShadowRootUi } from "wxt/utils/content-script-ui/shadow-root";
 import { getThemeChangeTarget } from "@/features/storage/theme-sync";
@@ -126,7 +126,6 @@ function getTextControlSelection(): { text: string; rect: DOMRect } | null {
 
 function ContentScript() {
   const { show, hide, isPinned } = useToolbarStore();
-  const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const target = getThemeChangeTarget();
@@ -142,13 +141,16 @@ function ContentScript() {
   }, []);
 
   useEffect(() => {
+    let currentTimer: ReturnType<typeof setTimeout> | null = null;
+
     function handleSelection() {
       if (isPinned) {
         return;
       }
 
-      if (hideTimeout.current) {
-        clearTimeout(hideTimeout.current);
+      if (currentTimer) {
+        clearTimeout(currentTimer);
+        currentTimer = null;
       }
 
       const textControlSelection = getTextControlSelection();
@@ -159,18 +161,15 @@ function ContentScript() {
 
       const text = getSelectedText();
       if (!text) {
-        hideTimeout.current = setTimeout(() => hide(), 200);
+        currentTimer = setTimeout(() => {
+          hide();
+        }, 200);
         return;
       }
 
       const rect = getSelectionRect();
       const range = getSelectionRange();
-      if (!rect) {
-        hide();
-        return;
-      }
-
-      if (!range) {
+      if (!rect || !range) {
         hide();
         return;
       }
@@ -178,16 +177,21 @@ function ContentScript() {
       show(text, rect, range, isSelectionInEditableNode(range));
     }
 
-    document.addEventListener("mouseup", handleSelection, true);
-    document.addEventListener("selectionchange", handleSelection, true);
-    document.addEventListener("keyup", handleSelection, true);
+    const onMouseUp = () => handleSelection();
+    const onSelectionChange = () => handleSelection();
+    const onKeyUp = () => handleSelection();
 
-    return () => {
-      document.removeEventListener("mouseup", handleSelection, true);
-      document.removeEventListener("selectionchange", handleSelection, true);
-      document.removeEventListener("keyup", handleSelection, true);
-      if (hideTimeout.current) {
-        clearTimeout(hideTimeout.current);
+    document.addEventListener("mouseup", onMouseUp, true);
+    document.addEventListener("selectionchange", onSelectionChange, true);
+    document.addEventListener("keyup", onKeyUp, true);
+
+    return function cleanupSelection() {
+      document.removeEventListener("mouseup", onMouseUp, true);
+      document.removeEventListener("selectionchange", onSelectionChange, true);
+      document.removeEventListener("keyup", onKeyUp, true);
+      if (currentTimer) {
+        clearTimeout(currentTimer);
+        currentTimer = null;
       }
     };
   }, [isPinned, show, hide]);

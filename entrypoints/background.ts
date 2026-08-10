@@ -18,9 +18,14 @@ export default defineBackground(() => {
         selectedText?: string;
         customPrompt?: string;
       },
-      _sender,
+      sender,
       sendResponse
     ) => {
+      // Security: Validate message origin to ensure messages come from internal extension context
+      if (sender.id && sender.id !== browser.runtime.id) {
+        return false;
+      }
+
       if (message.type === "RUN_PROMPT") {
         if (message.provider === "transformers") {
           sendResponse({

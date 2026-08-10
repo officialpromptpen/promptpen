@@ -122,9 +122,18 @@ export function ProviderSetupForm({
   }, [form, selectedProvider, state.selectedProvider]);
 
   useEffect(() => {
+    let mounted = true;
+
     async function syncProviderEditorState() {
-      const editorState = await getProviderEditorState(selectedProvider);
-      const existingApiKey = await getDecryptedApiKey(selectedProvider);
+      const [editorState, existingApiKey] = await Promise.all([
+        getProviderEditorState(selectedProvider),
+        getDecryptedApiKey(selectedProvider),
+      ]);
+
+      if (!mounted) {
+        return;
+      }
+
       const quickAddOverride =
         pendingQuickAdd?.provider === selectedProvider
           ? pendingQuickAdd.modelId
@@ -150,8 +159,17 @@ export function ProviderSetupForm({
     }
 
     void syncProviderEditorState();
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProvider, pendingQuickAdd]);
+    return () => {
+      mounted = false;
+    };
+  }, [
+    selectedProvider,
+    pendingQuickAdd,
+    form,
+    onQuickAddHandled,
+    state.settings.defaultProvider,
+    state.providerSummary?.defaultProvider,
+  ]);
 
   async function handleTestConnection(values: ProviderSetupFormValues) {
     setIsTesting(true);

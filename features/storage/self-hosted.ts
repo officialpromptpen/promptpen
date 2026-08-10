@@ -15,15 +15,16 @@ export interface TransformersExecutionConfig {
   proxy: boolean;
 }
 
-export const DEFAULT_TRANSFORMERS_EXECUTION_CONFIG: TransformersExecutionConfig = {
-  numThreads: 1,
-  proxy: false,
-};
+export const DEFAULT_TRANSFORMERS_EXECUTION_CONFIG: TransformersExecutionConfig =
+  {
+    numThreads: 1,
+    proxy: false,
+  };
 
 interface StoredSelfHostedState {
   selectedTransformersModelIds?: string[];
-  transformersModels: StoredTransformersModel[];
   transformersExecutionConfig?: TransformersExecutionConfig;
+  transformersModels: StoredTransformersModel[];
 }
 
 const DEFAULT_TRANSFORMERS_MODELS: StoredTransformersModel[] = [
@@ -92,14 +93,6 @@ export async function getTransformersModels(): Promise<
   const state = await readState();
   return state.transformersModels;
 }
-
-export async function getSelectedTransformersModelIds(): Promise<string[]> {
-  const state = await readState();
-  return state.selectedTransformersModelIds?.length
-    ? state.selectedTransformersModelIds
-    : [DEFAULT_TRANSFORMERS_MODELS[0].modelId];
-}
-
 export async function addTransformersModel(
   modelId: string,
   label?: string
@@ -137,14 +130,6 @@ export async function removeTransformersModel(
   }
   await writeState(state);
   return state.transformersModels;
-}
-
-export async function setSelectedTransformersModelIds(
-  modelIds: string[]
-): Promise<void> {
-  const state = await readState();
-  state.selectedTransformersModelIds = modelIds;
-  await writeState(state);
 }
 
 export async function updateTransformersModelStatus(

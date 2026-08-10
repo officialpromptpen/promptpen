@@ -29,7 +29,10 @@ interface GeneralFormValues {
 }
 
 export function GeneralSection(state: OptionsState) {
-  const configuredProviders = state.providerSummary?.configuredProviders ?? [];
+  const configuredProviders = useMemo(
+    () => state.providerSummary?.configuredProviders ?? [],
+    [state.providerSummary?.configuredProviders]
+  );
   const fallbackProvider =
     (state.settings.defaultProvider &&
     configuredProviders.includes(state.settings.defaultProvider)
@@ -124,7 +127,6 @@ export function GeneralSection(state: OptionsState) {
       defaultProvider: fallbackProvider,
     });
   }, [
-    configuredProviders,
     fallbackProvider,
     form,
     state.configuredProviderDetails,

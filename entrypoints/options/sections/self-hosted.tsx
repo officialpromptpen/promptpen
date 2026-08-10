@@ -198,9 +198,16 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
   }, [watchBaseUrl, watchModel, watchApiKey]);
 
   useEffect(() => {
+    let mounted = true;
     async function init() {
-      const editorState = await getProviderEditorState("ollama");
-      const storedKey = await getDecryptedApiKey("ollama");
+      const [editorState, storedKey] = await Promise.all([
+        getProviderEditorState("ollama"),
+        getDecryptedApiKey("ollama"),
+      ]);
+
+      if (!mounted) {
+        return;
+      }
 
       form.reset({
         apiKey: storedKey ?? "",
@@ -211,6 +218,9 @@ function OllamaCard({ onSaved }: { onSaved?: () => void }) {
       setIsOllamaTestPassed(false);
     }
     void init();
+    return () => {
+      mounted = false;
+    };
   }, [form]);
 
   async function handleOllamaTest(values: {
