@@ -25,6 +25,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   vite: () => ({
     build: {
+      chunkSizeWarningLimit: 7000,
       sourcemap: false,
     },
     define: {
