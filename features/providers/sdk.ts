@@ -47,6 +47,7 @@ export async function testProviderConnectionWithValues(
     const client = mod.createModel({ apiKey, baseUrl, model });
 
     await generateText({
+      abortSignal: AbortSignal.timeout(15000),
       model: client,
       prompt: "Reply with exactly one word: ready",
       system: "You are a connection test assistant.",

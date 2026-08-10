@@ -6,6 +6,7 @@ import {
   OPTIONS_PAGE_TITLE,
   SETTINGS_KEY,
 } from "@/constants/options";
+import { getProviderDefinition } from "@/features/providers/registry";
 import {
   getConfiguredProviderDetails,
   getProviderSummary,
@@ -177,7 +178,19 @@ export function useOptionsState(): OptionsState {
   }
 
   function handleEditProvider(provider: AIProvider, _model?: string) {
-    setSelectedProvider(provider);
+    const def = getProviderDefinition(provider);
+    if (def.category === "self-hosted") {
+      setActiveSection("self-hosted");
+      const cardId = provider === "ollama" ? "ollama-card" : "transformers-card";
+      setTimeout(() => {
+        const element = document.getElementById(cardId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 50);
+    } else {
+      setSelectedProvider(provider);
+    }
   }
 
   async function handleDeleteProvider(provider: AIProvider, model?: string) {

@@ -90,14 +90,19 @@ export function ProviderSetupForm({
 
   const [savedModels, setSavedModels] = useState<string[]>([]);
 
+  const initialCloudProvider = useMemo(() => {
+    const def = getProviderDefinition(state.selectedProvider);
+    return def.category === "self-hosted" ? "openai" : state.selectedProvider;
+  }, [state.selectedProvider]);
+
   const form = useForm<ProviderSetupFormValues>({
     defaultValues: {
       apiKey: "",
       makeDefault:
-        state.settings.defaultProvider === state.selectedProvider ||
-        state.providerSummary?.defaultProvider === state.selectedProvider,
-      model: getProviderDefinition(state.selectedProvider).defaultModel,
-      provider: state.selectedProvider,
+        state.settings.defaultProvider === initialCloudProvider ||
+        state.providerSummary?.defaultProvider === initialCloudProvider,
+      model: getProviderDefinition(initialCloudProvider).defaultModel,
+      provider: initialCloudProvider,
     },
     mode: "onChange",
   });
@@ -116,8 +121,12 @@ export function ProviderSetupForm({
   }, [selectedProvider, selectedModel, formApiKey]);
 
   useEffect(() => {
-    if (state.selectedProvider !== selectedProvider) {
-      form.setValue("provider", state.selectedProvider);
+    const def = getProviderDefinition(state.selectedProvider);
+    const targetProvider =
+      def.category === "self-hosted" ? "openai" : state.selectedProvider;
+
+    if (targetProvider !== selectedProvider) {
+      form.setValue("provider", targetProvider);
     }
   }, [form, selectedProvider, state.selectedProvider]);
 
@@ -162,14 +171,7 @@ export function ProviderSetupForm({
     return () => {
       mounted = false;
     };
-  }, [
-    selectedProvider,
-    pendingQuickAdd,
-    form,
-    onQuickAddHandled,
-    state.settings.defaultProvider,
-    state.providerSummary?.defaultProvider,
-  ]);
+  }, [selectedProvider, pendingQuickAdd, form, onQuickAddHandled]);
 
   async function handleTestConnection(values: ProviderSetupFormValues) {
     setIsTesting(true);
@@ -193,9 +195,6 @@ export function ProviderSetupForm({
         values.model.trim(),
         apiKey
       );
-
-      await recordProviderConnectionTest(values.provider, result.ok);
-      await state.refreshProviderData();
 
       if (result.ok) {
         setIsTestPassed(true);
