@@ -74,6 +74,13 @@ export function HuggingFaceTokenSection({
           </Button>
         )}
       </div>
+      <p className="pp:pt-1 pp:font-normal pp:text-muted-foreground pp:text-xs pp:leading-relaxed">
+        💡 <strong>Note:</strong> Public ONNX models (such as recommended
+        Qwen2.5 and SmolLM2 models) <strong>do not require a token</strong> to
+        download and run. A Hugging Face access token is only required if you
+        are downloading <strong>gated, private, or restricted models</strong> from
+        Hugging Face.
+      </p>
     </div>
   );
 }

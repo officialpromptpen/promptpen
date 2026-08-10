@@ -1,5 +1,6 @@
 import { storage } from "@wxt-dev/storage";
 import { browser } from "wxt/browser";
+import { getTransformersModels } from "@/features/storage/self-hosted";
 import type {
   AIProvider,
   ConfiguredProviderDetail,
@@ -186,11 +187,20 @@ export async function getProviderSummary(): Promise<ProviderSummary> {
   const state = await readState();
   const configuredProviders: AIProvider[] = [];
   const unconfiguredProviders: AIProvider[] = [];
+  const tfModels = await getTransformersModels().catch(() => []);
+  const readyTfCount = tfModels.filter((m) => m.status === "ready").length;
 
   for (const provider of PROVIDER_DEFINITIONS) {
     const config = state.providers[provider.id];
     const isSelfHosted = provider.category === "self-hosted";
-    if (isSelfHosted ? config : config?.encryptedApiKey) {
+    const isConfigured =
+      provider.id === "transformers"
+        ? Boolean(config) || readyTfCount > 0
+        : isSelfHosted
+          ? Boolean(config)
+          : Boolean(config?.encryptedApiKey);
+
+    if (isConfigured) {
       configuredProviders.push(provider.id);
     } else {
       unconfiguredProviders.push(provider.id);
@@ -221,17 +231,26 @@ export async function getRuntimeConfig(
   const isSelfHosted = providerDefinition.category === "self-hosted";
 
   if (isSelfHosted) {
-    if (!config) {
+    let resolvedModel = config?.model;
+    if (provider === "transformers") {
+      const tfModels = await getTransformersModels().catch(() => []);
+      const readyModels = tfModels.filter((m) => m.status === "ready");
+      if (!resolvedModel && readyModels.length > 0) {
+        resolvedModel = readyModels[0]!.modelId;
+      }
+    }
+
+    if (!config && !resolvedModel) {
       return null;
     }
-    const accessToken = config.encryptedAccessToken
+    const accessToken = config?.encryptedAccessToken
       ? await decryptString(config.encryptedAccessToken)
       : undefined;
     return {
       accessToken: accessToken || undefined,
       apiKey: "",
       baseUrl: config?.baseUrl,
-      model: config?.model ?? providerDefinition.defaultModel,
+      model: resolvedModel ?? providerDefinition.defaultModel,
       provider,
     };
   }
@@ -351,28 +370,41 @@ export async function getConfiguredProviderDetails(): Promise<
 > {
   const state = await readState();
   const details: ConfiguredProviderDetail[] = [];
+  const tfModels = await getTransformersModels().catch(() => []);
+  const readyTfModelIds = tfModels
+    .filter((m) => m.status === "ready")
+    .map((m) => m.modelId);
 
   for (const provider of PROVIDER_DEFINITIONS) {
     const config = state.providers[provider.id];
-    if (!config) {
-      continue;
-    }
     const isConfigured =
-      provider.category === "self-hosted" || !!config.encryptedApiKey;
+      provider.id === "transformers"
+        ? Boolean(config) || readyTfModelIds.length > 0
+        : provider.category === "self-hosted"
+          ? Boolean(config)
+          : Boolean(config?.encryptedApiKey);
+
     if (!isConfigured) {
       continue;
     }
 
-    const savedModels =
-      config.models && config.models.length > 0
+    let savedModels =
+      config?.models && config.models.length > 0
         ? config.models
-        : [config.model ?? provider.defaultModel];
+        : [config?.model ?? provider.defaultModel];
+
+    if (provider.id === "transformers" && readyTfModelIds.length > 0) {
+      savedModels = Array.from(new Set([...savedModels, ...readyTfModelIds]));
+    }
+
+    const updatedAt = config?.updatedAt ?? Date.now();
+    const activeModel = config?.model ?? savedModels[0]!;
 
     for (const model of savedModels) {
       const isDefault =
-        provider.id === state.defaultProvider && config.model === model;
+        provider.id === state.defaultProvider && activeModel === model;
       const status: ConfiguredProviderDetail["status"] =
-        config.lastTestStatus === "error"
+        config?.lastTestStatus === "error"
           ? "error"
           : isDefault
             ? "connected"
@@ -385,7 +417,7 @@ export async function getConfiguredProviderDetails(): Promise<
         models: savedModels,
         provider: provider.id,
         status,
-        updatedAt: config.updatedAt,
+        updatedAt,
       });
     }
   }
