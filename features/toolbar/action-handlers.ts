@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { browser } from "wxt/browser";
 import type {
   AIProvider,
@@ -20,12 +20,45 @@ export function useActionHandlers(
   dispatch: (action: ToolbarAction) => void,
   selectionRangeRef: React.MutableRefObject<Range | null>
 ) {
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef<string | null>(null);
+
+  const cancelActiveRequest = useCallback(() => {
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort("User cancelled prompt execution.");
+      } catch {
+        // Ignore abort errors
+      }
+      abortControllerRef.current = null;
+    }
+
+    if (requestIdRef.current) {
+      const activeId = requestIdRef.current;
+      requestIdRef.current = null;
+      void browser.runtime.sendMessage({
+        requestId: activeId,
+        type: "ABORT_PROMPT",
+      }).catch(() => {
+        // Ignore messaging failures on abort
+      });
+    }
+  }, []);
+
   const handleAction = useCallback(
     async (actionId: string, customPrompt?: string) => {
       const current = stateRef.current;
       if (!current.selectedText.trim() || current.isRunning) {
         return;
       }
+
+      // Abort any existing active request before starting a new one
+      cancelActiveRequest();
+
+      const controller = new AbortController();
+      const requestId = crypto.randomUUID();
+      abortControllerRef.current = controller;
+      requestIdRef.current = requestId;
 
       dispatch({ actionId, type: "RUN_ACTION" });
 
@@ -60,17 +93,30 @@ export function useActionHandlers(
             }
 
             const adapter = await createAdapter(modelRef.current);
+            if (controller.signal.aborted) {
+              return;
+            }
+
             if (adapter.runWritingAction) {
               const output = await adapter.runWritingAction(
                 actionId,
-                current.selectedText
+                current.selectedText,
+                undefined,
+                controller.signal
               );
               response = { output, text: output.result };
             } else {
-              const text = await adapter.runPrompt(prompt, systemPrompt);
+              const text = await adapter.runPrompt(
+                prompt,
+                systemPrompt,
+                controller.signal
+              );
               response = { text };
             }
           } catch (err) {
+            if (err instanceof Error && err.name === "AbortError") {
+              return;
+            }
             const msg =
               err instanceof Error ? err.message : "TransformersJS failed.";
             response = { error: msg };
@@ -82,13 +128,21 @@ export function useActionHandlers(
             model: modelRef.current,
             prompt,
             provider: providerRef.current,
+            requestId,
             selectedText: current.selectedText,
             systemPrompt,
             type: "RUN_WRITING_ACTION",
           });
         }
 
+        if (controller.signal.aborted) {
+          return;
+        }
+
         if (response.error) {
+          if (response.error.includes("cancelled") || response.error.includes("aborted")) {
+            return;
+          }
           dispatch({
             error: getFriendlyActionError(
               new Error(response.error),
@@ -112,13 +166,23 @@ export function useActionHandlers(
 
         dispatch({ text: normalized, type: "ACTION_SUCCESS" });
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
         dispatch({
           error: getFriendlyActionError(error, providerRef.current),
           type: "ACTION_ERROR",
         });
+      } finally {
+        if (requestIdRef.current === requestId) {
+          requestIdRef.current = null;
+        }
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
       }
     },
-    [stateRef, providerRef, modelRef, dispatch]
+    [stateRef, providerRef, modelRef, dispatch, cancelActiveRequest]
   );
 
   const handleCopy = useCallback(async () => {
@@ -194,10 +258,11 @@ export function useActionHandlers(
   }, [stateRef, dispatch, selectionRangeRef]);
 
   const handleClose = useCallback(() => {
+    cancelActiveRequest();
     dispatch({ type: "RESET" });
     selectionRangeRef.current = null;
     window.getSelection()?.removeAllRanges();
-  }, [dispatch, selectionRangeRef]);
+  }, [dispatch, selectionRangeRef, cancelActiveRequest]);
 
   return { handleAction, handleClose, handleCopy, handleReplace, handleRerun };
 }

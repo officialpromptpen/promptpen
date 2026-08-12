@@ -25,8 +25,13 @@ export async function createTransformersAdapter(
   return {
     model: modelId,
     provider: "transformers",
-    runPrompt: async (input: string, systemPrompt?: string) => {
+    runPrompt: async (
+      input: string,
+      systemPrompt?: string,
+      abortSignal?: AbortSignal
+    ) => {
       const { text } = await generateText({
+        abortSignal,
         model,
         prompt: input,
         system: systemPrompt,
@@ -36,15 +41,16 @@ export async function createTransformersAdapter(
     runWritingAction: async (
       action: string,
       text: string,
-      targetLanguage?: string
+      targetLanguage?: string,
+      abortSignal?: AbortSignal
     ) =>
       executeStructuredWritingAction(
         model,
         action,
         text,
         targetLanguage,
-        "transformers"
+        "transformers",
+        abortSignal
       ),
-
   };
 }

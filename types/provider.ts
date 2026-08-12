@@ -5,13 +5,19 @@ import type { WritingOutput } from "./writing";
 export interface ProviderAdapter {
   model: string;
   provider: AIProvider;
-  runPrompt: (input: string, systemPrompt?: string) => Promise<string>;
+  runPrompt: (
+    input: string,
+    systemPrompt?: string,
+    abortSignal?: AbortSignal
+  ) => Promise<string>;
   runWritingAction?: (
     action: string,
     text: string,
-    targetLanguage?: string
+    targetLanguage?: string,
+    abortSignal?: AbortSignal
   ) => Promise<WritingOutput>;
 }
+
 
 export type ConnectionStatus = "connected" | "error" | "inactive";
 

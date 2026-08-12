@@ -79,7 +79,8 @@ export async function executeStructuredWritingAction(
   actionId: string,
   text: string,
   targetLanguage?: string,
-  providerName?: string
+  providerName?: string,
+  abortSignal?: AbortSignal
 ): Promise<WritingOutput> {
   const canonicalAction = mapActionIdToWritingAction(actionId);
   const actionInstruction =
@@ -102,6 +103,7 @@ ${targetLanguage ? `Target Language: "${targetLanguage}"` : ""}
 Transformed Text:`;
 
     const { text: rawText } = await generateText({
+      abortSignal,
       model,
       prompt: simpleUserPrompt,
       system: simpleSystemPrompt,
@@ -146,6 +148,7 @@ ${targetLanguage ? `Target Language: "${targetLanguage}"` : ""}`;
   // Layer 1: Try Vercel AI SDK generateObject for cloud/Ollama providers
   try {
     const { object } = await generateObject({
+      abortSignal,
       model,
       prompt: userPrompt,
       schema: writingOutputSchema,
@@ -170,6 +173,7 @@ IMPORTANT: You MUST respond ONLY with a valid JSON object matching this exact sc
 }`;
 
     const { text: rawText } = await generateText({
+      abortSignal,
       model,
       prompt: userPrompt,
       system: jsonSystemPrompt,
@@ -222,8 +226,13 @@ export async function createCloudProviderAdapter(
   return {
     model: resolvedModel,
     provider: config.provider,
-    runPrompt: async (input: string, systemPrompt?: string) => {
+    runPrompt: async (
+      input: string,
+      systemPrompt?: string,
+      abortSignal?: AbortSignal
+    ) => {
       const { text } = await generateText({
+        abortSignal,
         model,
         prompt: input,
         system: systemPrompt,
@@ -233,14 +242,16 @@ export async function createCloudProviderAdapter(
     runWritingAction: async (
       action: string,
       text: string,
-      targetLanguage?: string
+      targetLanguage?: string,
+      abortSignal?: AbortSignal
     ) =>
       executeStructuredWritingAction(
         model,
         action,
         text,
         targetLanguage,
-        config.provider
+        config.provider,
+        abortSignal
       ),
   };
 }
@@ -267,8 +278,13 @@ export async function createProviderAdapter(
   return {
     model: resolvedModel,
     provider: config.provider,
-    runPrompt: async (input: string, systemPrompt?: string) => {
+    runPrompt: async (
+      input: string,
+      systemPrompt?: string,
+      abortSignal?: AbortSignal
+    ) => {
       const { text } = await generateText({
+        abortSignal,
         model,
         prompt: input,
         system: systemPrompt,
@@ -278,17 +294,20 @@ export async function createProviderAdapter(
     runWritingAction: async (
       action: string,
       text: string,
-      targetLanguage?: string
+      targetLanguage?: string,
+      abortSignal?: AbortSignal
     ) =>
       executeStructuredWritingAction(
         model,
         action,
         text,
         targetLanguage,
-        config.provider
+        config.provider,
+        abortSignal
       ),
   };
 }
+
 
 export async function testProviderConnectionWithValues(
   provider: AIProvider,

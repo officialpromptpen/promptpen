@@ -2,6 +2,8 @@ import { createCloudProviderAdapter } from "@/features/providers/sdk";
 import { normalizeModelOutput } from "@/features/toolbar/utils";
 import type { AIProvider, WritingOutput } from "@/types";
 
+const activeRequests = new Map<string, AbortController>();
+
 export default defineBackground(() => {
   console.log("PromptPen background service worker loaded.", {
     id: browser.runtime.id,
@@ -11,6 +13,7 @@ export default defineBackground(() => {
     (
       message: {
         type: string;
+        requestId?: string;
         provider?: AIProvider;
         model?: string;
         prompt?: string;
@@ -27,6 +30,18 @@ export default defineBackground(() => {
       // Security: Validate message origin to ensure messages come from internal extension context
       if (sender.id && sender.id !== browser.runtime.id) {
         return false;
+      }
+
+      if (message.type === "ABORT_PROMPT") {
+        if (message.requestId && activeRequests.has(message.requestId)) {
+          const controller = activeRequests.get(message.requestId);
+          controller?.abort("Prompt execution aborted by user.");
+          activeRequests.delete(message.requestId);
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ success: false });
+        }
+        return true;
       }
 
       if (
@@ -52,6 +67,7 @@ export default defineBackground(() => {
 
 async function handleRunPrompt(
   message: {
+    requestId?: string;
     provider?: AIProvider;
     model?: string;
     prompt?: string;
@@ -66,6 +82,11 @@ async function handleRunPrompt(
     error?: string;
   }) => void
 ) {
+  const controller = new AbortController();
+  if (message.requestId) {
+    activeRequests.set(message.requestId, controller);
+  }
+
   try {
     const adapter = await createCloudProviderAdapter(
       message.provider,
@@ -83,7 +104,8 @@ async function handleRunPrompt(
       const output = await adapter.runWritingAction(
         message.actionId,
         message.selectedText,
-        message.targetLanguage
+        message.targetLanguage,
+        controller.signal
       );
       const normalized = normalizeModelOutput(output.result);
       if (!normalized) {
@@ -98,7 +120,8 @@ async function handleRunPrompt(
 
     const result = await adapter.runPrompt(
       message.prompt ?? "",
-      message.systemPrompt
+      message.systemPrompt,
+      controller.signal
     );
 
     const normalized = normalizeModelOutput(result);
@@ -112,7 +135,15 @@ async function handleRunPrompt(
 
     sendResponse({ text: normalized });
   } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      sendResponse({ error: "Request was cancelled." });
+      return;
+    }
     const msg = error instanceof Error ? error.message : "Unknown AI error";
     sendResponse({ error: msg });
+  } finally {
+    if (message.requestId) {
+      activeRequests.delete(message.requestId);
+    }
   }
 }
