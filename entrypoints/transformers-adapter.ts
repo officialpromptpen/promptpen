@@ -37,6 +37,14 @@ export async function createTransformersAdapter(
       action: string,
       text: string,
       targetLanguage?: string
-    ) => executeStructuredWritingAction(model, action, text, targetLanguage),
+    ) =>
+      executeStructuredWritingAction(
+        model,
+        action,
+        text,
+        targetLanguage,
+        "transformers"
+      ),
+
   };
 }

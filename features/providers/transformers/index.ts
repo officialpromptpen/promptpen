@@ -132,8 +132,9 @@ export const provider: ProviderModule = {
           return config.model;
         }
         if (prop === "defaultObjectGenerationMode") {
-          return "json";
+          return undefined;
         }
+
         if (prop === "doGenerate") {
           return async (...args: unknown[]) => {
             const model = await getOrInitModel();

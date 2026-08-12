@@ -78,11 +78,47 @@ export async function executeStructuredWritingAction(
   model: Parameters<typeof import("ai").generateText>[0]["model"],
   actionId: string,
   text: string,
-  targetLanguage?: string
+  targetLanguage?: string,
+  providerName?: string
 ): Promise<WritingOutput> {
   const canonicalAction = mapActionIdToWritingAction(actionId);
   const actionInstruction =
     ACTION_INSTRUCTIONS[canonicalAction] ?? "Process the text as requested.";
+
+  const isTransformers =
+    providerName === "transformers" ||
+    (model as unknown as { provider?: string })?.provider === "transformers";
+
+  const { generateObject, generateText } = await import("ai");
+
+  // For in-browser Transformers.js models, skip generateObject (object-json mode is not supported by WASM wrapper)
+  if (isTransformers) {
+    const simpleSystemPrompt =
+      "You are a helpful text transformation assistant. Transform the text as requested. Output ONLY the transformed text directly — no explanations, no commentary, no quotes.";
+
+    const simpleUserPrompt = `Task: ${actionInstruction}
+Original Text: "${text}"
+${targetLanguage ? `Target Language: "${targetLanguage}"` : ""}
+Transformed Text:`;
+
+    const { text: rawText } = await generateText({
+      model,
+      prompt: simpleUserPrompt,
+      system: simpleSystemPrompt,
+    });
+
+    const parsedOutput = parseOrFallbackWritingOutput(
+      rawText,
+      canonicalAction,
+      text
+    );
+
+    if (!parsedOutput.result || !parsedOutput.result.trim()) {
+      throw new Error("Local AI returned an empty result.");
+    }
+
+    return parsedOutput;
+  }
 
   const systemPrompt = `You are PromptPen, an AI writing assistant.
 
@@ -105,11 +141,9 @@ Action Instruction: ${actionInstruction}
 Original Text: "${text}"
 ${targetLanguage ? `Target Language: "${targetLanguage}"` : ""}`;
 
-  const { generateObject, generateText } = await import("ai");
-
   let parsedOutput: WritingOutput | null = null;
 
-  // Layer 1: Try Vercel AI SDK generateObject
+  // Layer 1: Try Vercel AI SDK generateObject for cloud/Ollama providers
   try {
     const { object } = await generateObject({
       model,
@@ -200,7 +234,14 @@ export async function createCloudProviderAdapter(
       action: string,
       text: string,
       targetLanguage?: string
-    ) => executeStructuredWritingAction(model, action, text, targetLanguage),
+    ) =>
+      executeStructuredWritingAction(
+        model,
+        action,
+        text,
+        targetLanguage,
+        config.provider
+      ),
   };
 }
 
@@ -238,7 +279,14 @@ export async function createProviderAdapter(
       action: string,
       text: string,
       targetLanguage?: string
-    ) => executeStructuredWritingAction(model, action, text, targetLanguage),
+    ) =>
+      executeStructuredWritingAction(
+        model,
+        action,
+        text,
+        targetLanguage,
+        config.provider
+      ),
   };
 }
 
