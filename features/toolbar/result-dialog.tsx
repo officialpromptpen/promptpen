@@ -56,10 +56,8 @@ export function ResultDialog({
                   <div className="pp:flex pp:size-5 pp:items-center pp:justify-center pp:rounded-md">
                     <Logo />
                   </div>
-                  <h2 className="pp:font-semibold pp:text-muted-foreground pp:text-xs pp:uppercase pp:tracking-wider">
-                    Processed Text
-                  </h2>
                 </div>
+
 
                 <TooltipProvider>
                   <Tooltip>
