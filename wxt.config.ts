@@ -25,10 +25,6 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
 
   vite: () => ({
-    define: {
-      "import.meta": {},
-      "import.meta.url": "undefined",
-    },
     build: {
       assetsInlineLimit: 0,
       chunkSizeWarningLimit: 7000,
@@ -38,6 +34,10 @@ export default defineConfig({
         },
       },
       sourcemap: false,
+    },
+    define: {
+      "import.meta": {},
+      "import.meta.url": "undefined",
     },
   }),
 });
