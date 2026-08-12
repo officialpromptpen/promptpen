@@ -87,7 +87,7 @@ export function ResultDialog({
               </div>
 
               {/* Scrollable Content Body with Shadcn ScrollArea */}
-              <ScrollArea className="pp:min-h-0 pp:w-full pp:flex-1">
+              <ScrollArea className="pp:max-h-[55vh] pp:min-h-0 pp:w-full pp:flex-1 pp:overflow-y-auto">
                 <div className="pp:p-4">
                   <ResultBody
                     activeActionId={activeActionId}
@@ -98,6 +98,7 @@ export function ResultDialog({
                 </div>
                 <ScrollBar orientation="vertical" />
               </ScrollArea>
+
 
               {/* Fixed Footer for Action Buttons */}
               <div className="pp:shrink-0 pp:border-border/70 pp:border-t pp:bg-card pp:p-4">
