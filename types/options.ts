@@ -29,10 +29,7 @@ export interface OptionsState {
   customPrompts: CustomPromptDefinition[];
   exportSettings: () => void;
   handleDeleteCustomPrompt: (promptId: string) => Promise<void>;
-  handleDeleteProvider: (
-    provider: AIProvider,
-    model?: string
-  ) => Promise<void>;
+  handleDeleteProvider: (provider: AIProvider, model?: string) => Promise<void>;
   handleEditProvider: (provider: AIProvider, model?: string) => void;
   handleSaveCustomPrompt: (
     title: string,

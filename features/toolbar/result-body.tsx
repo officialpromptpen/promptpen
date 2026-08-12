@@ -30,7 +30,7 @@ export function ResultBody({
         </div>
       )}
 
-      {Boolean(!isRunning && !errorText && processedText) && (
+      {Boolean(!(isRunning || errorText) && processedText) && (
         <div className="pp:whitespace-pre-wrap pp:break-words pp:rounded-md pp:text-base pp:leading-relaxed">
           {processedText}
         </div>

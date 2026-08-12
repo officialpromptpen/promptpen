@@ -1,6 +1,6 @@
 import type { LanguageModel } from "ai";
-import { browser } from "wxt/browser";
 import type { PublicPath } from "wxt/browser";
+import { browser } from "wxt/browser";
 import { getTransformersExecutionConfig } from "@/features/storage/self-hosted";
 import type { ProviderModule } from "../_types";
 import { RECOMMENDED_MODELS } from "./recommended-models";
@@ -96,12 +96,9 @@ export const provider: ProviderModule = {
             doStream?: (...args: unknown[]) => Promise<unknown>;
           };
 
-          const originalDoGenerate = modelInstance.doGenerate?.bind(
-            modelInstance
-          );
-          const originalDoStream = modelInstance.doStream?.bind(
-            modelInstance
-          );
+          const originalDoGenerate =
+            modelInstance.doGenerate?.bind(modelInstance);
+          const originalDoStream = modelInstance.doStream?.bind(modelInstance);
 
           if (originalDoGenerate) {
             modelInstance.doGenerate = async (...args: unknown[]) => {
@@ -125,10 +122,18 @@ export const provider: ProviderModule = {
 
     return new Proxy({} as Record<string, unknown>, {
       get(_target, prop) {
-        if (prop === "specificationVersion") return "v2";
-        if (prop === "provider") return "transformers";
-        if (prop === "modelId") return config.model;
-        if (prop === "defaultObjectGenerationMode") return "json";
+        if (prop === "specificationVersion") {
+          return "v2";
+        }
+        if (prop === "provider") {
+          return "transformers";
+        }
+        if (prop === "modelId") {
+          return config.model;
+        }
+        if (prop === "defaultObjectGenerationMode") {
+          return "json";
+        }
         if (prop === "doGenerate") {
           return async (...args: unknown[]) => {
             const model = await getOrInitModel();
@@ -151,7 +156,6 @@ export const provider: ProviderModule = {
             return strm.call(model, ...args);
           };
         }
-        return undefined;
       },
     }) as unknown as LanguageModel;
   },
@@ -159,4 +163,3 @@ export const provider: ProviderModule = {
   id: "transformers",
   label: "Transformers.js",
 };
-

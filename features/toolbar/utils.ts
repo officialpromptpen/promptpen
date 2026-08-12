@@ -22,7 +22,9 @@ const PREAMBLE_HEADER_RE =
 
 export function normalizeModelOutput(rawText: string): string {
   let cleaned = rawText.trim();
-  if (!cleaned) return "";
+  if (!cleaned) {
+    return "";
+  }
 
   // Split by preamble markers (e.g. "The final output is:", "The output will be:", "Output:")
   const blocks = cleaned

@@ -214,10 +214,11 @@ function SuggestedWebsites({ enabledWebsites, onAdd }: SuggestedWebsitesProps) {
           const isAdded = enabledWebsites.includes(hostname);
           return (
             <button
-              className={`pp:inline-flex pp:items-center pp:gap-1.5 pp:rounded-full pp:border pp:px-3 pp:py-1 pp:font-medium pp:text-xs pp:transition-colors ${isAdded
-                ? "pp:cursor-default pp:border-primary/30 pp:bg-primary/10 pp:text-primary"
-                : "pp:cursor-pointer pp:border-border pp:bg-background pp:text-foreground hover:pp:bg-accent hover:pp:text-accent-foreground"
-                }`}
+              className={`pp:inline-flex pp:items-center pp:gap-1.5 pp:rounded-full pp:border pp:px-3 pp:py-1 pp:font-medium pp:text-xs pp:transition-colors ${
+                isAdded
+                  ? "pp:cursor-default pp:border-primary/30 pp:bg-primary/10 pp:text-primary"
+                  : "pp:cursor-pointer pp:border-border pp:bg-background pp:text-foreground hover:pp:bg-accent hover:pp:text-accent-foreground"
+              }`}
               disabled={isAdded}
               key={hostname}
               onClick={() => void onAdd(hostname)}

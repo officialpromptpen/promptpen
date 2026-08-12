@@ -22,7 +22,7 @@ export function ClosedToolbarState({
         <TooltipTrigger
           render={
             <div
-              className="pp-drag-handle pp:flex pp:cursor-grab pp:items-center pp:rounded-lg pp:border pp:border-border/70 pp:bg-primary pp:p-1 pp:text-primary-foreground pp:shadow-xl pp:select-none active:pp:cursor-grabbing"
+              className="pp-drag-handle pp:flex pp:cursor-grab pp:select-none pp:items-center pp:rounded-lg pp:border pp:border-border/70 pp:bg-primary pp:p-1 pp:text-primary-foreground pp:shadow-xl active:pp:cursor-grabbing"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >

@@ -240,7 +240,7 @@ export async function getRuntimeConfig(
       }
     }
 
-    if (!config && !resolvedModel) {
+    if (!(config || resolvedModel)) {
       return null;
     }
     const accessToken = config?.encryptedAccessToken

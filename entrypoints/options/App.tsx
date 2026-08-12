@@ -11,9 +11,6 @@ import { useEffect, useState } from "react";
 import { browser } from "wxt/browser";
 import { Logo } from "@/components/Logo";
 import { Separator } from "@/components/ui/separator";
-import { sections } from "@/constants/options";
-import { getTourStep, startDashboardTour } from "@/features/onboarding/tour";
-import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -28,6 +25,8 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { sections } from "@/constants/options";
+import { getTourStep, startDashboardTour } from "@/features/onboarding/tour";
 import { useOptionsState } from "./hooks/use-options-state";
 import { AdvancedSection } from "./sections/advanced";
 import { AIProvidersSection } from "./sections/ai-providers";
@@ -88,7 +87,7 @@ function IndexOptions() {
                 <Logo />
               </div>
               <div className="pp:flex pp:flex-col">
-                <span className="pp:font-bold pp:text-base pp:leading-tight pp:text-sidebar-foreground">
+                <span className="pp:font-bold pp:text-base pp:text-sidebar-foreground pp:leading-tight">
                   PromptPen
                 </span>
                 <span className="pp:font-normal pp:text-muted-foreground pp:text-xs">
@@ -124,7 +123,7 @@ function IndexOptions() {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="pp:p-4 pp:space-y-3">
+          <SidebarFooter className="pp:space-y-3 pp:p-4">
             <SidebarSeparator className="pp:mx-0 pp:w-full" />
             <SidebarMenu>
               <SidebarMenuItem>
@@ -207,7 +206,9 @@ function IndexOptions() {
                         <Logo />
                       </div>
                       <div>
-                        <h2 className="pp:font-semibold pp:text-sm">PromptPen</h2>
+                        <h2 className="pp:font-semibold pp:text-sm">
+                          PromptPen
+                        </h2>
                         <p className="pp:text-muted-foreground pp:text-xs">
                           v{browser.runtime.getManifest().version}
                         </p>

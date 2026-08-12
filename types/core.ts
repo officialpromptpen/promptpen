@@ -1,35 +1,40 @@
-import type { LucideIcon } from "lucide-react"
+import type { LucideIcon } from "lucide-react";
 
-export type ProviderCategory = "cloud" | "openai-compatible" | "self-hosted"
+export type ProviderCategory = "cloud" | "openai-compatible" | "self-hosted";
 
 export type AIProvider =
-	| "anthropic"
-	| "cohere"
-	| "deepseek"
-	| "gemini"
-	| "groq"
-	| "mistral"
-	| "ollama"
-	| "openai"
-	| "openai-compatible"
-	| "openrouter"
-	| "together"
-	| "transformers"
+  | "anthropic"
+  | "cohere"
+  | "deepseek"
+  | "gemini"
+  | "groq"
+  | "mistral"
+  | "ollama"
+  | "openai"
+  | "openai-compatible"
+  | "openrouter"
+  | "together"
+  | "transformers";
 
-export type Theme = "dark" | "light" | "system"
+export type Theme = "dark" | "light" | "system";
 
-export type ActionCategory = "modify" | "rewrite" | "tone" | "transform" | "blog"
+export type ActionCategory =
+  | "modify"
+  | "rewrite"
+  | "tone"
+  | "transform"
+  | "blog";
 
 export interface Action {
-	category: ActionCategory
-	icon: LucideIcon
-	id: string
-	label: string
-	prompt: string
+  category: ActionCategory;
+  icon: LucideIcon;
+  id: string;
+  label: string;
+  prompt: string;
 }
 
 export interface WebsiteRule {
-	enabled: boolean
-	hostname: string
-	id: string
+  enabled: boolean;
+  hostname: string;
+  id: string;
 }

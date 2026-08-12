@@ -25,7 +25,8 @@ export function ResultActions({
   onReplace,
   onRerun,
 }: ResultActionsProps) {
-  const hasCopyableText = Boolean(processedText || errorText);
+  const hasCopyableText = Boolean(processedText);
+
   const canReplace = Boolean(processedText) && !isRunning && !errorText;
   const canRerun = Boolean(lastActionId) && !isRunning && Boolean(selectedText);
 

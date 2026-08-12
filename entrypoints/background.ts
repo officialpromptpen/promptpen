@@ -1,6 +1,6 @@
 import { createCloudProviderAdapter } from "@/features/providers/sdk";
 import { normalizeModelOutput } from "@/features/toolbar/utils";
-import type { AIProvider } from "@/types";
+import type { AIProvider, WritingOutput } from "@/types";
 
 export default defineBackground(() => {
   console.log("PromptPen background service worker loaded.", {
@@ -17,6 +17,7 @@ export default defineBackground(() => {
         systemPrompt?: string;
         actionId?: string;
         selectedText?: string;
+        targetLanguage?: string;
         customPrompt?: string;
         prefix?: string;
       },
@@ -28,11 +29,13 @@ export default defineBackground(() => {
         return false;
       }
 
-      if (message.type === "RUN_PROMPT") {
+      if (
+        message.type === "RUN_PROMPT" ||
+        message.type === "RUN_WRITING_ACTION"
+      ) {
         if (message.provider === "transformers") {
           // Transformers.js (WASM) cannot run in a service worker — it must run
-          // directly in the content script window context. This path should never
-          // be hit, but guard it explicitly so the error is clear.
+          // directly in the content script window context.
           sendResponse({
             error:
               "TransformersJS models run in the browser window context (content script), not the service worker. This is a bug — please reload the extension.",
@@ -47,16 +50,21 @@ export default defineBackground(() => {
   );
 });
 
-
-
 async function handleRunPrompt(
   message: {
     provider?: AIProvider;
     model?: string;
     prompt?: string;
     systemPrompt?: string;
+    actionId?: string;
+    selectedText?: string;
+    targetLanguage?: string;
   },
-  sendResponse: (response: { text?: string; error?: string }) => void
+  sendResponse: (response: {
+    text?: string;
+    output?: WritingOutput;
+    error?: string;
+  }) => void
 ) {
   try {
     const adapter = await createCloudProviderAdapter(
@@ -68,6 +76,23 @@ async function handleRunPrompt(
         error:
           "No AI provider configured. Go to Dashboard > AI Providers in Options and add a provider with API key.",
       });
+      return;
+    }
+
+    if (message.actionId && message.selectedText && adapter.runWritingAction) {
+      const output = await adapter.runWritingAction(
+        message.actionId,
+        message.selectedText,
+        message.targetLanguage
+      );
+      const normalized = normalizeModelOutput(output.result);
+      if (!normalized) {
+        sendResponse({
+          error: "The model returned an empty result. Try again.",
+        });
+        return;
+      }
+      sendResponse({ output, text: normalized });
       return;
     }
 

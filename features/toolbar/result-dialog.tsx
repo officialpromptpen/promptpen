@@ -50,7 +50,7 @@ export function ResultDialog({
               ref={nodeRef}
             >
               {/* Header with Drag Handle and Close icon button */}
-              <div className="pp-drag-handle pp:flex pp:shrink-0 pp:cursor-grab pp:items-center pp:justify-between pp:border-border/70 pp:border-b pp:px-4 pp:py-3 pp:select-none active:pp:cursor-grabbing">
+              <div className="pp-drag-handle pp:flex pp:shrink-0 pp:cursor-grab pp:select-none pp:items-center pp:justify-between pp:border-border/70 pp:border-b pp:px-4 pp:py-3 active:pp:cursor-grabbing">
                 <div className="pp:flex pp:items-center pp:gap-2">
                   <GripHorizontal className="pp:size-4 pp:text-muted-foreground/70" />
                   <div className="pp:flex pp:size-5 pp:items-center pp:justify-center pp:rounded-md">

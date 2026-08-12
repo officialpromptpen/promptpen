@@ -18,8 +18,7 @@ export const RECOMMENDED_MODELS: RecommendedModel[] = [
     modelId: "onnx-community/Qwen2.5-1.5B-Instruct",
   },
   {
-    description:
-      "Lightweight and fast, decent quality for short text.",
+    description: "Lightweight and fast, decent quality for short text.",
     label: "SmolLM2-360M-Instruct-ONNX",
     modelId: "onnx-community/SmolLM2-360M-Instruct-ONNX",
   },

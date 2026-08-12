@@ -1,6 +1,167 @@
-import type { AIProvider, ProviderAdapter, ProviderTestResult } from "@/types";
+import {
+  ACTION_INSTRUCTIONS,
+  mapActionIdToWritingAction,
+} from "@/constants/actions";
+import type {
+  AIProvider,
+  ProviderAdapter,
+  ProviderTestResult,
+  WritingOutput,
+} from "@/types";
+import { writingOutputSchema } from "@/types/writing";
 import { getCloudProviderModule, getProviderModule } from "./registry";
 import { getRuntimeConfig } from "./storage";
+
+export function parseOrFallbackWritingOutput(
+  rawText: string,
+  canonicalAction: string,
+  originalText: string
+): WritingOutput {
+  const cleaned = rawText
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  // Try direct JSON parsing
+  try {
+    const rawJson = JSON.parse(cleaned);
+    const validated = writingOutputSchema.parse(rawJson) as WritingOutput;
+    if (validated.result && validated.result.trim()) {
+      return {
+        action: validated.action || canonicalAction,
+        explanation: validated.explanation,
+        language: validated.language,
+        original: validated.original || originalText,
+        result: validated.result,
+      };
+    }
+  } catch {
+    // If direct JSON fails, search for embedded JSON object block
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const rawJson = JSON.parse(jsonMatch[0]);
+        const validated = writingOutputSchema.parse(rawJson) as WritingOutput;
+        if (validated.result && validated.result.trim()) {
+          return {
+            action: validated.action || canonicalAction,
+            explanation: validated.explanation,
+            language: validated.language,
+            original: validated.original || originalText,
+            result: validated.result,
+          };
+        }
+      } catch {
+        // Fall through to plain text output handling
+      }
+    }
+  }
+
+  // Plain text fallback for local / small models that do not return JSON
+  let plainResult = cleaned
+    .replace(/^(?:Here is|Here's|The rewritten text is|Result:)\s*/i, "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
+
+  if (!plainResult) {
+    plainResult = cleaned;
+  }
+
+  return {
+    action: canonicalAction,
+    original: originalText,
+    result: plainResult,
+  };
+}
+
+export async function executeStructuredWritingAction(
+  model: Parameters<typeof import("ai").generateText>[0]["model"],
+  actionId: string,
+  text: string,
+  targetLanguage?: string
+): Promise<WritingOutput> {
+  const canonicalAction = mapActionIdToWritingAction(actionId);
+  const actionInstruction =
+    ACTION_INSTRUCTIONS[canonicalAction] ?? "Process the text as requested.";
+
+  const systemPrompt = `You are PromptPen, an AI writing assistant.
+
+The application has already selected the writing action.
+You MUST perform only the supplied action.
+Do not choose a different action.
+Do not invent another action.
+Do not modify the user's intent unless the requested action requires it.
+For rewriting actions, preserve the original meaning.
+For editing actions, return text that can be directly inserted into the editor.
+Do not add introductions.
+Do not add unnecessary explanations.
+Do not wrap the result in quotes.
+The \`original\` field must exactly match the input text.
+The \`action\` field must exactly match the application-provided action.
+The \`result\` field must contain the final usable result.`;
+
+  const userPrompt = `Action: "${canonicalAction}"
+Action Instruction: ${actionInstruction}
+Original Text: "${text}"
+${targetLanguage ? `Target Language: "${targetLanguage}"` : ""}`;
+
+  const { generateObject, generateText } = await import("ai");
+
+  let parsedOutput: WritingOutput | null = null;
+
+  // Layer 1: Try Vercel AI SDK generateObject
+  try {
+    const { object } = await generateObject({
+      model,
+      prompt: userPrompt,
+      schema: writingOutputSchema,
+      system: systemPrompt,
+    });
+    parsedOutput = object as WritingOutput;
+  } catch (objectError) {
+    console.warn(
+      "generateObject failed, falling back to generateText with JSON / text parsing:",
+      objectError
+    );
+
+    // Layer 2: Fallback to generateText with JSON prompt instructions
+    const jsonSystemPrompt = `${systemPrompt}
+
+IMPORTANT: You MUST respond ONLY with a valid JSON object matching this exact schema:
+{
+  "action": "${canonicalAction}",
+  "original": ${JSON.stringify(text)},
+  "result": "The final processed writing result here",
+  "explanation": "Optional brief explanation"
+}`;
+
+    const { text: rawText } = await generateText({
+      model,
+      prompt: userPrompt,
+      system: jsonSystemPrompt,
+    });
+
+    parsedOutput = parseOrFallbackWritingOutput(rawText, canonicalAction, text);
+  }
+
+  if (!parsedOutput) {
+    throw new Error("Failed to generate writing output.");
+  }
+
+  if (!(parsedOutput.result && parsedOutput.result.trim())) {
+    throw new Error("AI returned an empty result.");
+  }
+
+  if (!parsedOutput.original) {
+    parsedOutput.original = text;
+  }
+
+  if (!parsedOutput.action) {
+    parsedOutput.action = canonicalAction;
+  }
+
+  return parsedOutput;
+}
 
 export async function createCloudProviderAdapter(
   provider?: AIProvider,
@@ -35,6 +196,11 @@ export async function createCloudProviderAdapter(
       });
       return text;
     },
+    runWritingAction: async (
+      action: string,
+      text: string,
+      targetLanguage?: string
+    ) => executeStructuredWritingAction(model, action, text, targetLanguage),
   };
 }
 
@@ -68,6 +234,11 @@ export async function createProviderAdapter(
       });
       return text;
     },
+    runWritingAction: async (
+      action: string,
+      text: string,
+      targetLanguage?: string
+    ) => executeStructuredWritingAction(model, action, text, targetLanguage),
   };
 }
 
@@ -83,7 +254,7 @@ export async function testProviderConnectionWithValues(
     const client = mod.createModel({ apiKey, baseUrl, model });
 
     await generateText({
-      abortSignal: AbortSignal.timeout(15000),
+      abortSignal: AbortSignal.timeout(15_000),
       model: client,
       prompt: "Reply with exactly one word: ready",
       system: "You are a connection test assistant.",

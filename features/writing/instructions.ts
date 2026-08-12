@@ -117,13 +117,21 @@ For structured output:
 - The \`action\` field must exactly match "${writingAction}".
 - The \`result\` field must contain ONLY the transformed usable text.`;
 
-  const plainSystem = `You are a text transformation engine. Return ONLY the transformed result text directly. Do NOT include greetings, intro phrases, rules, self-identifications, or commentary.`;
+  const plainSystem =
+    "You are a text transformation engine. Return ONLY the transformed result text directly. Do NOT include greetings, intro phrases, rules, self-identifications, or commentary.";
 
   const plainPrompt = `Task: ${baseInstruction}${extraGuidance}\n\nOriginal Text:\n"${text}"\n\nTransformed Output:\n`;
 
   const directPrompt = `${baseInstruction}${extraGuidance ? ` (${extraGuidance.trim()})` : ""}: "${text}"`;
 
-  return { directPrompt, plainPrompt, plainSystem, prompt, system, writingAction };
+  return {
+    directPrompt,
+    plainPrompt,
+    plainSystem,
+    prompt,
+    system,
+    writingAction,
+  };
 }
 
 export function validateWritingOutput(

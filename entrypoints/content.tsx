@@ -169,7 +169,7 @@ function ContentScript() {
 
       const rect = getSelectionRect();
       const range = getSelectionRange();
-      if (!rect || !range) {
+      if (!(rect && range)) {
         hide();
         return;
       }

@@ -1,4 +1,4 @@
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import {
   POPULAR_MODELS,
   type PopularModel,

@@ -1,6 +1,12 @@
 import { useCallback } from "react";
 import { browser } from "wxt/browser";
-import type { AIProvider, ToolbarAction, ToolbarState } from "@/types";
+import type {
+  AIProvider,
+  ProviderAdapter,
+  ToolbarAction,
+  ToolbarState,
+  WritingOutput,
+} from "@/types";
 import {
   createActionPrompt,
   getFriendlyActionError,
@@ -31,13 +37,11 @@ export function useActionHandlers(
         );
 
         const systemPrompt =
-          "You are a text transformation tool. Output ONLY the transformed text — no greetings, no explanations, no commentary, no markdown, no quotation marks, no prefixes like 'Here is'. Never wrap the text in quotes or backticks. Never add introductory or concluding sentences. Output the result directly as plain text.";
+          "You are PromptPen, an AI writing assistant. Output ONLY the transformed text — no greetings, no explanations, no commentary, no markdown, no quotation marks.";
 
-        let response: { text?: string; error?: string };
+        let response: { text?: string; output?: WritingOutput; error?: string };
 
         if (providerRef.current === "transformers") {
-          // Transformers.js runs in the window context via unlisted entrypoint script
-          // to avoid bundling 60MB into content.js while maintaining small bundle size.
           try {
             const url = browser.runtime.getURL(
               "/transformers-adapter.js" as never
@@ -47,12 +51,7 @@ export function useActionHandlers(
               window as unknown as {
                 __promptpen_createTransformersAdapter?: (
                   model: string
-                ) => Promise<{
-                  runPrompt: (
-                    input: string,
-                    system?: string
-                  ) => Promise<string>;
-                }>;
+                ) => Promise<ProviderAdapter>;
               }
             ).__promptpen_createTransformersAdapter;
 
@@ -61,21 +60,31 @@ export function useActionHandlers(
             }
 
             const adapter = await createAdapter(modelRef.current);
-            const text = await adapter.runPrompt(prompt, systemPrompt);
-            response = { text };
+            if (adapter.runWritingAction) {
+              const output = await adapter.runWritingAction(
+                actionId,
+                current.selectedText
+              );
+              response = { output, text: output.result };
+            } else {
+              const text = await adapter.runPrompt(prompt, systemPrompt);
+              response = { text };
+            }
           } catch (err) {
             const msg =
               err instanceof Error ? err.message : "TransformersJS failed.";
             response = { error: msg };
           }
         } else {
-          // All cloud + Ollama providers are handled in background.ts (service worker)
+          // Send structured writing action request to service worker background
           response = await browser.runtime.sendMessage({
+            actionId,
             model: modelRef.current,
             prompt,
             provider: providerRef.current,
+            selectedText: current.selectedText,
             systemPrompt,
-            type: "RUN_PROMPT",
+            type: "RUN_WRITING_ACTION",
           });
         }
 
@@ -90,7 +99,8 @@ export function useActionHandlers(
           return;
         }
 
-        const normalized = normalizeModelOutput(response.text ?? "");
+        const rawResult = response.output?.result ?? response.text ?? "";
+        const normalized = normalizeModelOutput(rawResult);
         if (!normalized) {
           dispatch({
             error:
@@ -113,7 +123,8 @@ export function useActionHandlers(
 
   const handleCopy = useCallback(async () => {
     const current = stateRef.current;
-    const textToCopy = current.processedText || current.errorText;
+    // Copy ONLY the final generated result text
+    const textToCopy = current.processedText;
     if (!textToCopy) {
       return;
     }

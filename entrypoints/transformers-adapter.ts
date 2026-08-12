@@ -1,9 +1,11 @@
-import type { ProviderAdapter } from "@/types";
+import { executeStructuredWritingAction } from "@/features/providers/sdk";
 import { getDecryptedAccessToken } from "@/features/providers/storage";
+import type { ProviderAdapter } from "@/types";
 
 export default defineUnlistedScript(() => {
-  (window as unknown as { __promptpen_createTransformersAdapter?: unknown }).__promptpen_createTransformersAdapter =
-    createTransformersAdapter;
+  (
+    window as unknown as { __promptpen_createTransformersAdapter?: unknown }
+  ).__promptpen_createTransformersAdapter = createTransformersAdapter;
 });
 
 export async function createTransformersAdapter(
@@ -31,5 +33,10 @@ export async function createTransformersAdapter(
       });
       return text;
     },
+    runWritingAction: async (
+      action: string,
+      text: string,
+      targetLanguage?: string
+    ) => executeStructuredWritingAction(model, action, text, targetLanguage),
   };
 }

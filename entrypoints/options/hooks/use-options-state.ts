@@ -185,7 +185,8 @@ export function useOptionsState(): OptionsState {
     const def = getProviderDefinition(provider);
     if (def.category === "self-hosted") {
       setActiveSection("self-hosted");
-      const cardId = provider === "ollama" ? "ollama-card" : "transformers-card";
+      const cardId =
+        provider === "ollama" ? "ollama-card" : "transformers-card";
       setTimeout(() => {
         const element = document.getElementById(cardId);
         if (element) {

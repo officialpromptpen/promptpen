@@ -64,7 +64,7 @@ function ShadowSelectContent({
       >
         <SelectPrimitive.Popup
           className={cn(
-            "pp:data-open:fade-in-0 pp:data-open:zoom-in-95 pp:data-closed:fade-out-0 pp:data-closed:zoom-out-95 pp:z-2147483647 pp:max-h-(--available-height) pp:w-max pp:min-w-48 pp:p-1 pp:overflow-y-auto pp:overflow-x-hidden pp:rounded-lg pp:bg-popover pp:text-popover-foreground pp:shadow-md pp:ring-1 pp:ring-foreground/10 pp:data-closed:animate-out pp:data-open:animate-in",
+            "pp:data-open:fade-in-0 pp:data-open:zoom-in-95 pp:data-closed:fade-out-0 pp:data-closed:zoom-out-95 pp:z-2147483647 pp:max-h-(--available-height) pp:w-max pp:min-w-48 pp:overflow-y-auto pp:overflow-x-hidden pp:rounded-lg pp:bg-popover pp:p-1 pp:text-popover-foreground pp:shadow-md pp:ring-1 pp:ring-foreground/10 pp:data-closed:animate-out pp:data-open:animate-in",
             className
           )}
           data-slot="select-content"
@@ -164,7 +164,9 @@ export const AIProviderSelectIcon = React.forwardRef<
                           className="pp:size-4 pp:shrink-0"
                           provider={provider.id as AIProvider}
                         />
-                        <span className="pp:whitespace-nowrap">{provider.name}</span>
+                        <span className="pp:whitespace-nowrap">
+                          {provider.name}
+                        </span>
                       </div>
                     </SelectItem>
                   ))}

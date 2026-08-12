@@ -1,4 +1,3 @@
-
 import {
   BookOpen,
   CaseSensitive,
@@ -34,7 +33,7 @@ import {
   WandSparkles,
   Zap,
 } from "lucide-react";
-import type { Action, ActionCategory } from "@/types";
+import type { Action, ActionCategory, WritingAction } from "@/types";
 
 export const ACTION_CATEGORY_ORDER: ActionCategory[] = [
   "rewrite",
@@ -45,7 +44,7 @@ export const ACTION_CATEGORY_ORDER: ActionCategory[] = [
 ];
 
 export const ACTION_CATEGORY_LABELS: Record<ActionCategory, string> = {
-  "blog": "Blog",
+  blog: "Blog",
   modify: "Modify",
   rewrite: "Rewrite",
   tone: "Tone",
@@ -352,4 +351,67 @@ const actionLookup = new Map(actions.map((action) => [action.id, action]));
 
 export function getActionById(actionId: string): Action | null {
   return actionLookup.get(actionId) ?? null;
+}
+
+export const ACTION_INSTRUCTIONS: Record<WritingAction, string> = {
+  continue:
+    "Continue the text naturally from where it ends. Match its existing tone, style, and context.",
+
+  expand:
+    "Expand the text with useful detail while preserving the original meaning and intent.",
+
+  explain:
+    "Explain the meaning of the selected text clearly. Do not rewrite the original text.",
+  "fix-grammar":
+    "Fix grammar, spelling, punctuation, and obvious language mistakes. Preserve the original meaning and style.",
+
+  improve:
+    "Improve clarity, readability, wording, and overall quality while preserving the original meaning.",
+
+  rewrite:
+    "Rewrite the text to make it clearer and more natural while preserving the original meaning.",
+
+  shorten:
+    "Make the text shorter and more concise while preserving the important meaning.",
+
+  summarize:
+    "Summarize the text clearly and concisely while keeping the most important information.",
+
+  translate:
+    "Translate the text into the requested target language while preserving meaning and tone.",
+};
+
+export function mapActionIdToWritingAction(actionId: string): WritingAction {
+  switch (actionId) {
+    case "fix-spelling-grammar":
+    case "fix-grammar":
+      return "fix-grammar";
+    case "improve-writing":
+    case "improve":
+      return "improve";
+    case "shorten-selection":
+    case "shorten":
+      return "shorten";
+    case "expand-selection":
+    case "expand":
+      return "expand";
+    case "translate":
+    case "convert-english-us":
+      return "translate";
+    case "summarize-selection":
+    case "summarize":
+      return "summarize";
+    case "explain-selection":
+    case "explain":
+      return "explain";
+    case "continue-writing":
+    case "continue":
+      return "continue";
+    case "rewrite-single-sentence":
+    case "rewrite-single-paragraph":
+    case "simplify-language":
+    case "rewrite":
+    default:
+      return "rewrite";
+  }
 }

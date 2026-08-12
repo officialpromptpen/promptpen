@@ -185,7 +185,7 @@ export function ToolbarActions({
         aria-label="PromptPen action panel"
         className="pp:max-h-[80vh] pp:w-[min(64vw,564px)] pp:overflow-hidden pp:rounded-xl pp:border pp:border-border/70 pp:bg-popover pp:text-popover-foreground pp:shadow-2xl"
       >
-        <div className="pp-drag-handle pp:flex pp:cursor-grab pp:flex-row pp:items-center pp:justify-between pp:gap-3 pp:border-border pp:border-b pp:px-2.5 pp:py-3 pp:select-none active:pp:cursor-grabbing">
+        <div className="pp-drag-handle pp:flex pp:cursor-grab pp:select-none pp:flex-row pp:items-center pp:justify-between pp:gap-3 pp:border-border pp:border-b pp:px-2.5 pp:py-3 active:pp:cursor-grabbing">
           <div className="pp:flex pp:items-center pp:gap-2">
             <GripHorizontal className="pp:size-4 pp:text-muted-foreground/70" />
             <div className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-lg">

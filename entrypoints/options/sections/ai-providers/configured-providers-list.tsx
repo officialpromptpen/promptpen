@@ -143,9 +143,7 @@ function ProviderDetailRow({
       )}
     >
       <div className="pp:flex pp:min-w-0 pp:items-center pp:gap-3">
-        <div
-          className="pp:flex pp:size-10 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-full pp:border pp:bg-muted/30"
-        >
+        <div className="pp:flex pp:size-10 pp:shrink-0 pp:items-center pp:justify-center pp:rounded-full pp:border pp:bg-muted/30">
           <ProviderIcon className="pp:size-5" provider={detail.provider} />
         </div>
         <div className="pp:flex pp:min-w-0 pp:flex-col pp:gap-0.5">
