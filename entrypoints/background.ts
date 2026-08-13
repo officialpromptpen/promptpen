@@ -44,6 +44,54 @@ export default defineBackground(() => {
         return true;
       }
 
+      if (message.type === "FETCH_REMOTE_ASSET" && message.prompt) {
+        const urlStr = message.prompt;
+        void (async () => {
+          try {
+            const headers: Record<string, string> = {};
+            if (message.customPrompt) {
+              const isHfApiOrRepo =
+                urlStr.includes("huggingface.co") &&
+                !urlStr.includes("cdn-lfs.huggingface.co") &&
+                !urlStr.includes("cdn-lfs.hf.co");
+              if (isHfApiOrRepo) {
+                headers.Authorization = `Bearer ${message.customPrompt}`;
+              }
+            }
+
+            const res = await fetch(urlStr, { headers });
+            if (!res.ok) {
+              sendResponse({
+                error: `HTTP ${res.status}: ${res.statusText}`,
+                ok: false,
+                status: res.status,
+              });
+              return;
+            }
+
+            const buffer = await res.arrayBuffer();
+            const bytes = Array.from(new Uint8Array(buffer));
+            const responseHeaders: Record<string, string> = {};
+            res.headers.forEach((v, k) => {
+              responseHeaders[k] = v;
+            });
+
+            sendResponse({
+              bytes,
+              headers: responseHeaders,
+              ok: true,
+              status: res.status,
+            });
+          } catch (err) {
+            sendResponse({
+              error: err instanceof Error ? err.message : "Fetch failed",
+              ok: false,
+            });
+          }
+        })();
+        return true;
+      }
+
       if (
         message.type === "RUN_PROMPT" ||
         message.type === "RUN_WRITING_ACTION"

@@ -4,6 +4,13 @@ import type { ProviderAdapter } from "@/types";
 
 export default defineUnlistedScript(() => {
   (
+    window as unknown as {
+      AI_SDK_LOG_WARNINGS?: boolean;
+      __promptpen_createTransformersAdapter?: unknown;
+    }
+  ).AI_SDK_LOG_WARNINGS = false;
+
+  (
     window as unknown as { __promptpen_createTransformersAdapter?: unknown }
   ).__promptpen_createTransformersAdapter = createTransformersAdapter;
 });

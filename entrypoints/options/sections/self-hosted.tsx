@@ -579,7 +579,7 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       const { env, AutoModelForCausalLM, AutoTokenizer } = await import(
         "@huggingface/transformers"
       );
-      env.useWasmCache = true;
+      env.useWasmCache = false;
       env.allowLocalModels = false;
       const base = browser.runtime.getURL("/onnx/" as any);
       if (base && env.backends.onnx?.wasm) {
@@ -592,14 +592,23 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
         };
       }
 
-      if (storedToken) {
+      if (storedToken?.trim()) {
         const originalFetch = env.fetch;
         env.fetch = (input: string | URL, init?: Record<string, unknown>) => {
-          const headers = new Headers(
-            init?.headers as Record<string, string> | undefined
-          );
-          headers.set("Authorization", `Bearer ${storedToken}`);
-          return originalFetch(input, { ...init, headers });
+          const urlStr = typeof input === "string" ? input : input.toString();
+          const isHfApiOrRepo =
+            urlStr.includes("huggingface.co") &&
+            !urlStr.includes("cdn-lfs.huggingface.co") &&
+            !urlStr.includes("cdn-lfs.hf.co");
+
+          if (isHfApiOrRepo) {
+            const headers = new Headers(
+              init?.headers as Record<string, string> | undefined
+            );
+            headers.set("Authorization", `Bearer ${storedToken.trim()}`);
+            return originalFetch(input, { ...init, headers });
+          }
+          return originalFetch(input, init);
         };
       }
 
@@ -662,6 +671,7 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
           }),
           AutoModelForCausalLM.from_pretrained(modelId, {
             device: "wasm",
+            dtype: "q4",
             progress_callback: onFileProgress,
           }),
         ]),
@@ -1226,7 +1236,7 @@ function TransformersWasmSettingsSection() {
     try {
       await setTransformersExecutionConfig({ numThreads, proxy });
       const { env } = await import("@huggingface/transformers");
-      env.useWasmCache = true;
+      env.useWasmCache = false;
       const base = browser.runtime.getURL("/onnx/" as any);
       if (base && env.backends.onnx?.wasm) {
         env.backends.onnx.wasm.proxy = proxy;

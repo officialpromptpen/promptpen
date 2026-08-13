@@ -15,7 +15,7 @@ async function configureBackend(): Promise<void> {
 
   backendConfiguredPromise = (async () => {
     const { env } = await import("@huggingface/transformers");
-    env.useWasmCache = true;
+    env.useWasmCache = false;
     env.allowLocalModels = false;
 
     const base = browser.runtime.getURL("/onnx/" as PublicPath);
@@ -23,10 +23,7 @@ async function configureBackend(): Promise<void> {
       const execConfig = await getTransformersExecutionConfig();
       env.backends.onnx.wasm.proxy = execConfig.proxy;
       env.backends.onnx.wasm.numThreads = execConfig.numThreads;
-      env.backends.onnx.wasm.wasmPaths = {
-        mjs: `${base}ort-wasm-simd-threaded.asyncify.mjs`,
-        wasm: `${base}ort-wasm-simd-threaded.asyncify.wasm`,
-      };
+      env.backends.onnx.wasm.wasmPaths = base;
     }
   })();
 
@@ -41,19 +38,50 @@ async function configureAuth(accessToken?: string): Promise<void> {
   }
 
   const baseFetch = originalEnvFetch as typeof env.fetch;
+  const token = accessToken?.trim();
 
-  if (!accessToken) {
-    env.fetch = baseFetch;
-    return;
-  }
-
-  env.fetch = (input: string | URL, init?: Record<string, unknown>) => {
+  env.fetch = async (
+    input: string | URL,
+    init?: Record<string, unknown>
+  ) => {
     const urlStr = typeof input === "string" ? input : input.toString();
-    if (urlStr.includes("huggingface.co")) {
+
+    // Delegate remote model asset downloads to background script to bypass webpage CSP/CORS
+    if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
+      try {
+        const response = (await browser.runtime.sendMessage({
+          customPrompt: token ?? undefined,
+          prompt: urlStr,
+          type: "FETCH_REMOTE_ASSET",
+        })) as {
+          ok?: boolean;
+          bytes?: number[];
+          headers?: Record<string, string>;
+          status?: number;
+        };
+
+        if (response && response.ok && Array.isArray(response.bytes)) {
+          const uint8 = new Uint8Array(response.bytes);
+          return new Response(uint8.buffer, {
+            headers: new Headers(response.headers ?? {}),
+            status: response.status ?? 200,
+          });
+        }
+      } catch {
+        // Fall back to direct fetch if messaging is unavailable
+      }
+    }
+
+    const isHfApiOrRepo =
+      urlStr.includes("huggingface.co") &&
+      !urlStr.includes("cdn-lfs.huggingface.co") &&
+      !urlStr.includes("cdn-lfs.hf.co");
+
+    if (token && isHfApiOrRepo) {
       const headers = new Headers(
         init?.headers as Record<string, string> | undefined
       );
-      headers.set("Authorization", `Bearer ${accessToken}`);
+      headers.set("Authorization", `Bearer ${token}`);
       return baseFetch(input, { ...init, headers });
     }
     return baseFetch(input, init);
@@ -83,6 +111,7 @@ export const provider: ProviderModule = {
     const getOrInitModel = async (): Promise<LanguageModel> => {
       if (!modelPromise) {
         modelPromise = (async () => {
+          await configureBackend();
           await configureAuth(config.accessToken);
 
           const { transformersJS } = await import(
@@ -91,30 +120,10 @@ export const provider: ProviderModule = {
 
           const modelInstance = transformersJS(config.model, {
             device: "wasm",
-          }) as unknown as LanguageModel & {
-            doGenerate?: (...args: unknown[]) => Promise<unknown>;
-            doStream?: (...args: unknown[]) => Promise<unknown>;
-          };
+            dtype: "q4",
+          }) as unknown as LanguageModel;
 
-          const originalDoGenerate =
-            modelInstance.doGenerate?.bind(modelInstance);
-          const originalDoStream = modelInstance.doStream?.bind(modelInstance);
-
-          if (originalDoGenerate) {
-            modelInstance.doGenerate = async (...args: unknown[]) => {
-              await configureBackend();
-              return originalDoGenerate(...args);
-            };
-          }
-
-          if (originalDoStream) {
-            modelInstance.doStream = async (...args: unknown[]) => {
-              await configureBackend();
-              return originalDoStream(...args);
-            };
-          }
-
-          return modelInstance as LanguageModel;
+          return modelInstance;
         })();
       }
       return modelPromise;
