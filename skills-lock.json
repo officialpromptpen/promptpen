@@ -7,6 +7,12 @@
       "skillPath": "skills/chrome-extension-wxt/SKILL.md",
       "computedHash": "6e59d85959dfaa3b3c8ff672eae0fe64d77a1e11e164e8191209af7e15a4f9b2"
     },
+    "huggingface-best": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "skillPath": "skills/huggingface-best/SKILL.md",
+      "computedHash": "03329469a54bec7cf5bbe0f587d24718cc29a76fc51ea39a67544bf9d73d9a23"
+    },
     "react-doctor": {
       "source": "aidenybai/react-doctor",
       "sourceType": "github",
@@ -18,6 +24,12 @@
       "sourceType": "github",
       "skillPath": "plugins/frontend-mobile-development/skills/react-state-management/SKILL.md",
       "computedHash": "eadfba2e4198625858b67c8e105fb8252448524920344bd037c202bd372aa00d"
+    },
+    "transformers-js": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "skillPath": "skills/transformers-js/SKILL.md",
+      "computedHash": "f61c531d0cc9ee4cb714b5a651f4a7a939ce127f70333d44af179cbbb1663de1"
     },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",
