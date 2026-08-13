@@ -95,7 +95,7 @@ export async function executeStructuredWritingAction(
   // For in-browser Transformers.js models, skip generateObject (object-json mode is not supported by WASM wrapper)
   if (isTransformers) {
     const simpleSystemPrompt =
-      "You are a helpful text transformation assistant. Transform the text as requested. Output ONLY the transformed text directly — no explanations, no commentary, no quotes.";
+      "You are a helpful text transformation assistant. Transform the text as requested. Output ONLY the transformed text directly — no greetings, no explanations, no commentary, no quotes, and no instructions in output text.";
 
     const simpleUserPrompt = `Task: ${actionInstruction}
 Original Text: "${text}"
@@ -134,6 +134,7 @@ For editing actions, return text that can be directly inserted into the editor.
 Do not add introductions.
 Do not add unnecessary explanations.
 Do not wrap the result in quotes.
+Do not include any instruction or prompt text in the output text.
 The \`original\` field must exactly match the input text.
 The \`action\` field must exactly match the application-provided action.
 The \`result\` field must contain the final usable result.`;

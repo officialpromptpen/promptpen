@@ -70,7 +70,7 @@ export function useActionHandlers(
         );
 
         const systemPrompt =
-          "You are PromptPen, an AI writing assistant. Output ONLY the transformed text — no greetings, no explanations, no commentary, no markdown, no quotation marks.";
+          "You are PromptPen, an AI writing assistant. Output ONLY the transformed text — no greetings, no explanations, no commentary, no markdown, no quotation marks, and no instructions in output text.";
 
         let response: { text?: string; output?: WritingOutput; error?: string };
 

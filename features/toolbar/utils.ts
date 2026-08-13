@@ -18,7 +18,7 @@ export function createActionPrompt(
 }
 
 const PREAMBLE_HEADER_RE =
-  /(?:^|\n+)(?:the (?:final )?(?:output|result|text) (?:is|will be)|here (?:is|'s) the (?:transformed|revised|rewritten)? ?(?:text|output|result)|(?:output|result|transformed text|revised text|rewritten text|final output)):\s*/gi;
+  /(?:^|\n+)(?:the (?:final )?(?:output|result|text) (?:is|will be)|here (?:is|'s) the (?:transformed|revised|rewritten)? ?(?:text|output|result)|(?:output|result|transformed text|revised text|rewritten text|final output|instruction|task|output text)):\s*/gi;
 
 export function normalizeModelOutput(rawText: string): string {
   let cleaned = rawText.trim();
