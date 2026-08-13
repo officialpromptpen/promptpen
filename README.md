@@ -16,7 +16,7 @@ AI-powered writing assistant for Chrome and Firefox. Select text on any webpage 
 - **Modify** — Shorten, expand, summarize, or explain selected text
 - **Custom prompts** — Create and save your own reusable writing prompts
 - **Multi-provider** — Support for cloud AI, self-hosted LLMs, and local in-browser models
-- **Local AI (Transformers.js)** — Run LLMs fully in-browser with ONNX Runtime WebAssembly, no API key or internet required after download
+- **Local AI (Transformers.js [Beta])** — Run LLMs fully in-browser with ONNX Runtime WebAssembly, no API key or internet required after download
 - **Local AI (Ollama)** — Connect to models running locally on your own machine
 - **Website access control & 1-click suggested sites** — Enable/disable on specific domains with 1-click shortcuts for popular publishing sites (Medium, DEV Community, Hashnode, Substack, LinkedIn, GitHub, Notion, WordPress, Ghost, Reddit, X)
 - **Security & Encryption** — AES-GCM encrypted API key storage, runtime background message origin validation (`sender.id === browser.runtime.id`), and Web Accessible WASM resources
@@ -25,7 +25,7 @@ AI-powered writing assistant for Chrome and Firefox. Select text on any webpage 
 
 ## Supported Providers
 
-OpenAI, OpenRouter, Anthropic, Gemini, Groq, Ollama (local), Together AI, Cohere, DeepSeek, Mistral, OpenAI Compatible, **Transformers.js (in-browser, offline)**.
+OpenAI, OpenRouter, Anthropic, Gemini, Groq, Ollama (local), Together AI, Cohere, DeepSeek, Mistral, OpenAI Compatible, **Transformers.js (Beta - in-browser, offline)**.
 
 ## Prerequisites
 
@@ -106,12 +106,12 @@ Click on a provider from the list — for example, **OpenRouter**.
 
 Enter your model name (e.g. `openai/gpt-4o-mini`) and your API key from OpenRouter. Click **Test Connection** to verify everything works, then click **Save**.
 
-### 4. Use Local AI (Transformers.js)
+### 4. Use Local AI (Transformers.js - Beta)
 
 Transformers.js runs models entirely in your browser — no API key, no account, and no data leaves your device.
 
 1. Open the extension settings → **Self-Hosted** tab.
-2. In the **Transformers.js** card, pick a recommended model (e.g. `Qwen2.5-0.5B-Instruct`) or type any ONNX model ID from the [onnx-community](https://huggingface.co/onnx-community) organization.
+2. In the **Transformers.js (Beta)** card, pick a recommended model (e.g. `Qwen2.5-0.5B-Instruct`) or type any ONNX model ID from the [onnx-community](https://huggingface.co/onnx-community) organization.
 3. Click **Add**, then **Download**. The model is downloaded from Hugging Face and cached locally with download progress shown.
 4. For gated or private models, paste a **Hugging Face access token** and click **Save Token** first.
 
@@ -177,7 +177,7 @@ pnpm run doctor      # React Doctor performance, accessibility & architectural a
 | Animation | Framer Motion |
 | Icons | Lucide React |
 | AI SDK | Vercel AI SDK (`ai`) |
-| Local AI | Transformers.js (`@huggingface/transformers`), ONNX Runtime WebAssembly |
+| Local AI | Transformers.js (Beta) (`@huggingface/transformers`), ONNX Runtime WebAssembly |
 | State | Zustand |
 | Build | Vite, WXT module system |
 | Code Quality | Biome, Ultracite, React Doctor |

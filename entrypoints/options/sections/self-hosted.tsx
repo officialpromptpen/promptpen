@@ -771,7 +771,12 @@ function TransformersCard({ onSaved }: { onSaved?: () => void }) {
       <div className="pp:mb-4 pp:flex pp:items-center pp:gap-3">
         <Cpu className="pp:size-5 pp:text-muted-foreground" />
         <div>
-          <h2 className="pp:font-semibold pp:text-lg">Transformers.js</h2>
+          <div className="pp:flex pp:items-center pp:gap-2">
+            <h2 className="pp:font-semibold pp:text-lg">Transformers.js</h2>
+            <span className="pp:rounded-full pp:border pp:border-amber-500/20 pp:bg-amber-500/10 pp:px-2 pp:py-0.5 pp:font-medium pp:text-amber-500 pp:text-xs">
+              Beta
+            </span>
+          </div>
           <p className="pp:text-muted-foreground pp:text-sm">
             In-browser AI models powered by Transformers.js and ONNX Runtime.
           </p>
