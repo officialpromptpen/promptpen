@@ -1,6 +1,8 @@
 import type { FirefoxDataCollectionPermissions } from "wxt";
 import { defineConfig } from "wxt";
 
+const WASM_ASSET_REGEX = /^.*\.(wasm|wasm\?.*)$/;
+
 export default defineConfig({
   manifest: {
     browser_specific_settings: {
@@ -38,6 +40,14 @@ export default defineConfig({
     define: {
       "import.meta": {},
       "import.meta.url": "undefined",
+    },
+    resolve: {
+      alias: [
+        {
+          find: WASM_ASSET_REGEX,
+          replacement: "/onnx/ort-wasm-simd-threaded.mjs",
+        },
+      ],
     },
   }),
 });
