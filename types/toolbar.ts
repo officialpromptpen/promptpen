@@ -41,6 +41,7 @@ export interface ToolbarActionsProps {
   isLoading?: boolean;
   onAction: (actionId: string) => void;
   onModelChange: (model: string) => void;
+  onPointerDownDrag?: (event: React.PointerEvent) => void;
   onProviderChange: (provider: AIProvider) => void;
   onRunCustomPrompt: (prompt: string) => void;
   selectedModel: string;
@@ -80,6 +81,7 @@ export interface ActionGroupListProps {
 export interface ClosedToolbarStateProps {
   isDraggingRef?: React.RefObject<boolean>;
   onOpen: () => void;
+  onPointerDownDrag?: (event: React.PointerEvent) => void;
 }
 
 export interface CustomPromptListProps {

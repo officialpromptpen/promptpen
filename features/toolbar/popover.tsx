@@ -1,6 +1,7 @@
-import { AnimatePresence, m, useDragControls } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
+import Draggable from "react-draggable";
 import type { ToolbarPopoverProps } from "@/types";
 import { ToolbarActions } from "./actions-panel";
 
@@ -20,7 +21,7 @@ export function ToolbarPopover({
   configuredProviderModels,
 }: ToolbarPopoverProps) {
   const isDraggingRef = useRef(false);
-  const dragControls = useDragControls();
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   if (!portalNode) {
     return null;
@@ -29,50 +30,48 @@ export function ToolbarPopover({
   return createPortal(
     <AnimatePresence>
       {visible && (
-        <m.div
-          animate={{ opacity: 1, scale: 1 }}
-          className="pp:fixed pp:z-2147483647"
-          drag
-          dragControls={dragControls}
-          dragListener={false}
-          dragMomentum={false}
-          exit={{ opacity: 0, scale: 0.9 }}
-          initial={{ opacity: 0, scale: 0.9 }}
+        <Draggable
+          handle=".pp-drag-handle"
+          nodeRef={nodeRef}
           onDrag={() => {
             isDraggingRef.current = true;
           }}
-          onDragStart={() => {
+          onStart={() => {
             isDraggingRef.current = false;
           }}
-          style={{
-            left: toolbarPos.x,
-            position: "fixed",
-            top: toolbarPos.y,
-            transform: "translate(-50%, 0)",
-          }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
         >
           <div
-            className="pp-drag-handle"
-            onPointerDown={(e) => {
-              dragControls.start(e);
+            ref={nodeRef}
+            className="pp:fixed pp:z-2147483647"
+            style={{
+              left: toolbarPos.x,
+              position: "fixed",
+              top: toolbarPos.y,
+              transform: "translate(-50%, 0)",
             }}
           >
-            <ToolbarActions
-              activeActionId={activeActionId}
-              configuredProviderModels={configuredProviderModels}
-              configuredProviders={configuredProviders}
-              isDraggingRef={isDraggingRef}
-              isLoading={isRunning}
-              onAction={onAction}
-              onModelChange={onModelChange}
-              onProviderChange={onProviderChange}
-              onRunCustomPrompt={onRunCustomPrompt}
-              selectedModel={selectedModel}
-              selectedProvider={selectedProvider}
-            />
+            <m.div
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+            >
+              <ToolbarActions
+                activeActionId={activeActionId}
+                configuredProviderModels={configuredProviderModels}
+                configuredProviders={configuredProviders}
+                isDraggingRef={isDraggingRef}
+                isLoading={isRunning}
+                onAction={onAction}
+                onModelChange={onModelChange}
+                onProviderChange={onProviderChange}
+                onRunCustomPrompt={onRunCustomPrompt}
+                selectedModel={selectedModel}
+                selectedProvider={selectedProvider}
+              />
+            </m.div>
           </div>
-        </m.div>
+        </Draggable>
       )}
     </AnimatePresence>,
     portalNode

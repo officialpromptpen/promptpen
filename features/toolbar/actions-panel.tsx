@@ -1,5 +1,5 @@
 import { FloatingDelayGroup } from "@floating-ui/react";
-import { GripHorizontal, Search, X } from "lucide-react";
+import { GripVertical, Search, X } from "lucide-react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AIProviderSelectIcon } from "@/components/ai-provider-select-icon";
@@ -49,6 +49,7 @@ export function ToolbarActions({
   activeActionId = null,
   enabledActionIds,
   isDraggingRef,
+  onPointerDownDrag,
 }: ToolbarActionsProps) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -79,7 +80,7 @@ export function ToolbarActions({
         return {
           group:
             CATEGORY_LABELS[
-              def.category ?? ("openai-compatible" as ProviderCategory)
+            def.category ?? ("openai-compatible" as ProviderCategory)
             ],
           id,
           name: def.label,
@@ -175,6 +176,7 @@ export function ToolbarActions({
             setIsPanelOpen(true);
           }
         }}
+        onPointerDownDrag={onPointerDownDrag}
       />
     );
   }
@@ -185,15 +187,25 @@ export function ToolbarActions({
         aria-label="PromptPen action panel"
         className="pp:max-h-[80vh] pp:w-[min(64vw,564px)] pp:overflow-hidden pp:rounded-xl pp:border pp:border-border/70 pp:bg-popover pp:text-popover-foreground pp:shadow-2xl"
       >
-        <div className="pp-drag-handle pp:flex pp:cursor-grab pp:select-none pp:flex-row pp:items-center pp:justify-between pp:gap-3 pp:border-border pp:border-b pp:px-2.5 pp:py-3 active:pp:cursor-grabbing">
+        <div
+          className="pp-drag-handle pp:flex pp:cursor-grab pp:select-none pp:flex-row pp:items-center pp:justify-between pp:gap-3 pp:border-border pp:border-b pp:px-2.5 pp:py-3 active:pp:cursor-grabbing"
+          onPointerDown={(e) => {
+            const target = e.target as HTMLElement;
+            if (
+              !target.closest("button") &&
+              !target.closest("select") &&
+              !target.closest("input")
+            ) {
+              onPointerDownDrag?.(e);
+            }
+          }}
+        >
           <div className="pp:flex pp:items-center pp:gap-2">
-            <GripHorizontal className="pp:size-4 pp:text-muted-foreground/70" />
+            <GripVertical className="pp:size-4 pp:text-muted-foreground/70" />
             <div className="pp:flex pp:size-7 pp:items-center pp:justify-center pp:rounded-lg">
               <Logo />
             </div>
-            <span className="pp:font-semibold pp:text-sm">
-              PromptPen Actions
-            </span>
+
           </div>
 
           <div className="pp:ml-auto pp:flex pp:items-center pp:gap-2">

@@ -13,6 +13,7 @@ import type { ClosedToolbarStateProps } from "@/types";
 export function ClosedToolbarState({
   onOpen,
   isDraggingRef,
+  onPointerDownDrag,
 }: ClosedToolbarStateProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -25,6 +26,12 @@ export function ClosedToolbarState({
               className="pp-drag-handle pp:flex pp:cursor-grab pp:select-none pp:items-center pp:rounded-lg pp:border pp:border-border/70 pp:bg-primary pp:p-1 pp:text-primary-foreground pp:shadow-xl active:pp:cursor-grabbing"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
+              onPointerDown={(e) => {
+                const target = e.target as HTMLElement;
+                if (!target.closest("button")) {
+                  onPointerDownDrag?.(e);
+                }
+              }}
             >
               <AnimatePresence initial={false}>
                 {isHovered && (
